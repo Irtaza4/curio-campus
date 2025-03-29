@@ -50,6 +50,11 @@ class _ChatScreenState extends State<ChatScreen> {
     try {
       await Provider.of<ChatProvider>(context, listen: false)
           .fetchMessages(widget.chatId);
+
+      // Scroll to bottom after messages are loaded
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _scrollToBottom();
+      });
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -68,6 +73,16 @@ class _ChatScreenState extends State<ChatScreen> {
     }
   }
 
+  void _scrollToBottom() {
+    if (_scrollController.hasClients) {
+      _scrollController.animateTo(
+        0,
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeOut,
+      );
+    }
+  }
+
   void _sendMessage() async {
     final message = _messageController.text.trim();
     if (message.isEmpty) return;
@@ -78,6 +93,9 @@ class _ChatScreenState extends State<ChatScreen> {
       chatId: widget.chatId,
       content: message,
     );
+
+    // Scroll to bottom after sending a message
+    _scrollToBottom();
   }
 
   void _showMoreOptions() {
@@ -149,6 +167,9 @@ class _ChatScreenState extends State<ChatScreen> {
           imageUrl: imageUrl,
           fileName: fileName,
         );
+
+        // Scroll to bottom after sending an image
+        _scrollToBottom();
       } catch (e) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -195,6 +216,7 @@ class _ChatScreenState extends State<ChatScreen> {
                 : ListView.builder(
               controller: _scrollController,
               reverse: true,
+              physics: const BouncingScrollPhysics(),
               padding: const EdgeInsets.all(16),
               itemCount: chatProvider.messages.length,
               itemBuilder: (context, index) {
@@ -204,6 +226,7 @@ class _ChatScreenState extends State<ChatScreen> {
                 return _buildMessageBubble(
                   message: message,
                   isCurrentUser: isCurrentUser,
+                  chatName: widget.chatName,
                 );
               },
             ),
@@ -271,6 +294,7 @@ class _ChatScreenState extends State<ChatScreen> {
   Widget _buildMessageBubble({
     required MessageModel message,
     required bool isCurrentUser,
+    required String chatName,
   }) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4),
@@ -293,8 +317,8 @@ class _ChatScreenState extends State<ChatScreen> {
                   : null,
               child: message.senderAvatar == null
                   ? Text(
-                message.senderName.isNotEmpty
-                    ? message.senderName[0].toUpperCase()
+                chatName.isNotEmpty
+                    ? chatName[0].toUpperCase()
                     : '?',
                 style: const TextStyle(color: Colors.white),
               )
@@ -311,7 +335,7 @@ class _ChatScreenState extends State<ChatScreen> {
                   Padding(
                     padding: const EdgeInsets.only(left: 8, bottom: 4),
                     child: Text(
-                      message.senderName,
+                      chatName, // Use chat name instead of sender name
                       style: TextStyle(
                         fontSize: 12,
                         color: Colors.grey[600],

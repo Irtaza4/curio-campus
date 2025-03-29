@@ -21,13 +21,7 @@ class AuthProvider with ChangeNotifier {
   bool get isAuthenticated => _firebaseUser != null;
 
   AuthProvider() {
-    // For testing without Firebase, comment out the real initialization
-    // and uncomment the mock initialization
     _initializeUser();
-
-    // Uncomment for testing without Firebase
-    // _firebaseUser = null;
-    // notifyListeners();
   }
 
   Future<void> _initializeUser() async {

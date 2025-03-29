@@ -43,7 +43,10 @@ class _ProjectsScreenState extends State<ProjectsScreen> {
       MaterialPageRoute(
         builder: (_) => ProjectDetailScreen(projectId: projectId),
       ),
-    );
+    ).then((_) {
+      // Refresh projects when returning from detail screen
+      _fetchProjects();
+    });
   }
 
   void _navigateToCreateProject() {
@@ -52,7 +55,10 @@ class _ProjectsScreenState extends State<ProjectsScreen> {
       MaterialPageRoute(
         builder: (_) => const CreateProjectScreen(),
       ),
-    );
+    ).then((_) {
+      // Refresh projects when returning from create screen
+      _fetchProjects();
+    });
   }
 
   void _showMoreOptions() {
@@ -104,114 +110,89 @@ class _ProjectsScreenState extends State<ProjectsScreen> {
     );
   }
 
-  void _showSortOptions() {
-    showDialog(
+  void _showProjectOptions(ProjectModel project) {
+    showModalBottomSheet(
       context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
       builder: (context) {
-        return AlertDialog(
-          title: const Text('Sort Projects'),
-          content: Column(
+        return SafeArea(
+          child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               ListTile(
-                title: const Text('By Name (A-Z)'),
+                leading: const Icon(Icons.open_in_new, color: Colors.blue),
+                title: const Text('Open'),
                 onTap: () {
                   Navigator.pop(context);
-                  // Implement sorting
+                  _navigateToProjectDetail(project.id);
                 },
               ),
               ListTile(
-                title: const Text('By Date (Newest First)'),
+                leading: const Icon(Icons.delete, color: Colors.red),
+                title: const Text('Delete', style: TextStyle(color: Colors.red)),
                 onTap: () {
                   Navigator.pop(context);
-                  // Implement sorting
-                },
-              ),
-              ListTile(
-                title: const Text('By Progress (Highest First)'),
-                onTap: () {
-                  Navigator.pop(context);
-                  // Implement sorting
-                },
-              ),
-              ListTile(
-                title: const Text('By Deadline (Soonest First)'),
-                onTap: () {
-                  Navigator.pop(context);
-                  // Implement sorting
+                  _showDeleteProjectDialog(project);
                 },
               ),
             ],
           ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.pop(context);
-              },
-              child: const Text('Cancel'),
-            ),
-          ],
         );
       },
     );
   }
 
-  void _showFilterOptions() {
+  void _showDeleteProjectDialog(ProjectModel project) {
     showDialog(
       context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: const Text('Filter Projects'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              ListTile(
-                title: const Text('All Projects'),
-                onTap: () {
-                  Navigator.pop(context);
-                  // Implement filtering
-                },
-              ),
-              ListTile(
-                title: const Text('In Progress'),
-                onTap: () {
-                  Navigator.pop(context);
-                  // Implement filtering
-                },
-              ),
-              ListTile(
-                title: const Text('Completed'),
-                onTap: () {
-                  Navigator.pop(context);
-                  // Implement filtering
-                },
-              ),
-              ListTile(
-                title: const Text('Upcoming Deadlines'),
-                onTap: () {
-                  Navigator.pop(context);
-                  // Implement filtering
-                },
-              ),
-            ],
+      builder: (context) => AlertDialog(
+        title: const Text('Delete Project'),
+        content: Text('Are you sure you want to delete "${project.name}"?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
           ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.pop(context);
-              },
-              child: const Text('Cancel'),
-            ),
-          ],
-        );
-      },
+          TextButton(
+            onPressed: () async {
+              Navigator.pop(context);
+
+              setState(() {
+                _isLoading = true;
+              });
+
+              final success = await Provider.of<ProjectProvider>(context, listen: false)
+                  .deleteProject(project.id);
+
+              setState(() {
+                _isLoading = false;
+              });
+
+              if (success && mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('Project "${project.name}" deleted'),
+                  ),
+                );
+              }
+            },
+            child: const Text('Delete', style: TextStyle(color: Colors.red)),
+          ),
+        ],
+      ),
     );
   }
 
   @override
   Widget build(BuildContext context) {
     final projectProvider = Provider.of<ProjectProvider>(context);
-    final projects = projectProvider.projects;
+    final allProjects = projectProvider.projects;
+
+    // Separate projects into active and completed
+    final activeProjects = allProjects.where((p) => p.progress < 100).toList();
+    final completedProjects = allProjects.where((p) => p.progress == 100).toList();
 
     return Scaffold(
       appBar: AppBar(
@@ -229,7 +210,7 @@ class _ProjectsScreenState extends State<ProjectsScreen> {
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
-          : projects.isEmpty
+          : allProjects.isEmpty
           ? Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -248,13 +229,34 @@ class _ProjectsScreenState extends State<ProjectsScreen> {
       )
           : RefreshIndicator(
         onRefresh: _fetchProjects,
-        child: ListView.builder(
+        child: ListView(
           padding: const EdgeInsets.all(16),
-          itemCount: projects.length,
-          itemBuilder: (context, index) {
-            final project = projects[index];
-            return _buildProjectCard(project);
-          },
+          children: [
+            if (activeProjects.isNotEmpty) ...[
+              const Text(
+                'Active Projects',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 8),
+              ...activeProjects.map((project) => _buildProjectCard(project)),
+            ],
+
+            if (completedProjects.isNotEmpty) ...[
+              const SizedBox(height: 24),
+              const Text(
+                'Completed Projects',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 8),
+              ...completedProjects.map((project) => _buildProjectCard(project)),
+            ],
+          ],
         ),
       ),
     );
@@ -269,6 +271,7 @@ class _ProjectsScreenState extends State<ProjectsScreen> {
       ),
       child: InkWell(
         onTap: () => _navigateToProjectDetail(project.id),
+        onLongPress: () => _showProjectOptions(project),
         borderRadius: BorderRadius.circular(12),
         child: Padding(
           padding: const EdgeInsets.all(16),
@@ -360,18 +363,22 @@ class _ProjectsScreenState extends State<ProjectsScreen> {
               ),
               const SizedBox(height: 8),
               Text(
-                'One step at a time. You\'ll get there.',
+                project.progress == 100
+                    ? 'Project completed!'
+                    : 'One step at a time. You\'ll get there.',
                 style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
-                  color: AppTheme.primaryColor,
+                  color: project.progress == 100 ? Colors.green : AppTheme.primaryColor,
                 ),
               ),
               const SizedBox(height: 8),
               LinearProgressIndicator(
                 value: project.progress / 100,
                 backgroundColor: Colors.grey[200],
-                valueColor: AlwaysStoppedAnimation<Color>(AppTheme.primaryColor),
+                valueColor: AlwaysStoppedAnimation<Color>(
+                  project.progress == 100 ? Colors.green : AppTheme.primaryColor,
+                ),
                 minHeight: 8,
                 borderRadius: BorderRadius.circular(4),
               ),
@@ -382,7 +389,7 @@ class _ProjectsScreenState extends State<ProjectsScreen> {
                   '${project.progress}%',
                   style: TextStyle(
                     fontSize: 12,
-                    color: AppTheme.primaryColor,
+                    color: project.progress == 100 ? Colors.green : AppTheme.primaryColor,
                     fontWeight: FontWeight.bold,
                   ),
                 ),

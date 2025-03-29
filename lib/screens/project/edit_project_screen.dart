@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:curio_campus/models/project_model.dart';
 import 'package:curio_campus/models/user_model.dart';
 import 'package:curio_campus/providers/project_provider.dart';
 import 'package:curio_campus/providers/chat_provider.dart';
@@ -8,14 +9,19 @@ import 'package:curio_campus/widgets/custom_button.dart';
 import 'package:curio_campus/widgets/custom_text_field.dart';
 import 'package:intl/intl.dart';
 
-class CreateProjectScreen extends StatefulWidget {
-  const CreateProjectScreen({Key? key}) : super(key: key);
+class EditProjectScreen extends StatefulWidget {
+  final ProjectModel project;
+
+  const EditProjectScreen({
+    Key? key,
+    required this.project,
+  }) : super(key: key);
 
   @override
-  State<CreateProjectScreen> createState() => _CreateProjectScreenState();
+  State<EditProjectScreen> createState() => _EditProjectScreenState();
 }
 
-class _CreateProjectScreenState extends State<CreateProjectScreen> {
+class _EditProjectScreenState extends State<EditProjectScreen> {
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
   final _descriptionController = TextEditingController();
@@ -28,6 +34,10 @@ class _CreateProjectScreenState extends State<CreateProjectScreen> {
   @override
   void initState() {
     super.initState();
+    _nameController.text = widget.project.name;
+    _descriptionController.text = widget.project.description;
+    _deadline = widget.project.deadline;
+    _selectedTeamMembers = List.from(widget.project.teamMembers);
     _fetchChatContacts();
   }
 
@@ -114,76 +124,17 @@ class _CreateProjectScreenState extends State<CreateProjectScreen> {
     }
   }
 
-  Future<void> _selectTeamMembers() async {
-    if (_isLoadingContacts) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Loading contacts, please wait...'),
-        ),
-      );
-      return;
-    }
-
-    if (_chatContacts.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('No chat contacts found. Start chatting with people to add them to your project.'),
-        ),
-      );
-      return;
-    }
-
-    final List<String> tempSelectedMembers = List.from(_selectedTeamMembers);
-
-    await showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Add Team Members'),
-        content: SizedBox(
-          width: double.maxFinite,
-          child: ListView.builder(
-            shrinkWrap: true,
-            itemCount: _chatContacts.length,
-            itemBuilder: (context, index) {
-              final contact = _chatContacts[index];
-              final isSelected = tempSelectedMembers.contains(contact.id);
-
-              return CheckboxListTile(
-                title: Text(contact.name),
-                subtitle: Text(contact.email),
-                value: isSelected,
-                onChanged: (value) {
-                  if (value == true) {
-                    tempSelectedMembers.add(contact.id);
-                  } else {
-                    tempSelectedMembers.remove(contact.id);
-                  }
-                  setState(() {});
-                },
-              );
-            },
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
-          ),
-          TextButton(
-            onPressed: () {
-              setState(() {
-                _selectedTeamMembers = tempSelectedMembers;
-              });
-              Navigator.pop(context);
-            },
-            child: const Text('Done'),
-          ),
-        ],
-      ),
-    );
+  void _toggleTeamMember(String userId) {
+    setState(() {
+      if (_selectedTeamMembers.contains(userId)) {
+        _selectedTeamMembers.remove(userId);
+      } else {
+        _selectedTeamMembers.add(userId);
+      }
+    });
   }
 
-  Future<void> _createProject() async {
+  Future<void> _saveProject() async {
     if (!_formKey.currentState!.validate()) return;
 
     setState(() {
@@ -191,24 +142,17 @@ class _CreateProjectScreenState extends State<CreateProjectScreen> {
     });
 
     try {
-      final projectId = await Provider.of<ProjectProvider>(context, listen: false).createProject(
+      final updatedProject = widget.project.copyWith(
         name: _nameController.text.trim(),
         description: _descriptionController.text.trim(),
-        teamMembers: _selectedTeamMembers,
         deadline: _deadline,
+        teamMembers: _selectedTeamMembers,
       );
 
+      await Provider.of<ProjectProvider>(context, listen: false).updateProject(updatedProject);
+
       if (mounted) {
-        if (projectId != null) {
-          Navigator.pop(context, true);
-        } else {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Failed to create project'),
-              backgroundColor: Colors.red,
-            ),
-          );
-        }
+        Navigator.pop(context, true);
       }
     } catch (e) {
       setState(() {
@@ -218,7 +162,7 @@ class _CreateProjectScreenState extends State<CreateProjectScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Error creating project: ${e.toString()}'),
+            content: Text('Error updating project: ${e.toString()}'),
             backgroundColor: Colors.red,
           ),
         );
@@ -230,7 +174,7 @@ class _CreateProjectScreenState extends State<CreateProjectScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Create Project'),
+        title: const Text('Edit Project'),
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
@@ -319,75 +263,80 @@ class _CreateProjectScreenState extends State<CreateProjectScreen> {
                   fontWeight: FontWeight.bold,
                 ),
               ),
-              const SizedBox(height: 8),
-              InkWell(
-                onTap: _selectTeamMembers,
-                child: Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 12,
-                  ),
-                  decoration: BoxDecoration(
-                    border: Border.all(color: Colors.grey[300]!),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Row(
-                    children: [
-                      Icon(
-                        Icons.people,
-                        size: 20,
-                        color: AppTheme.primaryColor,
-                      ),
-                      const SizedBox(width: 8),
-                      Text(
-                        _selectedTeamMembers.isEmpty
-                            ? 'Add team members'
-                            : '${_selectedTeamMembers.length} member(s) selected',
-                        style: const TextStyle(fontSize: 16),
-                      ),
-                    ],
-                  ),
+              const SizedBox(height: 4),
+              const Text(
+                'You can only add members from your chat contacts',
+                style: TextStyle(
+                  fontSize: 12,
+                  color: Colors.grey,
                 ),
               ),
+              const SizedBox(height: 8),
 
-              if (_selectedTeamMembers.isNotEmpty) ...[
-                const SizedBox(height: 16),
-                Wrap(
-                  spacing: 8,
-                  runSpacing: 8,
-                  children: _selectedTeamMembers.map((userId) {
-                    final user = _chatContacts.firstWhere(
-                          (contact) => contact.id == userId,
-                      orElse: () => UserModel(
-                        id: userId,
-                        name: 'Unknown User',
-                        email: '',
-                        majorSkills: [],
-                        minorSkills: [],
-                        createdAt: DateTime.now(),
-                        lastActive: DateTime.now(),
-                      ),
-                    );
-
-                    return Chip(
-                      label: Text(user.name),
-                      deleteIcon: const Icon(Icons.close, size: 18),
-                      onDeleted: () {
-                        setState(() {
-                          _selectedTeamMembers.remove(userId);
-                        });
-                      },
-                    );
-                  }).toList(),
+              _isLoadingContacts
+                  ? const Center(
+                child: Padding(
+                  padding: EdgeInsets.all(16.0),
+                  child: CircularProgressIndicator(),
                 ),
-              ],
+              )
+                  : _chatContacts.isEmpty
+                  ? const Padding(
+                padding: EdgeInsets.all(16.0),
+                child: Text(
+                  'No chat contacts found. Start chatting with people to add them to your project.',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    color: Colors.grey,
+                    fontSize: 14,
+                  ),
+                ),
+              )
+                  : ListView.builder(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                itemCount: _chatContacts.length,
+                itemBuilder: (context, index) {
+                  final contact = _chatContacts[index];
+                  final isSelected = _selectedTeamMembers.contains(contact.id);
+
+                  return ListTile(
+                    leading: CircleAvatar(
+                      backgroundImage: contact.profileImageUrl != null
+                          ? NetworkImage(contact.profileImageUrl!)
+                          : null,
+                      backgroundColor: AppTheme.primaryColor,
+                      child: contact.profileImageUrl == null
+                          ? Text(
+                        contact.name[0].toUpperCase(),
+                        style: const TextStyle(color: Colors.white),
+                      )
+                          : null,
+                    ),
+                    title: Text(contact.name),
+                    subtitle: Text(
+                      contact.majorSkills.isNotEmpty
+                          ? contact.majorSkills.join(', ')
+                          : 'No skills listed',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    trailing: Checkbox(
+                      value: isSelected,
+                      activeColor: AppTheme.primaryColor,
+                      onChanged: (value) => _toggleTeamMember(contact.id),
+                    ),
+                    onTap: () => _toggleTeamMember(contact.id),
+                  );
+                },
+              ),
 
               const SizedBox(height: 32),
 
-              // Create button
+              // Save button
               CustomButton(
-                text: 'Create Project',
-                onPressed: _createProject,
+                text: 'Save Changes',
+                onPressed: _saveProject,
                 isLoading: _isLoading,
               ),
             ],

@@ -77,7 +77,8 @@ class _CreateTaskScreenState extends State<CreateTaskScreen> {
       });
 
       if (taskId != null && mounted) {
-        Navigator.pop(context);
+        // Return true to indicate success
+        Navigator.pop(context, true);
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('Task created successfully'),

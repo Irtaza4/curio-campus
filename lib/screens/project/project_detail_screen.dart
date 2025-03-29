@@ -5,6 +5,10 @@ import 'package:curio_campus/providers/project_provider.dart';
 import 'package:curio_campus/utils/app_theme.dart';
 import 'package:intl/intl.dart';
 import 'package:curio_campus/providers/auth_provider.dart';
+import 'package:curio_campus/screens/project/create_task_screen.dart';
+import 'package:curio_campus/screens/project/edit_project_screen.dart';
+
+import '../../models/user_model.dart';
 
 class ProjectDetailScreen extends StatefulWidget {
   final String projectId;
@@ -24,7 +28,12 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
   @override
   void initState() {
     super.initState();
-    _fetchProjectDetails();
+    // Schedule the fetch operation after the build is complete
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        _fetchProjectDetails();
+      }
+    });
   }
 
   Future<void> _fetchProjectDetails() async {
@@ -49,7 +58,46 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
   }
 
   Future<void> _addTask() async {
-    // Navigate to add task screen
+    final projectProvider = Provider.of<ProjectProvider>(context, listen: false);
+    final project = projectProvider.currentProject;
+
+    if (project != null) {
+      final result = await Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => CreateTaskScreen(
+            projectId: project.id,
+            teamMembers: project.teamMembers,
+          ),
+        ),
+      );
+
+      // Refresh project details if a task was added
+      if (result == true && mounted) {
+        _fetchProjectDetails();
+      }
+    }
+  }
+
+  Future<void> _editProject() async {
+    final projectProvider = Provider.of<ProjectProvider>(context, listen: false);
+    final project = projectProvider.currentProject;
+
+    if (project != null) {
+      final result = await Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => EditProjectScreen(
+            project: project,
+          ),
+        ),
+      );
+
+      // Refresh project details if the project was updated
+      if (result == true && mounted) {
+        _fetchProjectDetails();
+      }
+    }
   }
 
   void _showMoreOptions() {
@@ -112,9 +160,7 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
         actions: [
           IconButton(
             icon: const Icon(Icons.edit),
-            onPressed: () {
-              // Navigate to edit project screen
-            },
+            onPressed: _editProject,
           ),
           IconButton(
             icon: const Icon(Icons.more_vert),
@@ -227,6 +273,71 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
               ),
 
               const SizedBox(height: 24),
+
+              // Team members section
+              if (project.teamMembers.isNotEmpty) ...[
+                const Text(
+                  'Team Members',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                SizedBox(
+                  height: 80,
+                  child: ListView.builder(
+                    scrollDirection: Axis.horizontal,
+                    itemCount: project.teamMembers.length,
+                    itemBuilder: (context, index) {
+                      return FutureBuilder<UserModel?>(
+                        future: Provider.of<ProjectProvider>(context, listen: false)
+                            .fetchUserById(project.teamMembers[index]),
+                        builder: (context, snapshot) {
+                          if (snapshot.connectionState == ConnectionState.waiting) {
+                            return const Padding(
+                              padding: EdgeInsets.all(8.0),
+                              child: CircularProgressIndicator(),
+                            );
+                          }
+
+                          final user = snapshot.data;
+                          if (user == null) {
+                            return const SizedBox.shrink();
+                          }
+
+                          return Padding(
+                            padding: const EdgeInsets.only(right: 16),
+                            child: Column(
+                              children: [
+                                CircleAvatar(
+                                  radius: 24,
+                                  backgroundImage: user.profileImageUrl != null
+                                      ? NetworkImage(user.profileImageUrl!)
+                                      : null,
+                                  backgroundColor: AppTheme.primaryColor,
+                                  child: user.profileImageUrl == null
+                                      ? Text(
+                                    user.name[0].toUpperCase(),
+                                    style: const TextStyle(color: Colors.white),
+                                  )
+                                      : null,
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  user.name.split(' ')[0],
+                                  style: const TextStyle(fontSize: 12),
+                                ),
+                              ],
+                            ),
+                          );
+                        },
+                      );
+                    },
+                  ),
+                ),
+                const SizedBox(height: 16),
+              ],
 
               // Task list
               Row(

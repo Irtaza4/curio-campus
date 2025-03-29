@@ -1,4 +1,7 @@
+import 'package:curio_campus/models/user_model.dart';
+
 enum TaskStatus { pending, inProgress, completed }
+
 enum TaskPriority { low, medium, high }
 
 class TaskModel {
@@ -27,14 +30,8 @@ class TaskModel {
       id: json['id'] as String,
       title: json['title'] as String,
       description: json['description'] as String,
-      status: TaskStatus.values.firstWhere(
-            (e) => e.toString() == 'TaskStatus.${json['status']}',
-        orElse: () => TaskStatus.pending,
-      ),
-      priority: TaskPriority.values.firstWhere(
-            (e) => e.toString() == 'TaskPriority.${json['priority']}',
-        orElse: () => TaskPriority.medium,
-      ),
+      status: _parseTaskStatus(json['status'] as String),
+      priority: _parseTaskPriority(json['priority'] as String),
       assignedTo: json['assignedTo'] as String,
       dueDate: DateTime.parse(json['dueDate'] as String),
       createdAt: DateTime.parse(json['createdAt'] as String),
@@ -52,6 +49,54 @@ class TaskModel {
       'dueDate': dueDate.toIso8601String(),
       'createdAt': createdAt.toIso8601String(),
     };
+  }
+
+  static TaskStatus _parseTaskStatus(String status) {
+    switch (status) {
+      case 'pending':
+        return TaskStatus.pending;
+      case 'inProgress':
+        return TaskStatus.inProgress;
+      case 'completed':
+        return TaskStatus.completed;
+      default:
+        return TaskStatus.pending;
+    }
+  }
+
+  static TaskPriority _parseTaskPriority(String priority) {
+    switch (priority) {
+      case 'low':
+        return TaskPriority.low;
+      case 'medium':
+        return TaskPriority.medium;
+      case 'high':
+        return TaskPriority.high;
+      default:
+        return TaskPriority.medium;
+    }
+  }
+
+  TaskModel copyWith({
+    String? id,
+    String? title,
+    String? description,
+    TaskStatus? status,
+    TaskPriority? priority,
+    String? assignedTo,
+    DateTime? dueDate,
+    DateTime? createdAt,
+  }) {
+    return TaskModel(
+      id: id ?? this.id,
+      title: title ?? this.title,
+      description: description ?? this.description,
+      status: status ?? this.status,
+      priority: priority ?? this.priority,
+      assignedTo: assignedTo ?? this.assignedTo,
+      dueDate: dueDate ?? this.dueDate,
+      createdAt: createdAt ?? this.createdAt,
+    );
   }
 }
 
@@ -83,15 +128,18 @@ class ProjectModel {
       id: json['id'] as String,
       name: json['name'] as String,
       description: json['description'] as String,
-      teamMembers: List<String>.from(json['teamMembers']),
+      teamMembers: List<String>.from(json['teamMembers'] ?? []),
       createdBy: json['createdBy'] as String,
       deadline: DateTime.parse(json['deadline'] as String),
       createdAt: DateTime.parse(json['createdAt'] as String),
       progress: json['progress'] as int? ?? 0,
-      tasks: (json['tasks'] as List?)
-          ?.map((e) => TaskModel.fromJson(e as Map<String, dynamic>))
-          .toList() ??
-          [],
+      tasks: json['tasks'] != null
+          ? List<TaskModel>.from(
+        (json['tasks'] as List).map(
+              (task) => TaskModel.fromJson(task as Map<String, dynamic>),
+        ),
+      )
+          : [],
     );
   }
 
@@ -105,8 +153,32 @@ class ProjectModel {
       'deadline': deadline.toIso8601String(),
       'createdAt': createdAt.toIso8601String(),
       'progress': progress,
-      'tasks': tasks.map((e) => e.toJson()).toList(),
+      // Don't include tasks in the main project document
     };
+  }
+
+  ProjectModel copyWith({
+    String? id,
+    String? name,
+    String? description,
+    List<String>? teamMembers,
+    String? createdBy,
+    DateTime? deadline,
+    DateTime? createdAt,
+    int? progress,
+    List<TaskModel>? tasks,
+  }) {
+    return ProjectModel(
+      id: id ?? this.id,
+      name: name ?? this.name,
+      description: description ?? this.description,
+      teamMembers: teamMembers ?? this.teamMembers,
+      createdBy: createdBy ?? this.createdBy,
+      deadline: deadline ?? this.deadline,
+      createdAt: createdAt ?? this.createdAt,
+      progress: progress ?? this.progress,
+      tasks: tasks ?? this.tasks,
+    );
   }
 }
 

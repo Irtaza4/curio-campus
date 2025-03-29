@@ -3,6 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:uuid/uuid.dart';
 import 'package:curio_campus/models/project_model.dart';
+import 'package:curio_campus/models/user_model.dart';
 import 'package:curio_campus/utils/constants.dart';
 
 class ProjectProvider with ChangeNotifier {
@@ -18,6 +19,7 @@ class ProjectProvider with ChangeNotifier {
   ProjectModel? get currentProject => _currentProject;
   bool get isLoading => _isLoading;
   String? get errorMessage => _errorMessage;
+  String? get currentUserId => _auth.currentUser?.uid;
 
   Future<void> fetchProjects() async {
     if (_auth.currentUser == null) return;
@@ -57,6 +59,7 @@ class ProjectProvider with ChangeNotifier {
   Future<void> fetchProjectDetails(String projectId) async {
     if (_auth.currentUser == null) return;
 
+    // Set loading state
     _isLoading = true;
     _errorMessage = null;
     notifyListeners();
@@ -95,12 +98,67 @@ class ProjectProvider with ChangeNotifier {
         });
       }
 
+      // Update state after fetch is complete
       _isLoading = false;
       notifyListeners();
     } catch (e) {
       _isLoading = false;
       _errorMessage = e.toString();
       notifyListeners();
+    }
+  }
+
+  Future<UserModel?> fetchUserById(String userId) async {
+    try {
+      final docSnapshot = await _firestore
+          .collection(Constants.usersCollection)
+          .doc(userId)
+          .get();
+
+      if (docSnapshot.exists) {
+        return UserModel.fromJson({
+          'id': docSnapshot.id,
+          ...docSnapshot.data()!,
+        });
+      }
+      return null;
+    } catch (e) {
+      _errorMessage = e.toString();
+      notifyListeners();
+      return null;
+    }
+  }
+
+  Future<bool> updateProject(ProjectModel project) async {
+    if (_auth.currentUser == null) return false;
+
+    _isLoading = true;
+    _errorMessage = null;
+    notifyListeners();
+
+    try {
+      await _firestore
+          .collection(Constants.projectsCollection)
+          .doc(project.id)
+          .update(project.toJson());
+
+      // Update local project
+      _currentProject = project;
+
+      // Update project in projects list
+      final index = _projects.indexWhere((p) => p.id == project.id);
+      if (index != -1) {
+        _projects[index] = project;
+      }
+
+      _isLoading = false;
+      notifyListeners();
+      return true;
+    } catch (e) {
+      _isLoading = false;
+      _errorMessage = e.toString();
+      notifyListeners();
+      return false;
     }
   }
 

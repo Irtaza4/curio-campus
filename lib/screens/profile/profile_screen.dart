@@ -1,4 +1,3 @@
-import 'package:curio_campus/screens/auth/login_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:curio_campus/providers/auth_provider.dart';
@@ -148,7 +147,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       onPressed: () async {
                         await authProvider.logout();
                         if (context.mounted) {
-                          Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (_)=>LoginScreen()));
+                          Navigator.of(context).pushReplacementNamed('/login');
                         }
                       },
                       style: ElevatedButton.styleFrom(
