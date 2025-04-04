@@ -6,6 +6,7 @@ import 'package:curio_campus/widgets/custom_button.dart';
 import 'package:curio_campus/widgets/custom_text_field.dart';
 import 'package:curio_campus/widgets/skill_selector.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'dart:io';
 
 class EditProfileScreen extends StatefulWidget {
@@ -45,13 +46,27 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   }
 
   Future<void> _pickImage() async {
-    final picker = ImagePicker();
-    final pickedFile = await picker.pickImage(source: ImageSource.gallery);
+    try {
+      final picker = ImagePicker();
+      final pickedFile = await picker.pickImage(
+        source: ImageSource.gallery,
+        maxWidth: 800,
+        maxHeight: 800,
+        imageQuality: 85,
+      );
 
-    if (pickedFile != null) {
-      setState(() {
-        _profileImage = File(pickedFile.path);
-      });
+      if (pickedFile != null) {
+        setState(() {
+          _profileImage = File(pickedFile.path);
+        });
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error picking image: ${e.toString()}'),
+          backgroundColor: Colors.red,
+        ),
+      );
     }
   }
 
@@ -63,12 +78,24 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
       final authProvider = Provider.of<AuthProvider>(context, listen: false);
 
-      // In a real app, you would upload the image to storage and get the URL
-      // For this demo, we'll skip that part
+      // Upload image if selected
       String? profileImageUrl;
       if (_profileImage != null) {
-        // Upload image and get URL
-        profileImageUrl = 'https://example.com/profile-image.jpg';
+        profileImageUrl = await authProvider.uploadProfileImage(_profileImage!);
+
+        if (profileImageUrl == null && mounted) {
+          setState(() {
+            _isLoading = false;
+          });
+
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Failed to upload profile image'),
+              backgroundColor: Colors.red,
+            ),
+          );
+          return;
+        }
       }
 
       final success = await authProvider.updateProfile(
@@ -126,21 +153,45 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
               Center(
                 child: Stack(
                   children: [
-                    CircleAvatar(
+                    _profileImage != null
+                        ? CircleAvatar(
                       radius: 60,
                       backgroundColor: AppTheme.lightGrayColor,
-                      backgroundImage: _profileImage != null
-                          ? FileImage(_profileImage!)
-                          : user.profileImageUrl != null
-                          ? NetworkImage(user.profileImageUrl!)
-                          : null,
-                      child: _profileImage == null && user.profileImageUrl == null
-                          ? Icon(
+                      backgroundImage: FileImage(_profileImage!),
+                    )
+                        : user.profileImageUrl != null && user.profileImageUrl!.isNotEmpty
+                        ? CachedNetworkImage(
+                      imageUrl: user.profileImageUrl!,
+                      imageBuilder: (context, imageProvider) => CircleAvatar(
+                        radius: 60,
+                        backgroundColor: AppTheme.lightGrayColor,
+                        backgroundImage: imageProvider,
+                      ),
+                      placeholder: (context, url) => CircleAvatar(
+                        radius: 60,
+                        backgroundColor: AppTheme.lightGrayColor,
+                        child: CircularProgressIndicator(
+                          color: AppTheme.primaryColor,
+                        ),
+                      ),
+                      errorWidget: (context, url, error) => CircleAvatar(
+                        radius: 60,
+                        backgroundColor: AppTheme.lightGrayColor,
+                        child: Icon(
+                          Icons.person,
+                          size: 60,
+                          color: AppTheme.primaryColor,
+                        ),
+                      ),
+                    )
+                        : CircleAvatar(
+                      radius: 60,
+                      backgroundColor: AppTheme.lightGrayColor,
+                      child: Icon(
                         Icons.person,
                         size: 60,
                         color: AppTheme.primaryColor,
-                      )
-                          : null,
+                      ),
                     ),
                     Positioned(
                       bottom: 0,

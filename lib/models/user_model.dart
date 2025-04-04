@@ -30,7 +30,7 @@ class UserModel {
       email: json['email'] as String,
       majorSkills: List<String>.from(json['majorSkills'] ?? []),
       minorSkills: List<String>.from(json['minorSkills'] ?? []),
-      profileImageUrl: json['profileImageUrl'] as String? ?? 'https://ui-avatars.com/api/?name=${Uri.encodeComponent(json['name'] as String)}&background=00A0B0&color=fff',
+      profileImageUrl: json['profileImageUrl'] as String?,
       completedProjects: List<String>.from(json['completedProjects'] ?? []),
       teamMembers: List<String>.from(json['teamMembers'] ?? []),
       createdAt: DateTime.parse(json['createdAt'] as String),

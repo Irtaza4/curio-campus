@@ -7,6 +7,7 @@ import 'package:curio_campus/screens/project/create_project_screen.dart';
 import 'package:curio_campus/utils/app_theme.dart';
 import 'package:intl/intl.dart';
 import 'package:curio_campus/providers/auth_provider.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 
 class ProjectsScreen extends StatefulWidget {
   const ProjectsScreen({Key? key}) : super(key: key);
@@ -25,16 +26,35 @@ class _ProjectsScreenState extends State<ProjectsScreen> {
     Future.microtask(() => _fetchProjects());
   }
 
+  // Update the _fetchProjects method to handle loading from shared preferences first
   Future<void> _fetchProjects() async {
     setState(() {
       _isLoading = true;
     });
 
-    await Provider.of<ProjectProvider>(context, listen: false).fetchProjects();
+    try {
+      // First try to load from shared preferences for immediate display
+      final projectProvider = Provider.of<ProjectProvider>(context, listen: false);
+      await projectProvider.initProjects();
 
-    setState(() {
-      _isLoading = false;
-    });
+      // Then fetch from Firebase to ensure data is up-to-date
+      await projectProvider.fetchProjects();
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error fetching projects: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
   }
 
   void _navigateToProjectDetail(String projectId) {
@@ -72,6 +92,14 @@ class _ProjectsScreenState extends State<ProjectsScreen> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
+              ListTile(
+                leading: const Icon(Icons.refresh, color: Colors.blue),
+                title: const Text('Refresh Projects'),
+                onTap: () {
+                  Navigator.pop(context);
+                  _fetchProjects();
+                },
+              ),
               ListTile(
                 leading: const Icon(Icons.logout, color: Colors.red),
                 title: const Text('Logout', style: TextStyle(color: Colors.red)),
@@ -262,6 +290,7 @@ class _ProjectsScreenState extends State<ProjectsScreen> {
     );
   }
 
+  // Update the _buildProjectCard method to use CachedNetworkImage for team member avatars
   Widget _buildProjectCard(ProjectModel project) {
     return Card(
       margin: const EdgeInsets.only(bottom: 16),

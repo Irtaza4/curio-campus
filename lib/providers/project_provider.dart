@@ -1,10 +1,13 @@
-import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:uuid/uuid.dart';
-import 'package:curio_campus/models/project_model.dart';
-import 'package:curio_campus/models/user_model.dart';
-import 'package:curio_campus/utils/constants.dart';
+import 'dart:convert';
+
+import '../models/project_model.dart';
+import '../models/user_model.dart';
+import '../utils/constants.dart';
 
 class ProjectProvider with ChangeNotifier {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
@@ -21,9 +24,46 @@ class ProjectProvider with ChangeNotifier {
   String? get errorMessage => _errorMessage;
   String? get currentUserId => _auth.currentUser?.uid;
 
-  Future<void> fetchProjects() async {
+  // Initialize projects from shared preferences
+  Future<void> initProjects() async {
     if (_auth.currentUser == null) return;
 
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final projectsJson = prefs.getString('${_auth.currentUser!.uid}_projects');
+
+      if (projectsJson != null) {
+        final List<dynamic> projectsList = jsonDecode(projectsJson);
+        _projects = projectsList.map((json) =>
+            ProjectModel.fromJson(json as Map<String, dynamic>)
+        ).toList();
+        notifyListeners();
+      }
+
+      // Still fetch from Firestore to ensure data is up-to-date
+      await fetchProjects();
+    } catch (e) {
+      debugPrint('Error initializing projects: $e');
+      // Continue with fetching from Firestore
+      await fetchProjects();
+    }
+  }
+
+  // Save projects to shared preferences
+  Future<void> _saveProjectsToPrefs() async {
+    if (_auth.currentUser == null) return;
+
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final projectsJson = jsonEncode(_projects.map((p) => p.toJson()).toList());
+      await prefs.setString('${_auth.currentUser!.uid}_projects', projectsJson);
+    } catch (e) {
+      debugPrint('Error saving projects to prefs: $e');
+    }
+  }
+
+  // Fix the Firestore query to avoid the index error
+  Future<void> fetchProjects() async {
     _isLoading = true;
     _errorMessage = null;
     notifyListeners();
@@ -31,7 +71,8 @@ class ProjectProvider with ChangeNotifier {
     try {
       final userId = _auth.currentUser!.uid;
 
-      // Simplified query without orderBy to avoid index requirement
+      // Modified query to avoid the composite index error
+      // Remove the orderBy clause temporarily until you create the index
       final querySnapshot = await _firestore
           .collection(Constants.projectsCollection)
           .where('teamMembers', arrayContains: userId)
@@ -47,6 +88,9 @@ class ProjectProvider with ChangeNotifier {
       // Sort in memory instead of in the query
       _projects.sort((a, b) => b.createdAt.compareTo(a.createdAt));
 
+      // Save to shared preferences for offline access
+      await _saveProjectsToPrefs();
+
       _isLoading = false;
       notifyListeners();
     } catch (e) {
@@ -56,58 +100,79 @@ class ProjectProvider with ChangeNotifier {
     }
   }
 
-  Future<void> fetchProjectDetails(String projectId) async {
-    if (_auth.currentUser == null) return;
+  // Ensure the creator is always in the team members list when creating a project
+  Future<String?> createProject({
+    required String name,
+    required String description,
+    required List<String> teamMembers,
+    required DateTime deadline,
+    required List<String> requiredSkills,
+  }) async {
+    if (_auth.currentUser == null) return null;
 
-    // Set loading state
     _isLoading = true;
     _errorMessage = null;
     notifyListeners();
 
     try {
-      final docSnapshot = await _firestore
-          .collection(Constants.projectsCollection)
-          .doc(projectId)
+      final userId = _auth.currentUser!.uid;
+
+      // Get user data
+      final userDoc = await _firestore
+          .collection(Constants.usersCollection)
+          .doc(userId)
           .get();
 
-      if (docSnapshot.exists) {
-        _currentProject = ProjectModel.fromJson({
-          'id': docSnapshot.id,
-          ...docSnapshot.data()!,
-        });
-
-        // Fetch tasks
-        final tasksSnapshot = await _firestore
-            .collection(Constants.projectsCollection)
-            .doc(projectId)
-            .collection(Constants.tasksCollection)
-            .orderBy('createdAt', descending: true)
-            .get();
-
-        final tasks = tasksSnapshot.docs
-            .map((doc) => TaskModel.fromJson({
-          'id': doc.id,
-          ...doc.data(),
-        }))
-            .toList();
-
-        // Update current project with tasks
-        _currentProject = ProjectModel.fromJson({
-          ..._currentProject!.toJson(),
-          'tasks': tasks.map((task) => task.toJson()).toList(),
-        });
+      if (!userDoc.exists) {
+        _isLoading = false;
+        _errorMessage = 'User profile not found';
+        notifyListeners();
+        return null;
       }
 
-      // Update state after fetch is complete
+      final now = DateTime.now();
+      final projectId = const Uuid().v4();
+
+      // Make sure the creator is in the team members list
+      if (!teamMembers.contains(userId)) {
+        teamMembers.add(userId);
+      }
+
+      final project = ProjectModel(
+        id: projectId,
+        name: name,
+        description: description,
+        teamMembers: teamMembers,
+        createdBy: userId,
+        deadline: deadline,
+        createdAt: now,
+        requiredSkills: requiredSkills,
+      );
+
+      await _firestore
+          .collection(Constants.projectsCollection)
+          .doc(projectId)
+          .set(project.toJson());
+
+      // Add project to local list
+      _projects.insert(0, project);
+
+      // Save to shared preferences
+      await _saveProjectsToPrefs();
+
       _isLoading = false;
       notifyListeners();
+
+      return projectId;
     } catch (e) {
       _isLoading = false;
       _errorMessage = e.toString();
       notifyListeners();
+      return null;
     }
   }
 
+  // Add the missing methods and properties
   Future<UserModel?> fetchUserById(String userId) async {
     try {
       final docSnapshot = await _firestore
@@ -129,9 +194,52 @@ class ProjectProvider with ChangeNotifier {
     }
   }
 
-  Future<bool> updateProject(ProjectModel project) async {
-    if (_auth.currentUser == null) return false;
+  Future<void> fetchProjectDetails(String projectId) async {
+    _isLoading = true;
+    _errorMessage = null;
+    notifyListeners();
 
+    try {
+      final docSnapshot = await _firestore
+          .collection(Constants.projectsCollection)
+          .doc(projectId)
+          .get();
+
+      if (docSnapshot.exists) {
+        _currentProject = ProjectModel.fromJson({
+          'id': docSnapshot.id,
+          ...docSnapshot.data()!,
+        });
+
+        // Fetch tasks for this project
+        final tasksSnapshot = await _firestore
+            .collection(Constants.projectsCollection)
+            .doc(projectId)
+            .collection(Constants.tasksCollection)
+            .get();
+
+        final tasks = tasksSnapshot.docs
+            .map((doc) => TaskModel.fromJson({
+          'id': doc.id,
+          ...doc.data(),
+        }))
+            .toList();
+
+        _currentProject = _currentProject!.copyWith(tasks: tasks);
+      } else {
+        _errorMessage = 'Project not found';
+      }
+
+      _isLoading = false;
+      notifyListeners();
+    } catch (e) {
+      _isLoading = false;
+      _errorMessage = e.toString();
+      notifyListeners();
+    }
+  }
+
+  Future<bool> updateProject(ProjectModel updatedProject) async {
     _isLoading = true;
     _errorMessage = null;
     notifyListeners();
@@ -139,17 +247,22 @@ class ProjectProvider with ChangeNotifier {
     try {
       await _firestore
           .collection(Constants.projectsCollection)
-          .doc(project.id)
-          .update(project.toJson());
+          .doc(updatedProject.id)
+          .update(updatedProject.toJson());
 
-      // Update local project
-      _currentProject = project;
-
-      // Update project in projects list
-      final index = _projects.indexWhere((p) => p.id == project.id);
+      // Update local list
+      final index = _projects.indexWhere((p) => p.id == updatedProject.id);
       if (index != -1) {
-        _projects[index] = project;
+        _projects[index] = updatedProject;
       }
+
+      // Update current project if it's the same
+      if (_currentProject?.id == updatedProject.id) {
+        _currentProject = updatedProject;
+      }
+
+      // Save to shared preferences
+      await _saveProjectsToPrefs();
 
       _isLoading = false;
       notifyListeners();
@@ -162,59 +275,49 @@ class ProjectProvider with ChangeNotifier {
     }
   }
 
-  Future<String?> createProject({
-    required String name,
-    required String description,
-    required List<String> teamMembers,
-    required DateTime deadline,
-  }) async {
-    if (_auth.currentUser == null) return null;
-
+  Future<bool> deleteProject(String projectId) async {
     _isLoading = true;
     _errorMessage = null;
     notifyListeners();
 
     try {
-      final userId = _auth.currentUser!.uid;
-
-      // Ensure current user is in team members
-      if (!teamMembers.contains(userId)) {
-        teamMembers.add(userId);
-      }
-
-      final now = DateTime.now();
-      final projectId = const Uuid().v4();
-
-      final project = ProjectModel(
-        id: projectId,
-        name: name,
-        description: description,
-        teamMembers: teamMembers,
-        createdBy: userId,
-        deadline: deadline,
-        createdAt: now,
-        progress: 0,
-        tasks: [],
-      );
-
-      await _firestore
+      // Delete all tasks in the project
+      final tasksSnapshot = await _firestore
           .collection(Constants.projectsCollection)
           .doc(projectId)
-          .set(project.toJson());
+          .collection(Constants.tasksCollection)
+          .get();
 
-      // Add project to local list
-      _projects.insert(0, project);
-      _currentProject = project;
+      final batch = _firestore.batch();
+
+      for (final doc in tasksSnapshot.docs) {
+        batch.delete(doc.reference);
+      }
+
+      // Delete the project document
+      batch.delete(_firestore.collection(Constants.projectsCollection).doc(projectId));
+
+      await batch.commit();
+
+      // Remove from local list
+      _projects.removeWhere((p) => p.id == projectId);
+
+      // Clear current project if it's the same
+      if (_currentProject?.id == projectId) {
+        _currentProject = null;
+      }
+
+      // Save to shared preferences
+      await _saveProjectsToPrefs();
 
       _isLoading = false;
       notifyListeners();
-
-      return projectId;
+      return true;
     } catch (e) {
       _isLoading = false;
       _errorMessage = e.toString();
       notifyListeners();
-      return null;
+      return false;
     }
   }
 
@@ -226,11 +329,13 @@ class ProjectProvider with ChangeNotifier {
     required TaskPriority priority,
     required DateTime dueDate,
   }) async {
-    if (_auth.currentUser == null) return null;
+    _isLoading = true;
+    _errorMessage = null;
+    notifyListeners();
 
     try {
-      final now = DateTime.now();
       final taskId = const Uuid().v4();
+      final now = DateTime.now();
 
       final task = TaskModel(
         id: taskId,
@@ -250,21 +355,18 @@ class ProjectProvider with ChangeNotifier {
           .doc(taskId)
           .set(task.toJson());
 
-      // Update current project if it's the same project
-      if (_currentProject != null && _currentProject!.id == projectId) {
-        final updatedTasks = [..._currentProject!.tasks, task];
-        _currentProject = ProjectModel.fromJson({
-          ..._currentProject!.toJson(),
-          'tasks': updatedTasks.map((t) => t.toJson()).toList(),
-        });
-
-        // Update progress
-        _updateProjectProgress(projectId);
+      // Update current project if it's the same
+      if (_currentProject?.id == projectId) {
+        final tasks = List<TaskModel>.from(_currentProject!.tasks);
+        tasks.add(task);
+        _currentProject = _currentProject!.copyWith(tasks: tasks);
       }
 
+      _isLoading = false;
       notifyListeners();
       return taskId;
     } catch (e) {
+      _isLoading = false;
       _errorMessage = e.toString();
       notifyListeners();
       return null;
@@ -276,8 +378,6 @@ class ProjectProvider with ChangeNotifier {
     required String taskId,
     required TaskStatus status,
   }) async {
-    if (_auth.currentUser == null) return false;
-
     try {
       await _firestore
           .collection(Constants.projectsCollection)
@@ -286,114 +386,34 @@ class ProjectProvider with ChangeNotifier {
           .doc(taskId)
           .update({'status': status.toString().split('.').last});
 
-      // Update current project if it's the same project
-      if (_currentProject != null && _currentProject!.id == projectId) {
-        final updatedTasks = _currentProject!.tasks.map((task) {
-          if (task.id == taskId) {
-            return TaskModel.fromJson({
-              ...task.toJson(),
-              'status': status.toString().split('.').last,
-            });
-          }
-          return task;
-        }).toList();
+      // Update current project if it's the same
+      if (_currentProject?.id == projectId) {
+        final tasks = List<TaskModel>.from(_currentProject!.tasks);
+        final index = tasks.indexWhere((t) => t.id == taskId);
 
-        _currentProject = ProjectModel.fromJson({
-          ..._currentProject!.toJson(),
-          'tasks': updatedTasks.map((t) => t.toJson()).toList(),
-        });
+        if (index != -1) {
+          tasks[index] = tasks[index].copyWith(status: status);
 
-        // Update progress
-        _updateProjectProgress(projectId);
+          // Calculate new progress
+          final completedTasks = tasks.where((t) => t.status == TaskStatus.completed).length;
+          final progress = tasks.isEmpty ? 0 : (completedTasks / tasks.length * 100).round();
+
+          _currentProject = _currentProject!.copyWith(
+            tasks: tasks,
+            progress: progress,
+          );
+
+          // Update project progress in Firestore
+          await _firestore
+              .collection(Constants.projectsCollection)
+              .doc(projectId)
+              .update({'progress': progress});
+        }
       }
 
       notifyListeners();
       return true;
     } catch (e) {
-      _errorMessage = e.toString();
-      notifyListeners();
-      return false;
-    }
-  }
-
-  Future<void> _updateProjectProgress(String projectId) async {
-    if (_currentProject == null || _currentProject!.id != projectId) return;
-
-    try {
-      final totalTasks = _currentProject!.tasks.length;
-      if (totalTasks == 0) return;
-
-      final completedTasks = _currentProject!.tasks
-          .where((task) => task.status == TaskStatus.completed)
-          .length;
-
-      final progress = (completedTasks / totalTasks * 100).round();
-
-      await _firestore
-          .collection(Constants.projectsCollection)
-          .doc(projectId)
-          .update({'progress': progress});
-
-      // Update local project
-      _currentProject = ProjectModel.fromJson({
-        ..._currentProject!.toJson(),
-        'progress': progress,
-      });
-
-      // Update project in projects list
-      final index = _projects.indexWhere((p) => p.id == projectId);
-      if (index != -1) {
-        _projects[index] = ProjectModel.fromJson({
-          ..._projects[index].toJson(),
-          'progress': progress,
-        });
-      }
-
-      notifyListeners();
-    } catch (e) {
-      _errorMessage = e.toString();
-      notifyListeners();
-    }
-  }
-
-  Future<bool> deleteProject(String projectId) async {
-    if (_auth.currentUser == null) return false;
-
-    _isLoading = true;
-    _errorMessage = null;
-    notifyListeners();
-
-    try {
-      // Delete all tasks
-      final tasksSnapshot = await _firestore
-          .collection(Constants.projectsCollection)
-          .doc(projectId)
-          .collection(Constants.tasksCollection)
-          .get();
-
-      final batch = _firestore.batch();
-
-      for (final doc in tasksSnapshot.docs) {
-        batch.delete(doc.reference);
-      }
-
-      // Delete project document
-      batch.delete(_firestore.collection(Constants.projectsCollection).doc(projectId));
-
-      await batch.commit();
-
-      // Remove project from local list
-      _projects.removeWhere((project) => project.id == projectId);
-
-      if (_currentProject != null && _currentProject!.id == projectId) {
-        _currentProject = null;
-      }
-
-      _isLoading = false;
-      notifyListeners();
-      return true;
-    } catch (e) {
-      _isLoading = false;
       _errorMessage = e.toString();
       notifyListeners();
       return false;

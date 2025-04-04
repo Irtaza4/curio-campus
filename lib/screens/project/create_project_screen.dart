@@ -6,6 +6,7 @@ import 'package:curio_campus/providers/chat_provider.dart';
 import 'package:curio_campus/utils/app_theme.dart';
 import 'package:curio_campus/widgets/custom_button.dart';
 import 'package:curio_campus/widgets/custom_text_field.dart';
+import 'package:curio_campus/widgets/skill_selector.dart';
 import 'package:intl/intl.dart';
 
 class CreateProjectScreen extends StatefulWidget {
@@ -21,6 +22,7 @@ class _CreateProjectScreenState extends State<CreateProjectScreen> {
   final _descriptionController = TextEditingController();
   DateTime _deadline = DateTime.now().add(const Duration(days: 7));
   List<String> _selectedTeamMembers = [];
+  List<String> _selectedSkills = []; // Added for required skills
   bool _isLoading = false;
   List<UserModel> _chatContacts = [];
   bool _isLoadingContacts = false;
@@ -183,6 +185,33 @@ class _CreateProjectScreenState extends State<CreateProjectScreen> {
     );
   }
 
+  // New method to select required skills
+  Future<void> _selectRequiredSkills() async {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Required Skills'),
+        content: SizedBox(
+          width: double.maxFinite,
+          child: SkillSelector(
+            selectedSkills: _selectedSkills,
+            onSkillsChanged: (skills) {
+              setState(() {
+                _selectedSkills = skills;
+              });
+            },
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Done'),
+          ),
+        ],
+      ),
+    );
+  }
+
   Future<void> _createProject() async {
     if (!_formKey.currentState!.validate()) return;
 
@@ -196,6 +225,7 @@ class _CreateProjectScreenState extends State<CreateProjectScreen> {
         description: _descriptionController.text.trim(),
         teamMembers: _selectedTeamMembers,
         deadline: _deadline,
+        requiredSkills: _selectedSkills, // Pass required skills
       );
 
       if (mounted) {
@@ -269,6 +299,66 @@ class _CreateProjectScreenState extends State<CreateProjectScreen> {
                   return null;
                 },
               ),
+
+              const SizedBox(height: 16),
+
+              // Required Skills
+              const Text(
+                'Required Skills',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 8),
+              InkWell(
+                onTap: _selectRequiredSkills,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 12,
+                  ),
+                  decoration: BoxDecoration(
+                    border: Border.all(color: Colors.grey[300]!),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(
+                        Icons.psychology,
+                        size: 20,
+                        color: AppTheme.primaryColor,
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        _selectedSkills.isEmpty
+                            ? 'Select required skills'
+                            : '${_selectedSkills.length} skill(s) selected',
+                        style: const TextStyle(fontSize: 16),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+
+              if (_selectedSkills.isNotEmpty) ...[
+                const SizedBox(height: 8),
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: _selectedSkills.map((skill) {
+                    return Chip(
+                      label: Text(skill),
+                      deleteIcon: const Icon(Icons.close, size: 18),
+                      onDeleted: () {
+                        setState(() {
+                          _selectedSkills.remove(skill);
+                        });
+                      },
+                    );
+                  }).toList(),
+                ),
+              ],
 
               const SizedBox(height: 16),
 

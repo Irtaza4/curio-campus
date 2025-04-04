@@ -110,6 +110,7 @@ class ProjectModel {
   final DateTime createdAt;
   final int progress;
   final List<TaskModel> tasks;
+  final List<String> requiredSkills; // Added required skills field
 
   ProjectModel({
     required this.id,
@@ -121,6 +122,7 @@ class ProjectModel {
     required this.createdAt,
     this.progress = 0,
     this.tasks = const [],
+    this.requiredSkills = const [], // Default to empty list
   });
 
   factory ProjectModel.fromJson(Map<String, dynamic> json) {
@@ -140,6 +142,9 @@ class ProjectModel {
         ),
       )
           : [],
+      requiredSkills: json['requiredSkills'] != null
+          ? List<String>.from(json['requiredSkills'])
+          : [],
     );
   }
 
@@ -153,6 +158,7 @@ class ProjectModel {
       'deadline': deadline.toIso8601String(),
       'createdAt': createdAt.toIso8601String(),
       'progress': progress,
+      'requiredSkills': requiredSkills,
       // Don't include tasks in the main project document
     };
   }
@@ -167,6 +173,7 @@ class ProjectModel {
     DateTime? createdAt,
     int? progress,
     List<TaskModel>? tasks,
+    List<String>? requiredSkills,
   }) {
     return ProjectModel(
       id: id ?? this.id,
@@ -178,6 +185,7 @@ class ProjectModel {
       createdAt: createdAt ?? this.createdAt,
       progress: progress ?? this.progress,
       tasks: tasks ?? this.tasks,
+      requiredSkills: requiredSkills ?? this.requiredSkills,
     );
   }
 }

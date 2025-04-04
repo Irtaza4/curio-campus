@@ -7,6 +7,7 @@ import 'package:intl/intl.dart';
 import 'package:curio_campus/providers/auth_provider.dart';
 import 'package:curio_campus/screens/project/create_task_screen.dart';
 import 'package:curio_campus/screens/project/edit_project_screen.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 
 import '../../models/user_model.dart';
 
@@ -310,18 +311,38 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
                             padding: const EdgeInsets.only(right: 16),
                             child: Column(
                               children: [
-                                CircleAvatar(
+                                user.profileImageUrl != null && user.profileImageUrl!.isNotEmpty
+                                    ? CachedNetworkImage(
+                                  imageUrl: user.profileImageUrl!,
+                                  imageBuilder: (context, imageProvider) => CircleAvatar(
+                                    radius: 24,
+                                    backgroundImage: imageProvider,
+                                    backgroundColor: AppTheme.primaryColor,
+                                  ),
+                                  placeholder: (context, url) => CircleAvatar(
+                                    radius: 24,
+                                    backgroundColor: AppTheme.primaryColor,
+                                    child: const CircularProgressIndicator(
+                                      color: Colors.white,
+                                      strokeWidth: 2,
+                                    ),
+                                  ),
+                                  errorWidget: (context, url, error) => CircleAvatar(
+                                    radius: 24,
+                                    backgroundColor: AppTheme.primaryColor,
+                                    child: Text(
+                                      user.name[0].toUpperCase(),
+                                      style: const TextStyle(color: Colors.white),
+                                    ),
+                                  ),
+                                )
+                                    : CircleAvatar(
                                   radius: 24,
-                                  backgroundImage: user.profileImageUrl != null
-                                      ? NetworkImage(user.profileImageUrl!)
-                                      : null,
                                   backgroundColor: AppTheme.primaryColor,
-                                  child: user.profileImageUrl == null
-                                      ? Text(
+                                  child: Text(
                                     user.name[0].toUpperCase(),
                                     style: const TextStyle(color: Colors.white),
-                                  )
-                                      : null,
+                                  ),
                                 ),
                                 const SizedBox(height: 4),
                                 Text(

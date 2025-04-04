@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:curio_campus/providers/auth_provider.dart';
+import 'package:curio_campus/providers/project_provider.dart';
 import 'package:curio_campus/screens/auth/login_screen.dart';
 import 'package:curio_campus/screens/home/home_screen.dart';
 import 'package:curio_campus/utils/app_theme.dart';
@@ -57,31 +58,32 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
 
   void _checkAuthState() async {
     try {
-      // Force navigation to login screen for now
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (_) => const LoginScreen()),
-      );
+      final authProvider = Provider.of<AuthProvider>(context, listen: false);
 
-      // The code below would be used when Firebase is properly set up
-      /*
-    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+      // Initialize projects if user is authenticated
+      if (authProvider.isAuthenticated) {
+        await Provider.of<ProjectProvider>(context, listen: false).initProjects();
 
-    // Make sure the auth state is properly initialized
-    if (authProvider.firebaseUser != null) {
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (_) => const HomeScreen()),
-      );
-    } else {
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (_) => const LoginScreen()),
-      );
-    }
-    */
+        if (mounted) {
+          Navigator.of(context).pushReplacement(
+            MaterialPageRoute(builder: (_) => const HomeScreen()),
+          );
+        }
+      } else {
+        if (mounted) {
+          Navigator.of(context).pushReplacement(
+            MaterialPageRoute(builder: (_) => const LoginScreen()),
+          );
+        }
+      }
     } catch (e) {
+      debugPrint('Error in splash screen: $e');
       // Fallback to login screen if there's any error
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (_) => const LoginScreen()),
-      );
+      if (mounted) {
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(builder: (_) => const LoginScreen()),
+        );
+      }
     }
   }
 
@@ -104,8 +106,10 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
                     SizedBox(
                       width: 180,
                       height: 180,
-                      child: Image.asset('assets/images/logo.png',
+                      child: Image.asset(
+                        'assets/images/logo.png',
                         errorBuilder: (context, error, stackTrace) {
+                          debugPrint('Error loading logo: $error');
                           return _buildNetworkLogo();
                         },
                       ),

@@ -6,6 +6,8 @@ import 'package:curio_campus/providers/chat_provider.dart';
 import 'package:curio_campus/utils/app_theme.dart';
 import 'package:intl/intl.dart';
 import 'package:image_picker/image_picker.dart';
+import 'dart:io'; // Import dart:io
+import 'package:firebase_storage/firebase_storage.dart'; // Import Firebase Storage
 
 class ChatScreen extends StatefulWidget {
   final String chatId;
@@ -157,9 +159,23 @@ class _ChatScreenState extends State<ChatScreen> {
       });
 
       try {
-        // In a real app, you would upload the image to Firebase Storage
-        // For this demo, we'll use a placeholder URL
-        final imageUrl = 'https://via.placeholder.com/300';
+        // Upload image to Firebase Storage
+        final storage = FirebaseStorage.instance;
+        final userId = Provider.of<AuthProvider>(context, listen: false).firebaseUser?.uid;
+        final timestamp = DateTime.now().millisecondsSinceEpoch;
+        final path = 'chat_images/${widget.chatId}/${userId}_$timestamp.jpg';
+
+        // Create the storage reference
+        final storageRef = storage.ref().child(path);
+
+        // Upload the file
+        final uploadTask = storageRef.putFile(File(pickedFile.path));
+
+        // Wait for the upload to complete
+        final snapshot = await uploadTask;
+
+        // Get the download URL
+        final imageUrl = await snapshot.ref.getDownloadURL();
         final fileName = pickedFile.name;
 
         await Provider.of<ChatProvider>(context, listen: false).sendImageMessage(

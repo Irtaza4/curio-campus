@@ -20,6 +20,7 @@ class ChatProvider with ChangeNotifier {
 
   // For real-time updates
   StreamSubscription<QuerySnapshot>? _messagesSubscription;
+  StreamSubscription<QuerySnapshot>? _chatsSubscription;
 
   List<ChatModel> get chats => _chats;
   List<MessageModel> get messages => _messages;
@@ -66,10 +67,46 @@ class ChatProvider with ChangeNotifier {
     });
   }
 
-  // Remove the real-time listener
-  void removeMessageListener() {
+  // Setup real-time listener for chats
+  void setupChatsListener() {
+    // Cancel any existing subscription
+    _chatsSubscription?.cancel();
+
+    final userId = _auth.currentUser?.uid;
+    if (userId == null) return;
+
+    // Set up a new subscription
+    _chatsSubscription = _firestore
+        .collection(Constants.chatsCollection)
+        .where('participants', arrayContains: userId)
+        .snapshots()
+        .listen((snapshot) {
+      // Process chats
+      final newChats = snapshot.docs
+          .map((doc) => ChatModel.fromJson({
+        'id': doc.id,
+        ...doc.data(),
+      }))
+          .toList();
+
+      // Sort in memory
+      newChats.sort((a, b) => b.lastMessageAt.compareTo(a.lastMessageAt));
+
+      // Update the chats list
+      _chats = newChats;
+
+      // Notify listeners
+      notifyListeners();
+    });
+  }
+
+  // Remove the real-time listeners
+  void removeListeners() {
     _messagesSubscription?.cancel();
     _messagesSubscription = null;
+
+    _chatsSubscription?.cancel();
+    _chatsSubscription = null;
   }
 
   // Mark messages as read
@@ -108,7 +145,10 @@ class ChatProvider with ChangeNotifier {
     try {
       final userId = _auth.currentUser!.uid;
 
-      // Set up a real-time listener for chats
+      // Set up real-time listener for chats
+      setupChatsListener();
+
+      // Initial fetch
       final querySnapshot = await _firestore
           .collection(Constants.chatsCollection)
           .where('participants', arrayContains: userId)
@@ -142,6 +182,15 @@ class ChatProvider with ChangeNotifier {
     notifyListeners();
 
     try {
+      // Set up real-time listener for messages
+      setupMessageListener(
+        chatId: chatId,
+        onNewMessage: () {
+          // This will be called when new messages arrive
+        },
+      );
+
+      // Initial fetch
       final querySnapshot = await _firestore
           .collection(Constants.chatsCollection)
           .doc(chatId)
@@ -207,6 +256,10 @@ class ChatProvider with ChangeNotifier {
         fileName: fileName,
       );
 
+      // Add message to local list immediately for instant feedback
+      _messages.insert(0, message);
+      notifyListeners();
+
       // Add message to chat
       await _firestore
           .collection(Constants.chatsCollection)
@@ -224,8 +277,6 @@ class ChatProvider with ChangeNotifier {
         'lastMessageSenderId': userId,
         'lastMessageAt': now.toIso8601String(),
       });
-
-      // The message will be added to the local list via the real-time listener
     } catch (e) {
       _errorMessage = e.toString();
       notifyListeners();
@@ -434,6 +485,10 @@ class ChatProvider with ChangeNotifier {
         fileName: fileName,
       );
 
+      // Add message to local list immediately for instant feedback
+      _messages.insert(0, message);
+      notifyListeners();
+
       // Add message to chat
       await _firestore
           .collection(Constants.chatsCollection)
@@ -451,8 +506,6 @@ class ChatProvider with ChangeNotifier {
         'lastMessageSenderId': userId,
         'lastMessageAt': now.toIso8601String(),
       });
-
-      // The message will be added to the local list via the real-time listener
     } catch (e) {
       _errorMessage = e.toString();
       notifyListeners();

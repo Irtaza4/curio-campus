@@ -4,11 +4,15 @@ import 'package:curio_campus/utils/app_theme.dart';
 class SkillSelector extends StatefulWidget {
   final List<String> selectedSkills;
   final Function(List<String>) onSkillsChanged;
+  final String? title;
+  final List<String>? initialSkills;
 
   const SkillSelector({
     Key? key,
     required this.selectedSkills,
     required this.onSkillsChanged,
+    this.title,
+    this.initialSkills,
   }) : super(key: key);
 
   @override
@@ -16,30 +20,36 @@ class SkillSelector extends StatefulWidget {
 }
 
 class _SkillSelectorState extends State<SkillSelector> {
-  final List<String> _availableSkills = [
-    'Programming',
-    'Design',
-    'Writing',
-    'Research',
-    'Mathematics',
-    'Physics',
-    'Chemistry',
-    'Biology',
-    'Marketing',
-    'Communication',
-    'Leadership',
-    'Project Management',
-    'Data Analysis',
-    'Machine Learning',
-    'UI/UX',
-    'Mobile Development',
-    'Web Development',
+  final List<String> _majorSkills = [
+    // Major Skills
+    'Dart', 'Python', 'Java', 'C++', 'JavaScript', 'Swift', 'Kotlin', 'TypeScript',
+    'PHP', 'Ruby', 'Go', 'C#', 'SQL', 'R', 'HTML', 'CSS', 'Marketing', 'SEO',
+    'Data Analysis', 'Machine Learning', 'Cybersecurity', 'UI/UX Design', 'DevOps',
+    'Blockchain', 'Cloud Computing', 'Game Development', 'Mobile App Development',
+    'Web Development', 'Backend Development', 'Frontend Development', 'AI',
+    'Networking', 'Embedded Systems', 'Automation', 'System Administration',
+    'Programming', 'Design', 'Writing', 'Research', 'Mathematics', 'Physics',
+    'Chemistry', 'Biology', 'Communication', 'Leadership', 'Project Management'
+  ];
+
+  final List<String> _minorSkills = [
+    // Minor Skills (Frameworks & Tools)
+    'Flutter', 'React', 'Vue.js', 'Angular', 'Django', 'Flask', 'FastAPI',
+    'Spring Boot', 'Express.js', 'NestJS', 'Next.js', 'Nuxt.js', 'Laravel',
+    'Ruby on Rails', 'ASP.NET', 'TensorFlow', 'PyTorch', 'Scikit-learn', 'OpenCV',
+    'Numpy', 'Pandas', 'Matplotlib', 'Tailwind CSS', 'Bootstrap', 'SASS', 'LESS',
+    'Redux', 'MobX', 'GetX', 'Riverpod', 'Provider', 'Firebase', 'Supabase',
+    'PostgreSQL', 'MySQL', 'MongoDB', 'Redis', 'GraphQL', 'REST API', 'gRPC',
+    'Docker', 'Kubernetes', 'Jenkins', 'AWS', 'Azure', 'Google Cloud', 'DigitalOcean',
+    'Unity', 'Unreal Engine', 'Godot', 'TensorFlow.js', 'Selenium', 'Puppeteer',
+    'Jest', 'Mocha', 'Cypress', 'JUnit', 'Pytest', 'Git', 'GitHub', 'GitLab',
+    'Bitbucket', 'Jira', 'Trello', 'Figma', 'Adobe XD'
   ];
 
   @override
   Widget build(BuildContext context) {
     // Filter out already selected skills
-    final availableSkillsFiltered = _availableSkills
+    final availableSkillsFiltered = [..._majorSkills, ..._minorSkills]
         .where((skill) => !widget.selectedSkills.contains(skill))
         .toList();
 
@@ -126,24 +136,101 @@ class _SkillSelectorState extends State<SkillSelector> {
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: const Text('Select a Skill'),
+          title: Text(widget.title ?? 'Select a Skill'),
           content: SizedBox(
             width: double.maxFinite,
-            child: ListView.builder(
-              shrinkWrap: true,
-              itemCount: availableSkills.length,
-              itemBuilder: (context, index) {
-                final skill = availableSkills[index];
-                return ListTile(
-                  title: Text(skill),
-                  onTap: () {
-                    final updatedSkills = List<String>.from(widget.selectedSkills)
-                      ..add(skill);
-                    widget.onSkillsChanged(updatedSkills);
-                    Navigator.pop(context);
+            height: 400, // Set a fixed height for scrolling
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Search field
+                TextField(
+                  decoration: InputDecoration(
+                    hintText: 'Search skills...',
+                    prefixIcon: const Icon(Icons.search),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                  onChanged: (value) {
+                    setState(() {
+                      // This will rebuild the dialog with filtered skills
+                      if (value.isEmpty) {
+                        availableSkills = [..._majorSkills, ..._minorSkills]
+                            .where((skill) => !widget.selectedSkills.contains(skill))
+                            .toList();
+                      } else {
+                        availableSkills = [..._majorSkills, ..._minorSkills]
+                            .where((skill) =>
+                        !widget.selectedSkills.contains(skill) &&
+                            skill.toLowerCase().contains(value.toLowerCase()))
+                            .toList();
+                      }
+                    });
                   },
-                );
-              },
+                ),
+                const SizedBox(height: 8),
+
+                // Major Skills section
+                const Text(
+                  'Major Skills',
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
+                  ),
+                ),
+                const Divider(),
+
+                // Skills list (scrollable)
+                Expanded(
+                  child: ListView.builder(
+                    shrinkWrap: true,
+                    itemCount: availableSkills.length,
+                    itemBuilder: (context, index) {
+                      final skill = availableSkills[index];
+                      final isMajorSkill = _majorSkills.contains(skill);
+
+                      // Show section divider between major and minor skills
+                      if (index > 0 &&
+                          isMajorSkill != _majorSkills.contains(availableSkills[index-1])) {
+                        return Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Divider(height: 24),
+                            const Text(
+                              'Minor Skills (Frameworks & Tools)',
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 16,
+                              ),
+                            ),
+                            const Divider(),
+                            ListTile(
+                              title: Text(skill),
+                              onTap: () {
+                                final updatedSkills = List<String>.from(widget.selectedSkills)
+                                  ..add(skill);
+                                widget.onSkillsChanged(updatedSkills);
+                                Navigator.pop(context);
+                              },
+                            ),
+                          ],
+                        );
+                      }
+
+                      return ListTile(
+                        title: Text(skill),
+                        onTap: () {
+                          final updatedSkills = List<String>.from(widget.selectedSkills)
+                            ..add(skill);
+                          widget.onSkillsChanged(updatedSkills);
+                          Navigator.pop(context);
+                        },
+                      );
+                    },
+                  ),
+                ),
+              ],
             ),
           ),
           actions: [

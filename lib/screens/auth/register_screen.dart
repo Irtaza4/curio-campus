@@ -1,3 +1,6 @@
+import 'dart:io';
+import 'package:image_picker/image_picker.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:curio_campus/providers/auth_provider.dart';
@@ -22,6 +25,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
   bool _isPasswordVisible = false;
   List<String> _selectedMajorSkills = [];
   List<String> _selectedMinorSkills = [];
+  File? _profileImage;
+  bool _isLoading = false;
 
   @override
   void dispose() {
@@ -29,6 +34,31 @@ class _RegisterScreenState extends State<RegisterScreen> {
     _emailController.dispose();
     _passwordController.dispose();
     super.dispose();
+  }
+
+  Future<void> _pickImage() async {
+    try {
+      final picker = ImagePicker();
+      final pickedFile = await picker.pickImage(
+        source: ImageSource.gallery,
+        maxWidth: 800,
+        maxHeight: 800,
+        imageQuality: 85,
+      );
+
+      if (pickedFile != null) {
+        setState(() {
+          _profileImage = File(pickedFile.path);
+        });
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error picking image: ${e.toString()}'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
   }
 
   Future<void> _register() async {
@@ -43,7 +73,45 @@ class _RegisterScreenState extends State<RegisterScreen> {
         return;
       }
 
+      setState(() {
+        _isLoading = true;
+      });
+
       final authProvider = Provider.of<AuthProvider>(context, listen: false);
+
+      // Upload profile image if selected
+      String? profileImageUrl;
+      if (_profileImage != null) {
+        try {
+          final storage = FirebaseStorage.instance;
+          final timestamp = DateTime.now().millisecondsSinceEpoch;
+          final path = 'profile_images/temp/$timestamp.jpg';
+
+          // Create the storage reference
+          final storageRef = storage.ref().child(path);
+
+          // Upload the file
+          final uploadTask = storageRef.putFile(_profileImage!);
+
+          // Wait for the upload to complete
+          final snapshot = await uploadTask;
+
+          // Get the download URL
+          profileImageUrl = await snapshot.ref.getDownloadURL();
+        } catch (e) {
+          setState(() {
+            _isLoading = false;
+          });
+
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Failed to upload profile image: ${e.toString()}'),
+              backgroundColor: Colors.red,
+            ),
+          );
+          return;
+        }
+      }
 
       final success = await authProvider.register(
         name: _nameController.text.trim(),
@@ -51,7 +119,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
         password: _passwordController.text,
         majorSkills: _selectedMajorSkills,
         minorSkills: _selectedMinorSkills,
+        profileImageUrl: profileImageUrl,
       );
+
+      setState(() {
+        _isLoading = false;
+      });
 
       if (success && mounted) {
         Navigator.of(context).pushReplacement(
@@ -136,6 +209,53 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     ],
                   ),
                 ),
+
+                // After the title section
+                Center(
+                  child: Stack(
+                    children: [
+                      CircleAvatar(
+                        radius: 50,
+                        backgroundColor: AppTheme.lightGrayColor,
+                        backgroundImage: _profileImage != null
+                            ? FileImage(_profileImage!)
+                            : null,
+                        onBackgroundImageError: (exception, stackTrace) {
+                          // Handle image loading error silently
+                          debugPrint('Error loading profile image: $exception');
+                        },
+                        child: _profileImage == null
+                            ? Icon(
+                          Icons.person,
+                          size: 50,
+                          color: AppTheme.primaryColor,
+                        )
+                            : null,
+                      ),
+                      Positioned(
+                        bottom: 0,
+                        right: 0,
+                        child: InkWell(
+                          onTap: _pickImage,
+                          child: Container(
+                            padding: const EdgeInsets.all(8),
+                            decoration: BoxDecoration(
+                              color: AppTheme.primaryColor,
+                              shape: BoxShape.circle,
+                            ),
+                            child: const Icon(
+                              Icons.camera_alt,
+                              color: Colors.white,
+                              size: 20,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 24),
+
 
                 const SizedBox(height: 32),
 
@@ -280,7 +400,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       // Register button
                       CustomButton(
                         text: 'Sign up',
-                        isLoading: authProvider.isLoading,
+                        isLoading: _isLoading || authProvider.isLoading,
                         onPressed: _register,
                       ),
                     ],

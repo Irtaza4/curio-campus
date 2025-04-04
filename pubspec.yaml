@@ -39,7 +39,7 @@ dependencies:
   firebase_database: ^11.3.4
   firebase_messaging: ^15.2.4
   get: ^4.7.2
-  shared_preferences: ^2.5.2
+  shared_preferences: ^2.5.3
   uuid: ^4.5.1
   flutter_local_notifications: ^18.0.1
   image_picker: ^1.1.2
@@ -80,6 +80,7 @@ flutter:
   # To add assets to your application, add an assets section, like this:
   assets:
     - assets/images/
+    - assets/icons/
   #   - images/a_dot_ham.jpeg
 
   # An image asset can refer to one or more resolution-specific "variants", see

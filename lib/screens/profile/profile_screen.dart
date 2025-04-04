@@ -1,3 +1,4 @@
+import 'package:curio_campus/screens/auth/login_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:curio_campus/providers/auth_provider.dart';
@@ -54,15 +55,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   CircleAvatar(
                     radius: 50,
                     backgroundColor: Colors.white,
-                    backgroundImage: user.profileImageUrl != null
+                    backgroundImage: user.profileImageUrl != null && user.profileImageUrl!.isNotEmpty
                         ? NetworkImage(user.profileImageUrl!)
                         : null,
-                    onBackgroundImageError: user.profileImageUrl != null
-                        ? (exception, stackTrace) {
+                    onBackgroundImageError: (exception, stackTrace) {
                       // Handle image loading error silently
-                    }
-                        : null,
-                    child: user.profileImageUrl == null
+                      debugPrint('Error loading profile image: $exception');
+                    },
+                    child: (user.profileImageUrl == null || user.profileImageUrl!.isEmpty)
                         ? Icon(
                       Icons.person,
                       size: 50,
@@ -147,7 +147,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       onPressed: () async {
                         await authProvider.logout();
                         if (context.mounted) {
-                          Navigator.of(context).pushReplacementNamed('/login');
+                          Navigator.of(context).pushReplacement( MaterialPageRoute(builder: (context) => LoginScreen()));
                         }
                       },
                       style: ElevatedButton.styleFrom(
