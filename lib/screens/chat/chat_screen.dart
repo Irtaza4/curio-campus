@@ -333,8 +333,8 @@ class _ChatScreenState extends State<ChatScreen> {
                   : null,
               child: message.senderAvatar == null
                   ? Text(
-                chatName.isNotEmpty
-                    ? chatName[0].toUpperCase()
+                message.senderName.isNotEmpty
+                    ? message.senderName[0].toUpperCase()
                     : '?',
                 style: const TextStyle(color: Colors.white),
               )
@@ -351,7 +351,7 @@ class _ChatScreenState extends State<ChatScreen> {
                   Padding(
                     padding: const EdgeInsets.only(left: 8, bottom: 4),
                     child: Text(
-                      chatName, // Use chat name instead of sender name
+                      message.senderName, // Use sender name instead of chat name
                       style: TextStyle(
                         fontSize: 12,
                         color: Colors.grey[600],

@@ -7,6 +7,10 @@ import 'package:curio_campus/models/message_model.dart';
 import 'package:curio_campus/models/user_model.dart';
 import 'package:curio_campus/utils/constants.dart';
 import 'dart:async';
+import 'package:curio_campus/services/notification_service.dart' ;
+import 'package:provider/provider.dart';
+import 'package:curio_campus/providers/notification_provider.dart';
+import 'package:curio_campus/main.dart' ;
 
 class ChatProvider with ChangeNotifier {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
@@ -218,6 +222,7 @@ class ChatProvider with ChangeNotifier {
     }
   }
 
+  // Enhance the sendMessage method to trigger a notification
   Future<void> sendMessage({
     required String chatId,
     required String content,
@@ -277,6 +282,38 @@ class ChatProvider with ChangeNotifier {
         'lastMessageSenderId': userId,
         'lastMessageAt': now.toIso8601String(),
       });
+
+      // Get chat details to create notification
+      final chatDoc = await _firestore
+          .collection(Constants.chatsCollection)
+          .doc(chatId)
+          .get();
+
+      if (chatDoc.exists) {
+        final chatData = chatDoc.data() as Map<String, dynamic>;
+        final chatName = chatData['name'] as String;
+        final participants = List<String>.from(chatData['participants'] ?? []);
+
+        // Create notification for each participant except the sender
+        final notificationProvider = Provider.of<NotificationProvider>(
+         navigatorKey.currentContext!,
+          // navigatorKey.currentContext!,
+          listen: false,
+        );
+
+        for (final participantId in participants) {
+          if (participantId != userId) {
+            // Create notification for this participant
+            await notificationProvider.createMessageNotification(
+              senderId: userId,
+              senderName: userName,
+              chatId: chatId,
+              chatName: chatName,
+              message: content,
+            );
+          }
+        }
+      }
     } catch (e) {
       _errorMessage = e.toString();
       notifyListeners();
@@ -315,9 +352,12 @@ class ChatProvider with ChangeNotifier {
       final now = DateTime.now();
       final chatId = const Uuid().v4();
 
+      // For individual chats, use the recipient's name as the chat name
+      final chatName = type == ChatType.individual ? recipientName : recipientName;
+
       final chat = ChatModel(
         id: chatId,
-        name: recipientName,
+        name: chatName,
         participants: [userId, recipientId],
         type: type,
         createdAt: now,

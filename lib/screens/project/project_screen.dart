@@ -81,6 +81,7 @@ class _ProjectsScreenState extends State<ProjectsScreen> {
     });
   }
 
+  // Update the _showMoreOptions method to include more relevant options
   void _showMoreOptions() {
     showModalBottomSheet(
       context: context,
@@ -93,6 +94,14 @@ class _ProjectsScreenState extends State<ProjectsScreen> {
             mainAxisSize: MainAxisSize.min,
             children: [
               ListTile(
+                leading: const Icon(Icons.add_circle_outline, color: AppTheme.primaryColor),
+                title: const Text('Create New Project'),
+                onTap: () {
+                  Navigator.pop(context);
+                  _navigateToCreateProject();
+                },
+              ),
+              ListTile(
                 leading: const Icon(Icons.refresh, color: Colors.blue),
                 title: const Text('Refresh Projects'),
                 onTap: () {
@@ -100,6 +109,20 @@ class _ProjectsScreenState extends State<ProjectsScreen> {
                   _fetchProjects();
                 },
               ),
+              ListTile(
+                leading: const Icon(Icons.filter_list, color: Colors.purple),
+                title: const Text('Filter Projects'),
+                onTap: () {
+                  Navigator.pop(context);
+                  // Show filter options
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Filter options coming soon'),
+                    ),
+                  );
+                },
+              ),
+              const Divider(),
               ListTile(
                 leading: const Icon(Icons.logout, color: Colors.red),
                 title: const Text('Logout', style: TextStyle(color: Colors.red)),
@@ -134,6 +157,121 @@ class _ProjectsScreenState extends State<ProjectsScreen> {
             ],
           ),
         );
+      },
+    );
+  }
+
+  // Add a method to show notifications
+  void _showNotifications() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (context) {
+        return DraggableScrollableSheet(
+          initialChildSize: 0.6,
+          minChildSize: 0.3,
+          maxChildSize: 0.9,
+          expand: false,
+          builder: (context, scrollController) {
+            return Column(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text(
+                        'Project Notifications',
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      TextButton(
+                        onPressed: () {
+                          Navigator.pop(context);
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('All notifications marked as read'),
+                            ),
+                          );
+                        },
+                        child: const Text('Mark all as read'),
+                      ),
+                    ],
+                  ),
+                ),
+                const Divider(),
+                Expanded(
+                  child: ListView(
+                    controller: scrollController,
+                    children: [
+                      _buildNotificationItem(
+                        'Task assigned to you',
+                        'Create wireframes for mobile app',
+                        '10 minutes ago',
+                        Icons.assignment,
+                        AppTheme.primaryColor,
+                      ),
+                      _buildNotificationItem(
+                        'Project deadline updated',
+                        'Mobile App UI Design deadline extended by 2 days',
+                        '3 hours ago',
+                        Icons.calendar_today,
+                        Colors.blue,
+                      ),
+                      _buildNotificationItem(
+                        'New team member added',
+                        'Sarah joined Mobile App UI Design project',
+                        '1 day ago',
+                        Icons.person_add,
+                        Colors.green,
+                      ),
+                      _buildNotificationItem(
+                        'Task completed',
+                        'Michael completed "Create wireframes"',
+                        '2 days ago',
+                        Icons.task_alt,
+                        Colors.purple,
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
+
+  Widget _buildNotificationItem(
+      String title,
+      String subtitle,
+      String time,
+      IconData icon,
+      Color iconColor,
+      ) {
+    return ListTile(
+      leading: CircleAvatar(
+        backgroundColor: iconColor.withOpacity(0.2),
+        child: Icon(icon, color: iconColor),
+      ),
+      title: Text(title),
+      subtitle: Text(subtitle),
+      trailing: Text(
+        time,
+        style: TextStyle(
+          fontSize: 12,
+          color: Colors.grey[600],
+        ),
+      ),
+      onTap: () {
+        Navigator.pop(context);
+        // Handle notification tap based on type
       },
     );
   }
@@ -213,6 +351,7 @@ class _ProjectsScreenState extends State<ProjectsScreen> {
     );
   }
 
+  // Update the build method to include the notification icon
   @override
   Widget build(BuildContext context) {
     final projectProvider = Provider.of<ProjectProvider>(context);
@@ -226,6 +365,10 @@ class _ProjectsScreenState extends State<ProjectsScreen> {
       appBar: AppBar(
         title: const Text('Projects'),
         actions: [
+          IconButton(
+            icon: const Icon(Icons.notifications_outlined),
+            onPressed: _showNotifications,
+          ),
           IconButton(
             icon: const Icon(Icons.add),
             onPressed: _navigateToCreateProject,

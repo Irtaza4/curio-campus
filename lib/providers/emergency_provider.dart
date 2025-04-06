@@ -4,16 +4,20 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:uuid/uuid.dart';
 import 'package:curio_campus/models/emergency_request_model.dart';
 import 'package:curio_campus/utils/constants.dart';
+import 'package:curio_campus/services/notification_service.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
 class EmergencyProvider with ChangeNotifier {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final FirebaseAuth _auth = FirebaseAuth.instance;
 
   List<EmergencyRequestModel> _emergencyRequests = [];
+  List<EmergencyRequestModel> _myEmergencyRequests = [];
   bool _isLoading = false;
   String? _errorMessage;
 
   List<EmergencyRequestModel> get emergencyRequests => _emergencyRequests;
+  List<EmergencyRequestModel> get myEmergencyRequests => _myEmergencyRequests;
   bool get isLoading => _isLoading;
   String? get errorMessage => _errorMessage;
 
@@ -67,7 +71,7 @@ class EmergencyProvider with ChangeNotifier {
           .where('requesterId', isEqualTo: userId)
           .get();
 
-      _emergencyRequests = querySnapshot.docs
+      _myEmergencyRequests = querySnapshot.docs
           .map((doc) => EmergencyRequestModel.fromJson({
         'id': doc.id,
         ...doc.data(),
@@ -75,7 +79,7 @@ class EmergencyProvider with ChangeNotifier {
           .toList();
 
       // Sort the list after fetching
-      _emergencyRequests.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+      _myEmergencyRequests.sort((a, b) => b.createdAt.compareTo(a.createdAt));
 
       _isLoading = false;
       notifyListeners();
@@ -87,6 +91,7 @@ class EmergencyProvider with ChangeNotifier {
     }
   }
 
+  // Enhance the createEmergencyRequest method to trigger a notification
   Future<String?> createEmergencyRequest({
     required String title,
     required String description,
@@ -140,7 +145,28 @@ class EmergencyProvider with ChangeNotifier {
           .doc(requestId)
           .set(request.toJson());
 
-      // Add request to local list
+      // Send notifications to users with matching skills
+      await NotificationService().sendEmergencyRequestNotification(
+        requiredSkills: requiredSkills,
+        requesterId: userId,
+        requesterName: userName,
+        requestId: requestId,
+        title: title,
+      );
+
+      // Show a local notification for testing
+      await NotificationService().showLocalNotification(
+        id: DateTime.now().millisecondsSinceEpoch.remainder(100000),
+        title: 'Emergency Request Created',
+        body: 'Your request "$title" has been created and shared with peers',
+        channelId: 'emergency_channel',
+        channelName: 'Emergency Requests',
+        channelDescription: 'Notifications for emergency requests',
+        color: Colors.orange,
+      );
+
+      // Add request to local lists
+      _myEmergencyRequests.insert(0, request);
       _emergencyRequests.insert(0, request);
 
       _isLoading = false;
@@ -152,6 +178,90 @@ class EmergencyProvider with ChangeNotifier {
       _errorMessage = e.toString();
       notifyListeners();
       return null;
+    }
+  }
+
+  Future<bool> updateEmergencyRequest({
+    required String requestId,
+    required String title,
+    required String description,
+    required List<String> requiredSkills,
+    required DateTime deadline,
+  }) async {
+    if (_auth.currentUser == null) return false;
+
+    _isLoading = true;
+    _errorMessage = null;
+    notifyListeners();
+
+    try {
+      final userId = _auth.currentUser!.uid;
+
+      // Verify that the user is the owner of the request
+      final requestDoc = await _firestore
+          .collection(Constants.emergencyRequestsCollection)
+          .doc(requestId)
+          .get();
+
+      if (!requestDoc.exists) {
+        _isLoading = false;
+        _errorMessage = 'Request not found';
+        notifyListeners();
+        return false;
+      }
+
+      final requestData = requestDoc.data() as Map<String, dynamic>;
+      if (requestData['requesterId'] != userId) {
+        _isLoading = false;
+        _errorMessage = 'You are not authorized to update this request';
+        notifyListeners();
+        return false;
+      }
+
+      // Update the request
+      await _firestore
+          .collection(Constants.emergencyRequestsCollection)
+          .doc(requestId)
+          .update({
+        'title': title,
+        'description': description,
+        'requiredSkills': requiredSkills,
+        'deadline': deadline.toIso8601String(),
+      });
+
+      // Update local lists
+      final myIndex = _myEmergencyRequests.indexWhere((r) => r.id == requestId);
+      if (myIndex != -1) {
+        final updatedRequest = EmergencyRequestModel.fromJson({
+          ..._myEmergencyRequests[myIndex].toJson(),
+          'title': title,
+          'description': description,
+          'requiredSkills': requiredSkills,
+          'deadline': deadline.toIso8601String(),
+        });
+        _myEmergencyRequests[myIndex] = updatedRequest;
+      }
+
+      final allIndex = _emergencyRequests.indexWhere((r) => r.id == requestId);
+      if (allIndex != -1) {
+        final updatedRequest = EmergencyRequestModel.fromJson({
+          ..._emergencyRequests[allIndex].toJson(),
+          'title': title,
+          'description': description,
+          'requiredSkills': requiredSkills,
+          'deadline': deadline.toIso8601String(),
+        });
+        _emergencyRequests[allIndex] = updatedRequest;
+      }
+
+      _isLoading = false;
+      notifyListeners();
+      return true;
+    } catch (e) {
+      _isLoading = false;
+      _errorMessage = e.toString();
+      notifyListeners();
+      return false;
     }
   }
 
@@ -171,16 +281,92 @@ class EmergencyProvider with ChangeNotifier {
         'resolvedAt': now.toIso8601String(),
       });
 
-      // Update local list
-      final index = _emergencyRequests.indexWhere((r) => r.id == requestId);
-      if (index != -1) {
-        _emergencyRequests[index] = EmergencyRequestModel.fromJson({
-          ..._emergencyRequests[index].toJson(),
+      // Update local lists
+      final myIndex = _myEmergencyRequests.indexWhere((r) => r.id == requestId);
+      if (myIndex != -1) {
+        _myEmergencyRequests[myIndex] = EmergencyRequestModel.fromJson({
+          ..._myEmergencyRequests[myIndex].toJson(),
           'isResolved': true,
           'resolvedBy': userId,
           'resolvedAt': now.toIso8601String(),
         });
       }
+
+      final allIndex = _emergencyRequests.indexWhere((r) => r.id == requestId);
+      if (allIndex != -1) {
+        _emergencyRequests[allIndex] = EmergencyRequestModel.fromJson({
+          ..._emergencyRequests[allIndex].toJson(),
+          'isResolved': true,
+          'resolvedBy': userId,
+          'resolvedAt': now.toIso8601String(),
+        });
+      }
+
+      notifyListeners();
+      return true;
+    } catch (e) {
+      _errorMessage = e.toString();
+      notifyListeners();
+      return false;
+    }
+  }
+
+  // Add a method to fetch a single emergency request by ID
+  Future<EmergencyRequestModel?> fetchEmergencyRequestById(String requestId) async {
+    try {
+      final docSnapshot = await _firestore
+          .collection(Constants.emergencyRequestsCollection)
+          .doc(requestId)
+          .get();
+
+      if (docSnapshot.exists) {
+        return EmergencyRequestModel.fromJson({
+          'id': docSnapshot.id,
+          ...docSnapshot.data()!,
+        });
+      }
+      return null;
+    } catch (e) {
+      _errorMessage = e.toString();
+      notifyListeners();
+      return null;
+    }
+  }
+
+  Future<bool> deleteEmergencyRequest(String requestId) async {
+    if (_auth.currentUser == null) return false;
+
+    try {
+      final userId = _auth.currentUser!.uid;
+
+      // Verify that the user is the owner of the request
+      final requestDoc = await _firestore
+          .collection(Constants.emergencyRequestsCollection)
+          .doc(requestId)
+          .get();
+
+      if (!requestDoc.exists) {
+        _errorMessage = 'Request not found';
+        notifyListeners();
+        return false;
+      }
+
+      final requestData = requestDoc.data() as Map<String, dynamic>;
+      if (requestData['requesterId'] != userId) {
+        _errorMessage = 'You are not authorized to delete this request';
+        notifyListeners();
+        return false;
+      }
+
+      // Delete the request
+      await _firestore
+          .collection(Constants.emergencyRequestsCollection)
+          .doc(requestId)
+          .delete();
+
+      // Remove from local lists
+      _myEmergencyRequests.removeWhere((r) => r.id == requestId);
+      _emergencyRequests.removeWhere((r) => r.id == requestId);
 
       notifyListeners();
       return true;

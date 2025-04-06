@@ -22,28 +22,122 @@ class SkillSelector extends StatefulWidget {
 class _SkillSelectorState extends State<SkillSelector> {
   final List<String> _majorSkills = [
     // Major Skills
-    'Dart', 'Python', 'Java', 'C++', 'JavaScript', 'Swift', 'Kotlin', 'TypeScript',
-    'PHP', 'Ruby', 'Go', 'C#', 'SQL', 'R', 'HTML', 'CSS', 'Marketing', 'SEO',
-    'Data Analysis', 'Machine Learning', 'Cybersecurity', 'UI/UX Design', 'DevOps',
-    'Blockchain', 'Cloud Computing', 'Game Development', 'Mobile App Development',
-    'Web Development', 'Backend Development', 'Frontend Development', 'AI',
-    'Networking', 'Embedded Systems', 'Automation', 'System Administration',
-    'Programming', 'Design', 'Writing', 'Research', 'Mathematics', 'Physics',
-    'Chemistry', 'Biology', 'Communication', 'Leadership', 'Project Management'
+    'Dart',
+    'Python',
+    'Java',
+    'C++',
+    'JavaScript',
+    'Swift',
+    'Kotlin',
+    'TypeScript',
+    'PHP',
+    'Ruby',
+    'Go',
+    'C#',
+    'SQL',
+    'R',
+    'HTML',
+    'CSS',
+    'Marketing',
+    'SEO',
+    'Data Analysis',
+    'Machine Learning',
+    'Cybersecurity',
+    'UI/UX Design',
+    'DevOps',
+    'Blockchain',
+    'Cloud Computing',
+    'Game Development',
+    'Mobile App Development',
+    'Web Development',
+    'Backend Development',
+    'Frontend Development',
+    'AI',
+    'Networking',
+    'Embedded Systems',
+    'Automation',
+    'System Administration',
+    'Programming',
+    'Design',
+    'Writing',
+    'Research',
+    'Mathematics',
+    'Physics',
+    'Chemistry',
+    'Biology',
+    'Communication',
+    'Leadership',
+    'Project Management'
   ];
 
   final List<String> _minorSkills = [
     // Minor Skills (Frameworks & Tools)
-    'Flutter', 'React', 'Vue.js', 'Angular', 'Django', 'Flask', 'FastAPI',
-    'Spring Boot', 'Express.js', 'NestJS', 'Next.js', 'Nuxt.js', 'Laravel',
-    'Ruby on Rails', 'ASP.NET', 'TensorFlow', 'PyTorch', 'Scikit-learn', 'OpenCV',
-    'Numpy', 'Pandas', 'Matplotlib', 'Tailwind CSS', 'Bootstrap', 'SASS', 'LESS',
-    'Redux', 'MobX', 'GetX', 'Riverpod', 'Provider', 'Firebase', 'Supabase',
-    'PostgreSQL', 'MySQL', 'MongoDB', 'Redis', 'GraphQL', 'REST API', 'gRPC',
-    'Docker', 'Kubernetes', 'Jenkins', 'AWS', 'Azure', 'Google Cloud', 'DigitalOcean',
-    'Unity', 'Unreal Engine', 'Godot', 'TensorFlow.js', 'Selenium', 'Puppeteer',
-    'Jest', 'Mocha', 'Cypress', 'JUnit', 'Pytest', 'Git', 'GitHub', 'GitLab',
-    'Bitbucket', 'Jira', 'Trello', 'Figma', 'Adobe XD'
+    'Flutter',
+    'React',
+    'Vue.js',
+    'Angular',
+    'Django',
+    'Flask',
+    'FastAPI',
+    'Spring Boot',
+    'Express.js',
+    'NestJS',
+    'Next.js',
+    'Nuxt.js',
+    'Laravel',
+    'Ruby on Rails',
+    'ASP.NET',
+    'TensorFlow',
+    'PyTorch',
+    'Scikit-learn',
+    'OpenCV',
+    'Numpy',
+    'Pandas',
+    'Matplotlib',
+    'Tailwind CSS',
+    'Bootstrap',
+    'SASS',
+    'LESS',
+    'Redux',
+    'MobX',
+    'GetX',
+    'Riverpod',
+    'Provider',
+    'Firebase',
+    'Supabase',
+    'PostgreSQL',
+    'MySQL',
+    'MongoDB',
+    'Redis',
+    'GraphQL',
+    'REST API',
+    'gRPC',
+    'Docker',
+    'Kubernetes',
+    'Jenkins',
+    'AWS',
+    'Azure',
+    'Google Cloud',
+    'DigitalOcean',
+    'Unity',
+    'Unreal Engine',
+    'Godot',
+    'TensorFlow.js',
+    'Selenium',
+    'Puppeteer',
+    'Jest',
+    'Mocha',
+    'Cypress',
+    'JUnit',
+    'Pytest',
+    'Git',
+    'GitHub',
+    'GitLab',
+    'Bitbucket',
+    'Jira',
+    'Trello',
+    'Figma',
+    'Adobe XD'
   ];
 
   @override
@@ -73,7 +167,8 @@ class _SkillSelectorState extends State<SkillSelector> {
                   backgroundColor: AppTheme.primaryColor.withOpacity(0.1),
                   deleteIconColor: AppTheme.primaryColor,
                   onDeleted: () {
-                    final updatedSkills = List<String>.from(widget.selectedSkills)
+                    final updatedSkills = List<String>.from(widget
+                        .selectedSkills)
                       ..remove(skill);
                     widget.onSkillsChanged(updatedSkills);
                   },
@@ -91,7 +186,8 @@ class _SkillSelectorState extends State<SkillSelector> {
               },
               borderRadius: BorderRadius.circular(8),
               child: Container(
-                padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+                padding: const EdgeInsets.symmetric(
+                    vertical: 12, horizontal: 16),
                 decoration: BoxDecoration(
                   border: Border.all(color: Colors.grey.shade400),
                   borderRadius: BorderRadius.circular(8),
@@ -132,6 +228,14 @@ class _SkillSelectorState extends State<SkillSelector> {
   }
 
   void _showSkillSelectionDialog(List<String> availableSkills) {
+    final majorSkillsFiltered = availableSkills
+        .where((skill) => _majorSkills.contains(skill))
+        .toList();
+
+    final minorSkillsFiltered = availableSkills
+        .where((skill) => _minorSkills.contains(skill))
+        .toList();
+
     showDialog(
       context: context,
       builder: (context) {
@@ -157,7 +261,8 @@ class _SkillSelectorState extends State<SkillSelector> {
                       // This will rebuild the dialog with filtered skills
                       if (value.isEmpty) {
                         availableSkills = [..._majorSkills, ..._minorSkills]
-                            .where((skill) => !widget.selectedSkills.contains(skill))
+                            .where((skill) =>
+                        !widget.selectedSkills.contains(skill))
                             .toList();
                       } else {
                         availableSkills = [..._majorSkills, ..._minorSkills]
@@ -181,53 +286,47 @@ class _SkillSelectorState extends State<SkillSelector> {
                 ),
                 const Divider(),
 
-                // Skills list (scrollable)
                 Expanded(
-                  child: ListView.builder(
+                  child: ListView(
                     shrinkWrap: true,
-                    itemCount: availableSkills.length,
-                    itemBuilder: (context, index) {
-                      final skill = availableSkills[index];
-                      final isMajorSkill = _majorSkills.contains(skill);
+                    children: [
+                      // Major skills list
+                      ...majorSkillsFiltered.map((skill) =>
+                          ListTile(
+                            title: Text(skill),
+                            onTap: () {
+                              final updatedSkills = List<String>.from(
+                                  widget.selectedSkills)
+                                ..add(skill);
+                              widget.onSkillsChanged(updatedSkills);
+                              Navigator.pop(context);
+                            },
+                          )).toList(),
 
-                      // Show section divider between major and minor skills
-                      if (index > 0 &&
-                          isMajorSkill != _majorSkills.contains(availableSkills[index-1])) {
-                        return Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const Divider(height: 24),
-                            const Text(
-                              'Minor Skills (Frameworks & Tools)',
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 16,
-                              ),
-                            ),
-                            const Divider(),
+                      // Minor skills section
+                      if (minorSkillsFiltered.isNotEmpty) ...[
+                        const SizedBox(height: 16),
+                        const Text(
+                          'Minor Skills (Frameworks & Tools)',
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16,
+                          ),
+                        ),
+                        const Divider(),
+                        ...minorSkillsFiltered.map((skill) =>
                             ListTile(
                               title: Text(skill),
                               onTap: () {
-                                final updatedSkills = List<String>.from(widget.selectedSkills)
+                                final updatedSkills = List<String>.from(
+                                    widget.selectedSkills)
                                   ..add(skill);
                                 widget.onSkillsChanged(updatedSkills);
                                 Navigator.pop(context);
                               },
-                            ),
-                          ],
-                        );
-                      }
-
-                      return ListTile(
-                        title: Text(skill),
-                        onTap: () {
-                          final updatedSkills = List<String>.from(widget.selectedSkills)
-                            ..add(skill);
-                          widget.onSkillsChanged(updatedSkills);
-                          Navigator.pop(context);
-                        },
-                      );
-                    },
+                            )).toList(),
+                      ],
+                    ],
                   ),
                 ),
               ],
@@ -246,4 +345,3 @@ class _SkillSelectorState extends State<SkillSelector> {
     );
   }
 }
-

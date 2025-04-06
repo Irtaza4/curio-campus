@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:curio_campus/providers/auth_provider.dart';
 import 'package:curio_campus/screens/profile/edit_profile_screen.dart';
 import 'package:curio_campus/utils/app_theme.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({Key? key}) : super(key: key);
@@ -22,6 +23,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
       appBar: AppBar(
         title: const Text('Profile'),
         actions: [
+          IconButton(
+            icon: const Icon(Icons.notifications_outlined),
+            onPressed: () => _showNotifications(context),
+          ),
           IconButton(
             icon: const Icon(Icons.edit),
             onPressed: () {
@@ -52,24 +57,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               color: AppTheme.primaryColor,
               child: Column(
                 children: [
-                  CircleAvatar(
-                    radius: 50,
-                    backgroundColor: Colors.white,
-                    backgroundImage: user.profileImageUrl != null && user.profileImageUrl!.isNotEmpty
-                        ? NetworkImage(user.profileImageUrl!)
-                        : null,
-                    onBackgroundImageError: (exception, stackTrace) {
-                      // Handle image loading error silently
-                      debugPrint('Error loading profile image: $exception');
-                    },
-                    child: (user.profileImageUrl == null || user.profileImageUrl!.isEmpty)
-                        ? Icon(
-                      Icons.person,
-                      size: 50,
-                      color: AppTheme.primaryColor,
-                    )
-                        : null,
-                  ),
+                  _buildProfileAvatar(user.profileImageUrl),
                   const SizedBox(height: 16),
                   Text(
                     user.name,
@@ -147,7 +135,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       onPressed: () async {
                         await authProvider.logout();
                         if (context.mounted) {
-                          Navigator.of(context).pushReplacement( MaterialPageRoute(builder: (context) => LoginScreen()));
+                          Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (_)=>LoginScreen()));
                         }
                       },
                       style: ElevatedButton.styleFrom(
@@ -174,6 +162,45 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
+  Widget _buildProfileAvatar(String? imageUrl) {
+    if (imageUrl == null || imageUrl.isEmpty) {
+      return CircleAvatar(
+        radius: 50,
+        backgroundColor: Colors.white,
+        child: Icon(
+          Icons.person,
+          size: 50,
+          color: AppTheme.primaryColor,
+        ),
+      );
+    }
+
+    return CachedNetworkImage(
+      imageUrl: imageUrl,
+      imageBuilder: (context, imageProvider) => CircleAvatar(
+        radius: 50,
+        backgroundColor: Colors.white,
+        backgroundImage: imageProvider,
+      ),
+      placeholder: (context, url) => CircleAvatar(
+        radius: 50,
+        backgroundColor: Colors.white,
+        child: CircularProgressIndicator(
+          color: AppTheme.primaryColor,
+        ),
+      ),
+      errorWidget: (context, url, error) => CircleAvatar(
+        radius: 50,
+        backgroundColor: Colors.white,
+        child: Icon(
+          Icons.person,
+          size: 50,
+          color: AppTheme.primaryColor,
+        ),
+      ),
+    );
+  }
+
   void _showMoreOptions(BuildContext context) {
     showModalBottomSheet(
       context: context,
@@ -185,6 +212,46 @@ class _ProfileScreenState extends State<ProfileScreen> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
+              ListTile(
+                leading: const Icon(Icons.edit, color: AppTheme.primaryColor),
+                title: const Text('Edit Profile'),
+                onTap: () {
+                  Navigator.pop(context);
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => const EditProfileScreen(),
+                    ),
+                  );
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.settings, color: Colors.grey),
+                title: const Text('Settings'),
+                onTap: () {
+                  Navigator.pop(context);
+                  // Navigate to settings screen
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Settings coming soon'),
+                    ),
+                  );
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.help_outline, color: Colors.blue),
+                title: const Text('Help & Support'),
+                onTap: () {
+                  Navigator.pop(context);
+                  // Navigate to help screen
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Help & Support coming soon'),
+                    ),
+                  );
+                },
+              ),
+              const Divider(),
               ListTile(
                 leading: const Icon(Icons.logout, color: Colors.red),
                 title: const Text('Logout', style: TextStyle(color: Colors.red)),
@@ -219,6 +286,125 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ],
           ),
         );
+      },
+    );
+  }
+
+  void _showNotifications(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (context) {
+        return DraggableScrollableSheet(
+          initialChildSize: 0.6,
+          minChildSize: 0.3,
+          maxChildSize: 0.9,
+          expand: false,
+          builder: (context, scrollController) {
+            return Column(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text(
+                        'Your Notifications',
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      TextButton(
+                        onPressed: () {
+                          Navigator.pop(context);
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('All notifications marked as read'),
+                            ),
+                          );
+                        },
+                        child: const Text('Mark all as read'),
+                      ),
+                    ],
+                  ),
+                ),
+                const Divider(),
+                Expanded(
+                  child: ListView(
+                    controller: scrollController,
+                    children: [
+                      _buildNotificationItem(
+                        'Profile viewed',
+                        'Sarah viewed your profile',
+                        '10 minutes ago',
+                        Icons.person,
+                        AppTheme.primaryColor,
+                        context,
+                      ),
+                      _buildNotificationItem(
+                        'Skill endorsed',
+                        'John endorsed your Flutter skills',
+                        '3 hours ago',
+                        Icons.thumb_up,
+                        Colors.blue,
+                        context,
+                      ),
+                      _buildNotificationItem(
+                        'New skill match',
+                        'Your skills match a new emergency request',
+                        '1 day ago',
+                        Icons.psychology,
+                        Colors.orange,
+                        context,
+                      ),
+                      _buildNotificationItem(
+                        'Account update',
+                        'Your account settings were updated',
+                        '2 days ago',
+                        Icons.settings,
+                        Colors.grey,
+                        context,
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
+
+  Widget _buildNotificationItem(
+      String title,
+      String subtitle,
+      String time,
+      IconData icon,
+      Color iconColor,
+      BuildContext context,
+      ) {
+    return ListTile(
+      leading: CircleAvatar(
+        backgroundColor: iconColor.withOpacity(0.2),
+        child: Icon(icon, color: iconColor),
+      ),
+      title: Text(title),
+      subtitle: Text(subtitle),
+      trailing: Text(
+        time,
+        style: TextStyle(
+          fontSize: 12,
+          color: Colors.grey[600],
+        ),
+      ),
+      onTap: () {
+        Navigator.pop(context);
+        // Handle notification tap based on type
       },
     );
   }

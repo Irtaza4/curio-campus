@@ -96,6 +96,27 @@ class AuthProvider with ChangeNotifier {
     }
   }
 
+  Future<void> _updateFCMToken() async {
+    if (_firebaseUser == null) return;
+
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString('fcm_token');
+
+      if (token != null) {
+        await _firestore
+            .collection(Constants.usersCollection)
+            .doc(_firebaseUser!.uid)
+            .update({
+          'fcmToken': token,
+          'lastTokenUpdate': DateTime.now().toIso8601String(),
+        });
+      }
+    } catch (e) {
+      debugPrint('Error updating FCM token: $e');
+    }
+  }
+
   Future<bool> register({
     required String name,
     required String email,
@@ -142,6 +163,8 @@ class AuthProvider with ChangeNotifier {
         // Save user data to shared preferences
         await _saveUserToPrefs();
 
+        await _updateFCMToken();
+
         final prefs = await SharedPreferences.getInstance();
         prefs.setString(Constants.userIdKey, _firebaseUser!.uid);
         prefs.setString(Constants.userEmailKey, email);
@@ -183,6 +206,7 @@ class AuthProvider with ChangeNotifier {
 
       if (_firebaseUser != null) {
         await _fetchUserData();
+        await _updateFCMToken();
 
         // Save user data to shared preferences
         final prefs = await SharedPreferences.getInstance();
@@ -215,6 +239,15 @@ class AuthProvider with ChangeNotifier {
     notifyListeners();
 
     try {
+      if (_firebaseUser != null) {
+        await _firestore
+            .collection(Constants.usersCollection)
+            .doc(_firebaseUser!.uid)
+            .update({
+          'fcmToken': null,
+        });
+      }
+
       await _auth.signOut();
       _firebaseUser = null;
       _userModel = null;

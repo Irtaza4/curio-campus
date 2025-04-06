@@ -385,7 +385,7 @@ class _MatchmakingScreenState extends State<MatchmakingScreen> {
                       padding: const EdgeInsets.symmetric(horizontal: 16),
                       minimumSize: const Size(100, 36),
                     ),
-                    child: const Text('Respond'),
+                    child: const Text('Chat'),
                   ),
                 ],
               ),

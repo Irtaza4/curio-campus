@@ -262,7 +262,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
               // Minor skills
               const Text(
-                'Minor Skills',
+                'Minor Skills (Frameworks & Tools)',
                 style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w500,

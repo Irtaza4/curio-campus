@@ -217,13 +217,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       CircleAvatar(
                         radius: 50,
                         backgroundColor: AppTheme.lightGrayColor,
-                        backgroundImage: _profileImage != null
-                            ? FileImage(_profileImage!)
-                            : null,
-                        onBackgroundImageError: (exception, stackTrace) {
-                          // Handle image loading error silently
-                          debugPrint('Error loading profile image: $exception');
-                        },
+                        backgroundImage: _profileImage != null ? FileImage(_profileImage!) : null,
                         child: _profileImage == null
                             ? Icon(
                           Icons.person,
@@ -378,7 +372,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
                       // Minor skills
                       const Text(
-                        'MINOR SKILLS',
+                        'MINOR SKILLS (FRAMEWORKS & TOOLS)',
                         style: TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.w500,

@@ -6,6 +6,11 @@ import 'package:curio_campus/screens/auth/login_screen.dart';
 import 'package:curio_campus/screens/home/home_screen.dart';
 import 'package:curio_campus/utils/app_theme.dart';
 import 'package:curio_campus/utils/constants.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'dart:convert';
+import 'package:curio_campus/screens/chat/chat_screen.dart';
+import 'package:curio_campus/screens/emergency/emergency_request_detail_screen.dart';
+import 'package:curio_campus/screens/project/project_detail_screen.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({Key? key}) : super(key: key);
@@ -56,9 +61,14 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
     super.dispose();
   }
 
+  // Update the _checkAuthState method to handle initial notification
   void _checkAuthState() async {
     try {
       final authProvider = Provider.of<AuthProvider>(context, listen: false);
+
+      // Check for initial notification
+      final prefs = await SharedPreferences.getInstance();
+      final initialNotificationJson = prefs.getString('initial_notification');
 
       // Initialize projects if user is authenticated
       if (authProvider.isAuthenticated) {
@@ -68,6 +78,14 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
           Navigator.of(context).pushReplacement(
             MaterialPageRoute(builder: (_) => const HomeScreen()),
           );
+
+          // Handle initial notification after navigation
+          if (initialNotificationJson != null) {
+            final notificationData = jsonDecode(initialNotificationJson) as Map<String, dynamic>;
+            _handleInitialNotification(notificationData);
+            // Clear the stored notification
+            prefs.remove('initial_notification');
+          }
         }
       } else {
         if (mounted) {
@@ -85,6 +103,60 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
         );
       }
     }
+  }
+
+  // Add a method to handle initial notification
+  void _handleInitialNotification(Map<String, dynamic> notificationData) {
+    final notificationType = notificationData['type'];
+
+    // Delay navigation to ensure HomeScreen is fully loaded
+    Future.delayed(const Duration(milliseconds: 500), () {
+      if (!mounted) return;
+
+      switch (notificationType) {
+        case 'chat':
+          final chatId = notificationData['chatId'];
+          final chatName = notificationData['chatName'];
+          if (chatId != null && chatName != null) {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => ChatScreen(
+                  chatId: chatId,
+                  chatName: chatName,
+                ),
+              ),
+            );
+          }
+          break;
+        case 'emergency':
+          final requestId = notificationData['requestId'];
+          final isOwnRequest = notificationData['isOwnRequest'] == 'true';
+          if (requestId != null) {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => EmergencyRequestDetailScreen(
+                  requestId: requestId,
+                  isOwnRequest: isOwnRequest,
+                ),
+              ),
+            );
+          }
+          break;
+        case 'project':
+          final projectId = notificationData['projectId'];
+          if (projectId != null) {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => ProjectDetailScreen(projectId: projectId),
+              ),
+            );
+          }
+          break;
+      }
+    });
   }
 
   @override
@@ -106,12 +178,10 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
                     SizedBox(
                       width: 180,
                       height: 180,
-                      child: Image.asset(
-                        'assets/images/logo.png',
-                        errorBuilder: (context, error, stackTrace) {
-                          debugPrint('Error loading logo: $error');
-                          return _buildNetworkLogo();
-                        },
+                      child: Icon(
+                        Icons.hub,
+                        size: 100,
+                        color: AppTheme.primaryColor,
                       ),
                     ),
                     const SizedBox(height: 24),
@@ -181,22 +251,6 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
             );
           },
         ),
-      ),
-    );
-  }
-
-  Widget _buildNetworkLogo() {
-    return Container(
-      width: 180,
-      height: 180,
-      decoration: BoxDecoration(
-        color: AppTheme.primaryColor.withOpacity(0.1),
-        shape: BoxShape.circle,
-      ),
-      child: Icon(
-        Icons.hub,
-        size: 100,
-        color: AppTheme.primaryColor,
       ),
     );
   }
