@@ -76,6 +76,63 @@ class NotificationProvider with ChangeNotifier {
       final now = DateTime.now();
       final notificationId = const Uuid().v4();
 
+      // Check if a similar notification already exists to prevent duplication
+      if (relatedId != null) {
+        final existingNotifications = await _firestore
+            .collection(Constants.usersCollection)
+            .doc(userId)
+            .collection('notifications')
+            .where('relatedId', isEqualTo: relatedId)
+            .where('type', isEqualTo: type.toString().split('.').last)
+            .orderBy('timestamp', descending: true)
+            .limit(1)
+            .get();
+
+        // If a similar notification exists and was created in the last 5 minutes, don't create a new one
+        if (existingNotifications.docs.isNotEmpty) {
+          final latestNotification = existingNotifications.docs.first;
+          final latestTimestamp = DateTime.parse(latestNotification.data()['timestamp'] as String);
+
+          if (now.difference(latestTimestamp).inMinutes < 5) {
+            // Just update the existing notification to mark it as unread
+            await _firestore
+                .collection(Constants.usersCollection)
+                .doc(userId)
+                .collection('notifications')
+                .doc(latestNotification.id)
+                .update({
+              'isRead': false,
+              'timestamp': now.toIso8601String(),
+              'message': message, // Update the message in case it changed
+            });
+
+            // Update local list if the notification exists there
+            final index = _notifications.indexWhere((n) => n.id == latestNotification.id);
+            if (index != -1) {
+              _notifications[index] = NotificationModel(
+                id: latestNotification.id,
+                title: title,
+                message: message,
+                timestamp: now,
+                type: type,
+                relatedId: relatedId,
+                isRead: false,
+                additionalData: additionalData,
+              );
+
+              // If it was previously read, increment unread count
+              if (_notifications[index].isRead) {
+                _unreadCount++;
+              }
+            }
+
+            notifyListeners();
+            return;
+          }
+        }
+      }
+
+      // Create a new notification if no similar recent one exists
       final notification = NotificationModel(
         id: notificationId,
         title: title,

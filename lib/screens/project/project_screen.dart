@@ -81,235 +81,6 @@ class _ProjectsScreenState extends State<ProjectsScreen> {
     });
   }
 
-  // Update the _showMoreOptions method to include more relevant options
-  void _showMoreOptions() {
-    showModalBottomSheet(
-      context: context,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-      ),
-      builder: (context) {
-        return SafeArea(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              ListTile(
-                leading: const Icon(Icons.add_circle_outline, color: AppTheme.primaryColor),
-                title: const Text('Create New Project'),
-                onTap: () {
-                  Navigator.pop(context);
-                  _navigateToCreateProject();
-                },
-              ),
-              ListTile(
-                leading: const Icon(Icons.refresh, color: Colors.blue),
-                title: const Text('Refresh Projects'),
-                onTap: () {
-                  Navigator.pop(context);
-                  _fetchProjects();
-                },
-              ),
-              ListTile(
-                leading: const Icon(Icons.filter_list, color: Colors.purple),
-                title: const Text('Filter Projects'),
-                onTap: () {
-                  Navigator.pop(context);
-                  // Show filter options
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Filter options coming soon'),
-                    ),
-                  );
-                },
-              ),
-              const Divider(),
-              ListTile(
-                leading: const Icon(Icons.logout, color: Colors.red),
-                title: const Text('Logout', style: TextStyle(color: Colors.red)),
-                onTap: () async {
-                  Navigator.pop(context);
-                  final confirm = await showDialog<bool>(
-                    context: context,
-                    builder: (context) => AlertDialog(
-                      title: const Text('Logout'),
-                      content: const Text('Are you sure you want to logout?'),
-                      actions: [
-                        TextButton(
-                          onPressed: () => Navigator.pop(context, false),
-                          child: const Text('Cancel'),
-                        ),
-                        TextButton(
-                          onPressed: () => Navigator.pop(context, true),
-                          child: const Text('Logout', style: TextStyle(color: Colors.red)),
-                        ),
-                      ],
-                    ),
-                  );
-
-                  if (confirm == true && mounted) {
-                    await Provider.of<AuthProvider>(context, listen: false).logout();
-                    if (mounted) {
-                      Navigator.of(context).pushReplacementNamed('/login');
-                    }
-                  }
-                },
-              ),
-            ],
-          ),
-        );
-      },
-    );
-  }
-
-  // Add a method to show notifications
-  void _showNotifications() {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-      ),
-      builder: (context) {
-        return DraggableScrollableSheet(
-          initialChildSize: 0.6,
-          minChildSize: 0.3,
-          maxChildSize: 0.9,
-          expand: false,
-          builder: (context, scrollController) {
-            return Column(
-              children: [
-                Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      const Text(
-                        'Project Notifications',
-                        style: TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      TextButton(
-                        onPressed: () {
-                          Navigator.pop(context);
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text('All notifications marked as read'),
-                            ),
-                          );
-                        },
-                        child: const Text('Mark all as read'),
-                      ),
-                    ],
-                  ),
-                ),
-                const Divider(),
-                Expanded(
-                  child: ListView(
-                    controller: scrollController,
-                    children: [
-                      _buildNotificationItem(
-                        'Task assigned to you',
-                        'Create wireframes for mobile app',
-                        '10 minutes ago',
-                        Icons.assignment,
-                        AppTheme.primaryColor,
-                      ),
-                      _buildNotificationItem(
-                        'Project deadline updated',
-                        'Mobile App UI Design deadline extended by 2 days',
-                        '3 hours ago',
-                        Icons.calendar_today,
-                        Colors.blue,
-                      ),
-                      _buildNotificationItem(
-                        'New team member added',
-                        'Sarah joined Mobile App UI Design project',
-                        '1 day ago',
-                        Icons.person_add,
-                        Colors.green,
-                      ),
-                      _buildNotificationItem(
-                        'Task completed',
-                        'Michael completed "Create wireframes"',
-                        '2 days ago',
-                        Icons.task_alt,
-                        Colors.purple,
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            );
-          },
-        );
-      },
-    );
-  }
-
-  Widget _buildNotificationItem(
-      String title,
-      String subtitle,
-      String time,
-      IconData icon,
-      Color iconColor,
-      ) {
-    return ListTile(
-      leading: CircleAvatar(
-        backgroundColor: iconColor.withOpacity(0.2),
-        child: Icon(icon, color: iconColor),
-      ),
-      title: Text(title),
-      subtitle: Text(subtitle),
-      trailing: Text(
-        time,
-        style: TextStyle(
-          fontSize: 12,
-          color: Colors.grey[600],
-        ),
-      ),
-      onTap: () {
-        Navigator.pop(context);
-        // Handle notification tap based on type
-      },
-    );
-  }
-
-  void _showProjectOptions(ProjectModel project) {
-    showModalBottomSheet(
-      context: context,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-      ),
-      builder: (context) {
-        return SafeArea(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              ListTile(
-                leading: const Icon(Icons.open_in_new, color: Colors.blue),
-                title: const Text('Open'),
-                onTap: () {
-                  Navigator.pop(context);
-                  _navigateToProjectDetail(project.id);
-                },
-              ),
-              ListTile(
-                leading: const Icon(Icons.delete, color: Colors.red),
-                title: const Text('Delete', style: TextStyle(color: Colors.red)),
-                onTap: () {
-                  Navigator.pop(context);
-                  _showDeleteProjectDialog(project);
-                },
-              ),
-            ],
-          ),
-        );
-      },
-    );
-  }
-
   void _showDeleteProjectDialog(ProjectModel project) {
     showDialog(
       context: context,
@@ -351,7 +122,6 @@ class _ProjectsScreenState extends State<ProjectsScreen> {
     );
   }
 
-  // Update the build method to include the notification icon
   @override
   Widget build(BuildContext context) {
     final projectProvider = Provider.of<ProjectProvider>(context);
@@ -361,79 +131,59 @@ class _ProjectsScreenState extends State<ProjectsScreen> {
     final activeProjects = allProjects.where((p) => p.progress < 100).toList();
     final completedProjects = allProjects.where((p) => p.progress == 100).toList();
 
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Projects'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.notifications_outlined),
-            onPressed: _showNotifications,
+    return _isLoading
+        ? const Center(child: CircularProgressIndicator())
+        : allProjects.isEmpty
+        ? Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          const Text(
+            'No projects yet',
+            style: TextStyle(fontSize: 18),
           ),
-          IconButton(
-            icon: const Icon(Icons.add),
+          const SizedBox(height: 16),
+          ElevatedButton(
             onPressed: _navigateToCreateProject,
-          ),
-          IconButton(
-            icon: const Icon(Icons.more_vert),
-            onPressed: _showMoreOptions,
+            child: const Text('Create Project'),
           ),
         ],
       ),
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : allProjects.isEmpty
-          ? Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
+    )
+        : RefreshIndicator(
+      onRefresh: _fetchProjects,
+      child: ListView(
+        padding: const EdgeInsets.all(16),
+        children: [
+          if (activeProjects.isNotEmpty) ...[
             const Text(
-              'No projects yet',
-              style: TextStyle(fontSize: 18),
-            ),
-            const SizedBox(height: 16),
-            ElevatedButton(
-              onPressed: _navigateToCreateProject,
-              child: const Text('Create Project'),
-            ),
-          ],
-        ),
-      )
-          : RefreshIndicator(
-        onRefresh: _fetchProjects,
-        child: ListView(
-          padding: const EdgeInsets.all(16),
-          children: [
-            if (activeProjects.isNotEmpty) ...[
-              const Text(
-                'Active Projects',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                ),
+              'Active Projects',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
               ),
-              const SizedBox(height: 8),
-              ...activeProjects.map((project) => _buildProjectCard(project)),
-            ],
+            ),
+            const SizedBox(height: 8),
+            ...activeProjects.map((project) => _buildProjectCard(project)),
+          ],
 
-            if (completedProjects.isNotEmpty) ...[
-              const SizedBox(height: 24),
-              const Text(
-                'Completed Projects',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                ),
+          if (completedProjects.isNotEmpty) ...[
+            const SizedBox(height: 24),
+            const Text(
+              'Completed Projects',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
               ),
-              const SizedBox(height: 8),
-              ...completedProjects.map((project) => _buildProjectCard(project)),
-            ],
+            ),
+            const SizedBox(height: 8),
+            ...completedProjects.map((project) => _buildProjectCard(project)),
           ],
-        ),
+        ],
       ),
     );
   }
 
-  // Update the _buildProjectCard method to use CachedNetworkImage for team member avatars
   Widget _buildProjectCard(ProjectModel project) {
     return Card(
       margin: const EdgeInsets.only(bottom: 16),
@@ -443,7 +193,7 @@ class _ProjectsScreenState extends State<ProjectsScreen> {
       ),
       child: InkWell(
         onTap: () => _navigateToProjectDetail(project.id),
-        onLongPress: () => _showProjectOptions(project),
+        onLongPress: () => _showDeleteProjectDialog(project),
         borderRadius: BorderRadius.circular(12),
         child: Padding(
           padding: const EdgeInsets.all(16),

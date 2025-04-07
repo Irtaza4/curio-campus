@@ -10,12 +10,10 @@ import 'package:provider/provider.dart';
 import 'package:uuid/uuid.dart';
 import 'package:curio_campus/models/notification_model.dart';
 import 'package:curio_campus/providers/notification_provider.dart';
-
+import 'package:curio_campus/main.dart' show navigatorKey;
 import '../screens/chat/chat_screen.dart';
 import '../screens/emergency/emergency_request_detail_screen.dart';
 import '../screens/project/project_detail_screen.dart';
-
-final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
 class NotificationService {
   static final NotificationService _instance = NotificationService._internal();
@@ -733,3 +731,4 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
 
   // No need to show a notification as FCM will handle it automatically in the background
 }
+

@@ -46,19 +46,20 @@ class NotificationDrawer extends StatelessWidget {
                       fontWeight: FontWeight.bold,
                     ),
                   ),
-                  TextButton(
-                    onPressed: () async {
-                      await notificationProvider.markAllAsRead();
-                      if (context.mounted) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('All notifications marked as read'),
-                          ),
-                        );
-                      }
-                    },
-                    child: const Text('Mark all as read'),
-                  ),
+                  if (notifications.isNotEmpty)
+                    TextButton(
+                      onPressed: () async {
+                        await notificationProvider.markAllAsRead();
+                        if (context.mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('All notifications marked as read'),
+                            ),
+                          );
+                        }
+                      },
+                      child: const Text('Mark all as read'),
+                    ),
                 ],
               ),
             ),
@@ -67,18 +68,32 @@ class NotificationDrawer extends StatelessWidget {
               child: notificationProvider.isLoading
                   ? const Center(child: CircularProgressIndicator())
                   : notifications.isEmpty
-                  ? const Center(child: Text('No notifications'))
-                  : ListView.builder(
-                controller: scrollController,
-                itemCount: notifications.length,
-                itemBuilder: (context, index) {
-                  final notification = notifications[index];
-                  return _buildNotificationItem(
-                    context,
-                    notification,
-                    notificationProvider,
-                  );
-                },
+                  ? const Center(
+                child: Padding(
+                  padding: EdgeInsets.all(16.0),
+                  child: Text(
+                    'No notifications',
+                    style: TextStyle(
+                      fontSize: 16,
+                      color: Colors.grey,
+                    ),
+                  ),
+                ),
+              )
+                  : RefreshIndicator(
+                onRefresh: () => notificationProvider.fetchNotifications(),
+                child: ListView.builder(
+                  controller: scrollController,
+                  itemCount: notifications.length,
+                  itemBuilder: (context, index) {
+                    final notification = notifications[index];
+                    return _buildNotificationItem(
+                      context,
+                      notification,
+                      notificationProvider,
+                    );
+                  },
+                ),
               ),
             ),
           ],

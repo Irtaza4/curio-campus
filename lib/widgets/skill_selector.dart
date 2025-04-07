@@ -236,112 +236,135 @@ class _SkillSelectorState extends State<SkillSelector> {
         .where((skill) => _minorSkills.contains(skill))
         .toList();
 
+    // Track which section is currently being displayed
+    bool showingMajorSkills = true;
+
     showDialog(
       context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: Text(widget.title ?? 'Select a Skill'),
-          content: SizedBox(
-            width: double.maxFinite,
-            height: 400, // Set a fixed height for scrolling
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Search field
-                TextField(
-                  decoration: InputDecoration(
-                    hintText: 'Search skills...',
-                    prefixIcon: const Icon(Icons.search),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
+      builder: (dialogContext) {
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return AlertDialog(
+              title: Text(widget.title ?? 'Select a Skill'),
+              content: SizedBox(
+                width: double.maxFinite,
+                height: 400, // Set a fixed height for scrolling
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Search field
+                    TextField(
+                      decoration: InputDecoration(
+                        hintText: 'Search skills...',
+                        prefixIcon: const Icon(Icons.search),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                      ),
+                      onChanged: (value) {
+                        // This will rebuild the dialog with filtered skills
+                        setState(() {});
+                      },
                     ),
-                  ),
-                  onChanged: (value) {
-                    setState(() {
-                      // This will rebuild the dialog with filtered skills
-                      if (value.isEmpty) {
-                        availableSkills = [..._majorSkills, ..._minorSkills]
-                            .where((skill) =>
-                        !widget.selectedSkills.contains(skill))
-                            .toList();
-                      } else {
-                        availableSkills = [..._majorSkills, ..._minorSkills]
-                            .where((skill) =>
-                        !widget.selectedSkills.contains(skill) &&
-                            skill.toLowerCase().contains(value.toLowerCase()))
-                            .toList();
-                      }
-                    });
-                  },
-                ),
-                const SizedBox(height: 8),
+                    const SizedBox(height: 16),
 
-                // Major Skills section
-                const Text(
-                  'Major Skills',
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 16,
-                  ),
-                ),
-                const Divider(),
+                    // Toggle buttons for Major/Minor skills
+                    Row(
+                      children: [
+                        Expanded(
+                          child: ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: showingMajorSkills
+                                  ? AppTheme.primaryColor
+                                  : Colors.grey.shade300,
+                              foregroundColor: showingMajorSkills
+                                  ? Colors.white
+                                  : Colors.black,
+                            ),
+                            onPressed: () {
+                              setState(() {
+                                showingMajorSkills = true;
+                              });
+                            },
+                            child: const Text('Major Skills'),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: !showingMajorSkills
+                                  ? AppTheme.primaryColor
+                                  : Colors.grey.shade300,
+                              foregroundColor: !showingMajorSkills
+                                  ? Colors.white
+                                  : Colors.black,
+                            ),
+                            onPressed: () {
+                              setState(() {
+                                showingMajorSkills = false;
+                              });
+                            },
+                            child: const Text('Minor Skills'),
+                          ),
+                        ),
+                      ],
+                    ),
 
-                Expanded(
-                  child: ListView(
-                    shrinkWrap: true,
-                    children: [
-                      // Major skills list
-                      ...majorSkillsFiltered.map((skill) =>
-                          ListTile(
+                    const SizedBox(height: 8),
+
+                    // Section title
+                    Text(
+                      showingMajorSkills
+                          ? 'Major Skills'
+                          : 'Minor Skills (Frameworks & Tools)',
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                      ),
+                    ),
+                    const Divider(),
+
+                    // Skills list
+                    Expanded(
+                      child: ListView.builder(
+                        itemCount: showingMajorSkills
+                            ? majorSkillsFiltered.length
+                            : minorSkillsFiltered.length,
+                        itemBuilder: (context, index) {
+                          final skill = showingMajorSkills
+                              ? majorSkillsFiltered[index]
+                              : minorSkillsFiltered[index];
+
+                          return ListTile(
                             title: Text(skill),
                             onTap: () {
                               final updatedSkills = List<String>.from(
                                   widget.selectedSkills)
                                 ..add(skill);
                               widget.onSkillsChanged(updatedSkills);
-                              Navigator.pop(context);
+                              Navigator.pop(dialogContext);
                             },
-                          )).toList(),
-
-                      // Minor skills section
-                      if (minorSkillsFiltered.isNotEmpty) ...[
-                        const SizedBox(height: 16),
-                        const Text(
-                          'Minor Skills (Frameworks & Tools)',
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 16,
-                          ),
-                        ),
-                        const Divider(),
-                        ...minorSkillsFiltered.map((skill) =>
-                            ListTile(
-                              title: Text(skill),
-                              onTap: () {
-                                final updatedSkills = List<String>.from(
-                                    widget.selectedSkills)
-                                  ..add(skill);
-                                widget.onSkillsChanged(updatedSkills);
-                                Navigator.pop(context);
-                              },
-                            )).toList(),
-                      ],
-                    ],
-                  ),
+                          );
+                        },
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () {
+                    Navigator.pop(dialogContext);
+                  },
+                  child: const Text('Cancel'),
                 ),
               ],
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.pop(context);
-              },
-              child: const Text('Cancel'),
-            ),
-          ],
+            );
+          },
         );
       },
     );
   }
+
 }

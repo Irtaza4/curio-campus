@@ -1,16 +1,14 @@
+import 'package:curio_campus/screens/project/create_project_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:curio_campus/providers/auth_provider.dart';
 import 'package:curio_campus/providers/notification_provider.dart';
-
 import 'package:curio_campus/screens/emergency/emergency_screen.dart';
 import 'package:curio_campus/screens/matchmaking/matchmaking_screen.dart';
 import 'package:curio_campus/screens/profile/profile_screen.dart';
-
 import 'package:curio_campus/utils/app_theme.dart';
 import 'package:curio_campus/widgets/notification_badge.dart';
 
-import '../../models/notification_model.dart';
 import '../../widgets/notification_drawer.dart';
 import '../chat/message_screen.dart';
 import '../project/project_screen.dart';
@@ -25,6 +23,7 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   int _currentIndex = 0;
 
+  // Define the screens without their own app bars
   final List<Widget> _screens = [
     const MessagesScreen(),
     const ProjectsScreen(),
@@ -105,55 +104,44 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
+  void _showNotifications() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (context) {
+        return const NotificationDrawer(
+          title: 'Notifications',
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final notificationProvider = Provider.of<NotificationProvider>(context);
 
     return Scaffold(
+      // Single app bar for all screens
       appBar: AppBar(
         title: Text(_getScreenTitle()),
+        automaticallyImplyLeading: false, // No back button
         actions: [
+          // Add + button only for Projects screen
+          if (_currentIndex == 1)
+            IconButton(
+              icon: const Icon(Icons.add),
+              onPressed: () {
+                Navigator.push(context, MaterialPageRoute(builder: (_)=>CreateProjectScreen()));
+              },
+            ),
           NotificationBadge(
             count: notificationProvider.unreadCount,
             child: IconButton(
               icon: const Icon(Icons.notifications_outlined),
-              onPressed: () {
-                // Show notifications based on current screen
-                showModalBottomSheet(
-                  context: context,
-                  isScrollControlled: true,
-                  shape: const RoundedRectangleBorder(
-                    borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-                  ),
-                  builder: (context) {
-                    switch (_currentIndex) {
-                      case 0: // Messages
-                        return const NotificationDrawer(
-                          filterType: NotificationType.chat,
-                          title: 'Message Notifications',
-                        );
-                      case 1: // Projects
-                        return const NotificationDrawer(
-                          filterType: NotificationType.project,
-                          title: 'Project Notifications',
-                        );
-                      case 2: // Emergency
-                        return const NotificationDrawer(
-                          filterType: NotificationType.emergency,
-                          title: 'Emergency Notifications',
-                        );
-                      case 3: // Profile
-                        return const NotificationDrawer(
-                          title: 'Your Notifications',
-                        );
-                      default:
-                        return const NotificationDrawer(
-                          title: 'Notifications',
-                        );
-                    }
-                  },
-                );
-              },
+              onPressed: _showNotifications,
             ),
           ),
           IconButton(
@@ -197,22 +185,38 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ],
       ),
-      floatingActionButton: _currentIndex == 1
-          ? FloatingActionButton(
-        onPressed: () {
-          // Navigate to matchmaking screen
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (_) => const MatchmakingScreen(),
-            ),
-          );
-        },
-        backgroundColor: AppTheme.primaryColor,
-        child: const Icon(Icons.people_alt, color: Colors.white),
-      )
-          : null,
+      floatingActionButton: _getFloatingActionButton(),
     );
+  }
+
+  Widget? _getFloatingActionButton() {
+    switch (_currentIndex) {
+      case 1: // Projects screen
+        return FloatingActionButton(
+          onPressed: () {
+            // Navigate to matchmaking screen
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => const MatchmakingScreen(),
+              ),
+            );
+          },
+          backgroundColor: AppTheme.primaryColor,
+          child: const Icon(Icons.people_alt, color: Colors.white),
+        );
+      case 2: // Emergency screen
+        return FloatingActionButton(
+          onPressed: () {
+            // Navigate to create emergency request screen
+            Navigator.pushNamed(context, '/create_emergency');
+          },
+          backgroundColor: AppTheme.primaryColor,
+          child: const Icon(Icons.add, color: Colors.white),
+        );
+      default:
+        return null;
+    }
   }
 }
 

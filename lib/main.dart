@@ -15,7 +15,7 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 
-// Add a global navigator key
+// Define a single global navigator key
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
 // Update the main function to handle notification clicks

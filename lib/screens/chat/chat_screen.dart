@@ -8,6 +8,8 @@ import 'package:intl/intl.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io'; // Import dart:io
 import 'package:firebase_storage/firebase_storage.dart'; // Import Firebase Storage
+import 'package:curio_campus/models/chat_model.dart';
+import 'package:curio_campus/providers/project_provider.dart';
 
 class ChatScreen extends StatefulWidget {
   final String chatId;
@@ -27,6 +29,7 @@ class _ChatScreenState extends State<ChatScreen> {
   final TextEditingController _messageController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
   bool _isLoading = false;
+  String _senderName = ""; // Store the sender's name
 
   @override
   void initState() {
@@ -52,6 +55,59 @@ class _ChatScreenState extends State<ChatScreen> {
     try {
       await Provider.of<ChatProvider>(context, listen: false)
           .fetchMessages(widget.chatId);
+
+      // Get the sender's name from the first message
+      final messages = Provider.of<ChatProvider>(context, listen: false).messages;
+      if (messages.isNotEmpty) {
+        final currentUserId = Provider.of<AuthProvider>(context, listen: false).firebaseUser?.uid;
+
+        // Find the first message from the other person
+        for (var message in messages) {
+          if (message.senderId != currentUserId) {
+            setState(() {
+              _senderName = message.senderName;
+            });
+            break;
+          }
+        }
+
+        // If we couldn't find a message from the other person, use the chat name
+        if (_senderName.isEmpty) {
+          // Try to get the other participant's name from the chat
+          final chatProvider = Provider.of<ChatProvider>(context, listen: false);
+          final chat = chatProvider.chats.firstWhere(
+                (c) => c.id == widget.chatId,
+            orElse: () => ChatModel(
+              id: widget.chatId,
+              name: widget.chatName,
+              participants: [],
+              type: ChatType.individual,
+              createdAt: DateTime.now(),
+              lastMessageAt: DateTime.now(),
+            ),
+          );
+
+          if (chat.type == ChatType.individual && currentUserId != null) {
+            // Get the other participant's ID
+            final otherParticipantId = chat.participants.firstWhere(
+                  (id) => id != currentUserId,
+              orElse: () => '',
+            );
+
+            if (otherParticipantId.isNotEmpty) {
+              // Fetch the user's name
+              final user = await Provider.of<ProjectProvider>(context, listen: false)
+                  .fetchUserById(otherParticipantId);
+
+              if (user != null && mounted) {
+                setState(() {
+                  _senderName = user.name;
+                });
+              }
+            }
+          }
+        }
+      }
 
       // Scroll to bottom after messages are loaded
       WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -94,6 +150,7 @@ class _ChatScreenState extends State<ChatScreen> {
     await Provider.of<ChatProvider>(context, listen: false).sendMessage(
       chatId: widget.chatId,
       content: message,
+      context: context, // Pass the context
     );
 
     // Scroll to bottom after sending a message
@@ -211,9 +268,12 @@ class _ChatScreenState extends State<ChatScreen> {
     final authProvider = Provider.of<AuthProvider>(context);
     final currentUserId = authProvider.firebaseUser?.uid;
 
+    // Use the sender's name if available, otherwise use the chat name
+    final displayName = _senderName.isNotEmpty ? _senderName : widget.chatName;
+
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.chatName),
+        title: Text(displayName),
         actions: [
           IconButton(
             icon: const Icon(Icons.more_vert),
@@ -242,7 +302,6 @@ class _ChatScreenState extends State<ChatScreen> {
                 return _buildMessageBubble(
                   message: message,
                   isCurrentUser: isCurrentUser,
-                  chatName: widget.chatName,
                 );
               },
             ),
@@ -310,7 +369,6 @@ class _ChatScreenState extends State<ChatScreen> {
   Widget _buildMessageBubble({
     required MessageModel message,
     required bool isCurrentUser,
-    required String chatName,
   }) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4),

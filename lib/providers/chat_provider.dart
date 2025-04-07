@@ -7,10 +7,10 @@ import 'package:curio_campus/models/message_model.dart';
 import 'package:curio_campus/models/user_model.dart';
 import 'package:curio_campus/utils/constants.dart';
 import 'dart:async';
-import 'package:curio_campus/services/notification_service.dart' ;
+import 'package:curio_campus/services/notification_service.dart';
 import 'package:provider/provider.dart';
 import 'package:curio_campus/providers/notification_provider.dart';
-import 'package:curio_campus/main.dart' ;
+import 'package:curio_campus/main.dart';
 
 class ChatProvider with ChangeNotifier {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
@@ -229,6 +229,7 @@ class ChatProvider with ChangeNotifier {
     MessageType type = MessageType.text,
     String? fileUrl,
     String? fileName,
+    BuildContext? context,
   }) async {
     if (_auth.currentUser == null) return;
 
@@ -295,22 +296,87 @@ class ChatProvider with ChangeNotifier {
         final participants = List<String>.from(chatData['participants'] ?? []);
 
         // Create notification for each participant except the sender
-        final notificationProvider = Provider.of<NotificationProvider>(
-         navigatorKey.currentContext!,
-          // navigatorKey.currentContext!,
-          listen: false,
-        );
-
         for (final participantId in participants) {
           if (participantId != userId) {
-            // Create notification for this participant
-            await notificationProvider.createMessageNotification(
-              senderId: userId,
-              senderName: userName,
-              chatId: chatId,
-              chatName: chatName,
-              message: content,
-            );
+            // Check if a similar notification was sent recently to prevent duplication
+            final existingNotifications = await _firestore
+                .collection(Constants.usersCollection)
+                .doc(participantId)
+                .collection('notifications')
+                .where('relatedId', isEqualTo: chatId)
+                .where('type', isEqualTo: 'chat')
+                .orderBy('timestamp', descending: true)
+                .limit(1)
+                .get();
+
+            bool shouldCreateNotification = true;
+
+            // If a similar notification exists and was created in the last 2 minutes, don't create a new one
+            if (existingNotifications.docs.isNotEmpty) {
+              final latestNotification = existingNotifications.docs.first;
+              final latestTimestamp = DateTime.parse(latestNotification.data()['timestamp'] as String);
+
+              if (now.difference(latestTimestamp).inMinutes < 2) {
+                shouldCreateNotification = false;
+
+                // Just update the existing notification
+                await _firestore
+                    .collection(Constants.usersCollection)
+                    .doc(participantId)
+                    .collection('notifications')
+                    .doc(latestNotification.id)
+                    .update({
+                  'message': content,
+                  'timestamp': now.toIso8601String(),
+                  'isRead': false,
+                });
+              }
+            }
+
+            if (shouldCreateNotification) {
+              // Create a new notification
+              final notificationId = const Uuid().v4();
+
+              await _firestore
+                  .collection(Constants.usersCollection)
+                  .doc(participantId)
+                  .collection('notifications')
+                  .doc(notificationId)
+                  .set({
+                'id': notificationId,
+                'title': 'New message from $userName',
+                'message': content,
+                'timestamp': now.toIso8601String(),
+                'type': 'chat',
+                'relatedId': chatId,
+                'isRead': false,
+                'additionalData': {
+                  'senderId': userId,
+                  'senderName': userName,
+                  'chatName': chatName
+                },
+              });
+            }
+
+            // If context is provided, also update the notification provider
+            if (context != null) {
+              try {
+                final notificationProvider = Provider.of<NotificationProvider>(
+                  context,
+                  listen: false,
+                );
+
+                await notificationProvider.createMessageNotification(
+                  senderId: userId,
+                  senderName: userName,
+                  chatId: chatId,
+                  chatName: chatName,
+                  message: content,
+                );
+              } catch (e) {
+                debugPrint('Error updating notification provider: $e');
+              }
+            }
           }
         }
       }
