@@ -398,9 +398,9 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
                             padding: const EdgeInsets.only(right: 16),
                             child: Column(
                               children: [
-                                user.profileImageUrl != null && user.profileImageUrl!.isNotEmpty
+                                user.profileImageBase64 != null && user.profileImageBase64!.isNotEmpty
                                     ? CachedNetworkImage(
-                                  imageUrl: user.profileImageUrl!,
+                                  imageUrl: user.profileImageBase64!,
                                   imageBuilder: (context, imageProvider) => CircleAvatar(
                                     radius: 24,
                                     backgroundImage: imageProvider,

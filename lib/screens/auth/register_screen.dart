@@ -119,7 +119,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
         password: _passwordController.text,
         majorSkills: _selectedMajorSkills,
         minorSkills: _selectedMinorSkills,
-        profileImageUrl: profileImageUrl,
+        profileImageBase64: profileImageUrl,
       );
 
       setState(() {

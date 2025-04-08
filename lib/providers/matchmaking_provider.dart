@@ -91,7 +91,7 @@ class MatchmakingProvider with ChangeNotifier {
           results.add(MatchmakingResultModel(
             userId: otherUser.id,
             name: otherUser.name,
-            avatarUrl: otherUser.profileImageUrl,
+            avatarUrl: otherUser.profileImageBase64,
             skills: otherUserSkills,
             compatibilityScore: compatibilityScore,
             lastActive: otherUser.lastActive,

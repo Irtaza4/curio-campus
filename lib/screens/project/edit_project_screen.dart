@@ -302,11 +302,11 @@ class _EditProjectScreenState extends State<EditProjectScreen> {
 
                   return ListTile(
                     leading: CircleAvatar(
-                      backgroundImage: contact.profileImageUrl != null
-                          ? NetworkImage(contact.profileImageUrl!)
+                      backgroundImage: contact.profileImageBase64 != null
+                          ? NetworkImage(contact.profileImageBase64!)
                           : null,
                       backgroundColor: AppTheme.primaryColor,
-                      child: contact.profileImageUrl == null
+                      child: contact.profileImageBase64 == null
                           ? Text(
                         contact.name[0].toUpperCase(),
                         style: const TextStyle(color: Colors.white),

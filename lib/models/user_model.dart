@@ -4,7 +4,7 @@ class UserModel {
   final String email;
   final List<String> majorSkills;
   final List<String> minorSkills;
-  final String? profileImageUrl;
+  late final String? profileImageBase64; // Changed to store base64 string
   final List<String> completedProjects;
   final List<String> teamMembers;
   final DateTime createdAt;
@@ -16,7 +16,7 @@ class UserModel {
     required this.email,
     required this.majorSkills,
     required this.minorSkills,
-    this.profileImageUrl,
+    this.profileImageBase64, // Profile image as base64 string
     this.completedProjects = const [],
     this.teamMembers = const [],
     required this.createdAt,
@@ -30,7 +30,7 @@ class UserModel {
       email: json['email'] as String,
       majorSkills: List<String>.from(json['majorSkills'] ?? []),
       minorSkills: List<String>.from(json['minorSkills'] ?? []),
-      profileImageUrl: json['profileImageUrl'] as String?,
+      profileImageBase64: json['profileImageBase64'] as String?, // Updated field
       completedProjects: List<String>.from(json['completedProjects'] ?? []),
       teamMembers: List<String>.from(json['teamMembers'] ?? []),
       createdAt: DateTime.parse(json['createdAt'] as String),
@@ -45,7 +45,7 @@ class UserModel {
       'email': email,
       'majorSkills': majorSkills,
       'minorSkills': minorSkills,
-      'profileImageUrl': profileImageUrl,
+      'profileImageBase64': profileImageBase64, // Store base64 string in Firestore
       'completedProjects': completedProjects,
       'teamMembers': teamMembers,
       'createdAt': createdAt.toIso8601String(),
@@ -59,7 +59,7 @@ class UserModel {
     String? email,
     List<String>? majorSkills,
     List<String>? minorSkills,
-    String? profileImageUrl,
+    String? profileImageBase64, // Updated field
     List<String>? completedProjects,
     List<String>? teamMembers,
     DateTime? createdAt,
@@ -71,7 +71,7 @@ class UserModel {
       email: email ?? this.email,
       majorSkills: majorSkills ?? this.majorSkills,
       minorSkills: minorSkills ?? this.minorSkills,
-      profileImageUrl: profileImageUrl ?? this.profileImageUrl,
+      profileImageBase64: profileImageBase64 ?? this.profileImageBase64, // Updated field
       completedProjects: completedProjects ?? this.completedProjects,
       teamMembers: teamMembers ?? this.teamMembers,
       createdAt: createdAt ?? this.createdAt,
@@ -79,4 +79,3 @@ class UserModel {
     );
   }
 }
-

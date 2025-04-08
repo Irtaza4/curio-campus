@@ -79,11 +79,11 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       final authProvider = Provider.of<AuthProvider>(context, listen: false);
 
       // Upload image if selected
-      String? profileImageUrl;
+      String? profileImageBase64;
       if (_profileImage != null) {
-        profileImageUrl = await authProvider.uploadProfileImage(_profileImage!);
+        profileImageBase64 = await authProvider.convertImageToBase64(_profileImage!);
 
-        if (profileImageUrl == null && mounted) {
+        if (profileImageBase64 == null && mounted) {
           setState(() {
             _isLoading = false;
           });
@@ -102,7 +102,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         name: _nameController.text.trim(),
         majorSkills: _majorSkills,
         minorSkills: _minorSkills,
-        profileImageUrl: profileImageUrl,
+        profileImageBase64: profileImageBase64,
       );
 
       setState(() {
@@ -159,9 +159,9 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                       backgroundColor: AppTheme.lightGrayColor,
                       backgroundImage: FileImage(_profileImage!),
                     )
-                        : user.profileImageUrl != null && user.profileImageUrl!.isNotEmpty
+                        : user.profileImageBase64 != null && user.profileImageBase64!.isNotEmpty
                         ? CachedNetworkImage(
-                      imageUrl: user.profileImageUrl!,
+                      imageUrl: user.profileImageBase64!,
                       imageBuilder: (context, imageProvider) => CircleAvatar(
                         radius: 60,
                         backgroundColor: AppTheme.lightGrayColor,
@@ -293,4 +293,3 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     );
   }
 }
-
