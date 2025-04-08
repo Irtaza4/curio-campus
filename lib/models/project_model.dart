@@ -1,104 +1,5 @@
-import 'package:curio_campus/models/user_model.dart';
-
-enum TaskStatus { pending, inProgress, completed }
-
-enum TaskPriority { low, medium, high }
-
-class TaskModel {
-  final String id;
-  final String title;
-  final String description;
-  final TaskStatus status;
-  final TaskPriority priority;
-  final String assignedTo;
-  final DateTime dueDate;
-  final DateTime createdAt;
-
-  TaskModel({
-    required this.id,
-    required this.title,
-    required this.description,
-    required this.status,
-    required this.priority,
-    required this.assignedTo,
-    required this.dueDate,
-    required this.createdAt,
-  });
-
-  factory TaskModel.fromJson(Map<String, dynamic> json) {
-    return TaskModel(
-      id: json['id'] as String,
-      title: json['title'] as String,
-      description: json['description'] as String,
-      status: _parseTaskStatus(json['status'] as String),
-      priority: _parseTaskPriority(json['priority'] as String),
-      assignedTo: json['assignedTo'] as String,
-      dueDate: DateTime.parse(json['dueDate'] as String),
-      createdAt: DateTime.parse(json['createdAt'] as String),
-    );
-  }
-
-  Map<String, dynamic> toJson() {
-    return {
-      'id': id,
-      'title': title,
-      'description': description,
-      'status': status.toString().split('.').last,
-      'priority': priority.toString().split('.').last,
-      'assignedTo': assignedTo,
-      'dueDate': dueDate.toIso8601String(),
-      'createdAt': createdAt.toIso8601String(),
-    };
-  }
-
-  static TaskStatus _parseTaskStatus(String status) {
-    switch (status) {
-      case 'pending':
-        return TaskStatus.pending;
-      case 'inProgress':
-        return TaskStatus.inProgress;
-      case 'completed':
-        return TaskStatus.completed;
-      default:
-        return TaskStatus.pending;
-    }
-  }
-
-  static TaskPriority _parseTaskPriority(String priority) {
-    switch (priority) {
-      case 'low':
-        return TaskPriority.low;
-      case 'medium':
-        return TaskPriority.medium;
-      case 'high':
-        return TaskPriority.high;
-      default:
-        return TaskPriority.medium;
-    }
-  }
-
-  TaskModel copyWith({
-    String? id,
-    String? title,
-    String? description,
-    TaskStatus? status,
-    TaskPriority? priority,
-    String? assignedTo,
-    DateTime? dueDate,
-    DateTime? createdAt,
-  }) {
-    return TaskModel(
-      id: id ?? this.id,
-      title: title ?? this.title,
-      description: description ?? this.description,
-      status: status ?? this.status,
-      priority: priority ?? this.priority,
-      assignedTo: assignedTo ?? this.assignedTo,
-      dueDate: dueDate ?? this.dueDate,
-      createdAt: createdAt ?? this.createdAt,
-    );
-  }
-}
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:curio_campus/models/task_model.dart';
 
 class ProjectModel {
   final String id;
@@ -110,7 +11,7 @@ class ProjectModel {
   final DateTime createdAt;
   final int progress;
   final List<TaskModel> tasks;
-  final List<String> requiredSkills; // Added required skills field
+  final List<String> requiredSkills;
 
   ProjectModel({
     required this.id,
@@ -122,7 +23,7 @@ class ProjectModel {
     required this.createdAt,
     this.progress = 0,
     this.tasks = const [],
-    this.requiredSkills = const [], // Default to empty list
+    this.requiredSkills = const [],
   });
 
   factory ProjectModel.fromJson(Map<String, dynamic> json) {
@@ -132,8 +33,12 @@ class ProjectModel {
       description: json['description'] as String,
       teamMembers: List<String>.from(json['teamMembers'] ?? []),
       createdBy: json['createdBy'] as String,
-      deadline: DateTime.parse(json['deadline'] as String),
-      createdAt: DateTime.parse(json['createdAt'] as String),
+      deadline: json['deadline'] is Timestamp
+          ? (json['deadline'] as Timestamp).toDate()
+          : DateTime.parse(json['deadline'] as String),
+      createdAt: json['createdAt'] is Timestamp
+          ? (json['createdAt'] as Timestamp).toDate()
+          : DateTime.parse(json['createdAt'] as String),
       progress: json['progress'] as int? ?? 0,
       tasks: json['tasks'] != null
           ? List<TaskModel>.from(
@@ -189,4 +94,3 @@ class ProjectModel {
     );
   }
 }
-

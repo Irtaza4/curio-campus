@@ -9,11 +9,11 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:provider/provider.dart';
 import 'package:uuid/uuid.dart';
 import 'package:curio_campus/models/notification_model.dart';
+import 'package:curio_campus/screens/chat/chat_screen.dart';
+import 'package:curio_campus/screens/emergency/emergency_request_detail_screen.dart';
+import 'package:curio_campus/screens/project/project_detail_screen.dart';
 import 'package:curio_campus/providers/notification_provider.dart';
-import 'package:curio_campus/main.dart' show navigatorKey;
-import '../screens/chat/chat_screen.dart';
-import '../screens/emergency/emergency_request_detail_screen.dart';
-import '../screens/project/project_detail_screen.dart';
+import 'package:curio_campus/utils/navigator_key.dart'; // Import the navigator key
 
 class NotificationService {
   static final NotificationService _instance = NotificationService._internal();
@@ -21,46 +21,79 @@ class NotificationService {
   NotificationService._internal();
 
   final FirebaseMessaging _firebaseMessaging = FirebaseMessaging.instance;
-  final FlutterLocalNotificationsPlugin _localNotifications = FlutterLocalNotificationsPlugin();
+  final FlutterLocalNotificationsPlugin _flutterLocalNotificationsPlugin =
+  FlutterLocalNotificationsPlugin();
 
   // Initialize notification channels and request permissions
   Future<void> initialize() async {
     // Request permission for iOS
-    await _firebaseMessaging.requestPermission(
+    NotificationSettings settings = await _firebaseMessaging.requestPermission(
       alert: true,
       badge: true,
       sound: true,
     );
 
-    // Initialize local notifications
-    const AndroidInitializationSettings androidSettings = AndroidInitializationSettings('@mipmap/ic_launcher');
-    const DarwinInitializationSettings iosSettings = DarwinInitializationSettings(
+    debugPrint('User granted permission: ${settings.authorizationStatus}');
+
+    // Configure local notifications
+    const AndroidInitializationSettings initializationSettingsAndroid =
+    AndroidInitializationSettings('@mipmap/ic_launcher');
+
+    const DarwinInitializationSettings initializationSettingsIOS =
+    DarwinInitializationSettings(
       requestAlertPermission: true,
       requestBadgePermission: true,
       requestSoundPermission: true,
     );
 
-    const InitializationSettings initSettings = InitializationSettings(
-      android: androidSettings,
-      iOS: iosSettings,
+    const InitializationSettings initializationSettings = InitializationSettings(
+      android: initializationSettingsAndroid,
+      iOS: initializationSettingsIOS,
     );
 
-    await _localNotifications.initialize(
-      initSettings,
-      onDidReceiveNotificationResponse: _onNotificationTapped,
+    await _flutterLocalNotificationsPlugin.initialize(
+      initializationSettings,
+      onDidReceiveNotificationResponse: (NotificationResponse response) {
+        debugPrint('Notification clicked: ${response.payload}');
+        _handleNotificationClick(response.payload);
+      },
     );
 
-    // Create notification channels for Android
-    await _createNotificationChannels();
-
-    // Handle background messages
-    FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
+    // Get FCM token
+    String? token = await _firebaseMessaging.getToken();
+    debugPrint('FCM Token: $token');
 
     // Handle foreground messages
-    FirebaseMessaging.onMessage.listen(_handleForegroundMessage);
+    FirebaseMessaging.onMessage.listen((RemoteMessage message) {
+      debugPrint('Got a message whilst in the foreground!');
+      debugPrint('Message data: ${message.data}');
 
-    // Handle notification taps when app is in background but not terminated
-    FirebaseMessaging.onMessageOpenedApp.listen(_handleNotificationTap);
+      if (message.notification != null) {
+        debugPrint(
+            'Message also contained a notification: ${message.notification}');
+        _showLocalNotification(message);
+      }
+    });
+
+    // Handle notification clicks when app is in background
+    FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
+      debugPrint('A notification was clicked when the app was in the background!');
+      if (navigatorKey.currentContext != null && message.data['type'] != null) {
+        final notificationProvider = Provider.of<NotificationProvider>(
+          navigatorKey.currentContext!,
+          listen: false,
+        );
+
+        // Add notification with named parameters
+        notificationProvider.addNotification(
+          title: message.notification?.title ?? 'New Notification',
+          message: message.notification?.body ?? '',
+          type: _parseNotificationType(message.data['type'] as String? ?? 'system'),
+          relatedId: message.data['relatedId'] as String?,
+          additionalData: message.data,
+        );
+      }
+    });
 
     // Get FCM token and save it
     await _updateFCMToken();
@@ -133,15 +166,15 @@ class NotificationService {
       importance: Importance.high,
     );
 
-    await _localNotifications
+    await _flutterLocalNotificationsPlugin
         .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>()
         ?.createNotificationChannel(chatChannel);
 
-    await _localNotifications
+    await _flutterLocalNotificationsPlugin
         .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>()
         ?.createNotificationChannel(emergencyChannel);
 
-    await _localNotifications
+    await _flutterLocalNotificationsPlugin
         .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>()
         ?.createNotificationChannel(projectChannel);
   }
@@ -224,48 +257,44 @@ class NotificationService {
 
   // Improve the _showLocalNotification method to handle different notification types
   Future<void> _showLocalNotification(RemoteMessage message) async {
-    final notification = message.notification;
-    final android = message.notification?.android;
-    final data = message.data;
+    final androidPlatformChannelSpecifics = AndroidNotificationDetails(
+      'curio_campus_channel',
+      'Curio Campus Notifications',
+      channelDescription: 'Notifications from Curio Campus',
+      importance: Importance.max,
+      priority: Priority.high,
+      showWhen: true,
+    );
 
-    if (notification != null) {
-      String channelId = 'chat_channel';
-      String channelName = 'Chat Notifications';
-      String channelDescription = 'Notifications for new messages';
+    final iOSPlatformChannelSpecifics = DarwinNotificationDetails();
 
-      // Determine channel based on notification type
-      if (data['type'] == 'emergency') {
-        channelId = 'emergency_channel';
-        channelName = 'Emergency Requests';
-        channelDescription = 'Notifications for emergency requests';
-      } else if (data['type'] == 'project') {
-        channelId = 'project_channel';
-        channelName = 'Project Updates';
-        channelDescription = 'Notifications for project updates';
-      }
+    final platformChannelSpecifics = NotificationDetails(
+      android: androidPlatformChannelSpecifics,
+      iOS: iOSPlatformChannelSpecifics,
+    );
 
-      await _localNotifications.show(
-        notification.hashCode,
-        notification.title,
-        notification.body,
-        NotificationDetails(
-          android: AndroidNotificationDetails(
-            channelId,
-            channelName,
-            channelDescription: channelDescription,
-            importance: Importance.high,
-            priority: Priority.high,
-            icon: android?.smallIcon,
-            color: _getNotificationColor(data['type']),
-            actions: _getNotificationActions(data['type']),
-          ),
-          iOS: const DarwinNotificationDetails(
-            presentAlert: true,
-            presentBadge: true,
-            presentSound: true,
-          ),
-        ),
-        payload: message.data.toString(),
+    await _flutterLocalNotificationsPlugin.show(
+      message.hashCode,
+      message.notification?.title ?? 'New Notification',
+      message.notification?.body ?? '',
+      platformChannelSpecifics,
+      payload: message.data.toString(),
+    );
+
+    // Add to local notifications if app is in foreground
+    if (navigatorKey.currentContext != null) {
+      final notificationProvider = Provider.of<NotificationProvider>(
+        navigatorKey.currentContext!,
+        listen: false,
+      );
+
+      // Add to local notifications with named parameters
+      notificationProvider.addNotification(
+        title: message.notification?.title ?? 'New Notification',
+        message: message.notification?.body ?? '',
+        type: _parseNotificationType(message.data['type'] as String? ?? 'system'),
+        relatedId: message.data['relatedId'] as String?,
+        additionalData: message.data,
       );
     }
   }
@@ -283,7 +312,7 @@ class NotificationService {
     required String channelDescription,
     Color color = Colors.teal,
   }) async {
-    await _localNotifications.show(
+    await _flutterLocalNotificationsPlugin.show(
       id,
       title,
       body,
@@ -401,7 +430,7 @@ class NotificationService {
           debugPrint('Sending chat notification to $recipientId with token $fcmToken');
 
           // For local testing, show a notification directly
-          await _localNotifications.show(
+          await _flutterLocalNotificationsPlugin.show(
             DateTime.now().millisecondsSinceEpoch.remainder(100000),
             'New message from $senderName',
             message,
@@ -466,7 +495,7 @@ class NotificationService {
         debugPrint('Sending emergency notification to topic $topic: $message');
 
         // For local testing, show a notification directly
-        await _localNotifications.show(
+        await _flutterLocalNotificationsPlugin.show(
           DateTime.now().millisecondsSinceEpoch.remainder(100000),
           'Emergency Request: $title',
           '$requesterName needs help with $skill',
@@ -513,7 +542,7 @@ class NotificationService {
 
         if (fcmToken != null) {
           // For local testing, show a notification directly
-          await _localNotifications.show(
+          await _flutterLocalNotificationsPlugin.show(
             DateTime.now().millisecondsSinceEpoch.remainder(100000),
             'Project Update: $projectName',
             message,
@@ -570,7 +599,21 @@ class NotificationService {
             navigatorKey.currentContext!,
             listen: false,
           );
-          notificationProvider.handleIncomingNotification(message.data);
+
+          // Extract notification data
+          final title = message.notification?.title ?? 'New Notification';
+          final body = message.notification?.body ?? '';
+          final type = _parseNotificationType(message.data['type'] as String? ?? 'system');
+          final relatedId = message.data['relatedId'] as String?;
+
+          // Add notification with named parameters
+          notificationProvider.addNotification(
+            title: title,
+            message: body,
+            type: type,
+            relatedId: relatedId,
+            additionalData: message.data,
+          );
         }
       }
     });
@@ -718,6 +761,30 @@ class NotificationService {
         break;
     }
   }
+
+  // Handle notification clicks
+  void _handleNotificationClick(String? payload) {
+    if (payload == null) return;
+
+    debugPrint('Notification payload: $payload');
+
+    // Parse the payload and navigate to the appropriate screen
+    // This will depend on your app's navigation structure
+    // For example:
+    // if (payload.contains('chat')) {
+    //   Navigator.of(context).pushNamed('/chat', arguments: payload);
+    // }
+  }
+
+  // Subscribe to a topic
+  Future<void> subscribeToTopic(String topic) async {
+    await _firebaseMessaging.subscribeToTopic(topic);
+  }
+
+  // Unsubscribe from a topic
+  Future<void> unsubscribeFromTopic(String topic) async {
+    await _firebaseMessaging.unsubscribeFromTopic(topic);
+  }
 }
 
 // Improve the _firebaseMessagingBackgroundHandler function at the bottom of the file
@@ -731,4 +798,3 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
 
   // No need to show a notification as FCM will handle it automatically in the background
 }
-

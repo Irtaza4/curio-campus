@@ -8,6 +8,10 @@ import 'package:intl/intl.dart';
 import 'package:curio_campus/providers/auth_provider.dart';
 import 'package:curio_campus/screens/emergency/emergency_request_detail_screen.dart';
 import 'package:curio_campus/screens/emergency/edit_emergency_request_screen.dart';
+import 'package:curio_campus/providers/notification_provider.dart';
+import 'package:curio_campus/widgets/notification_badge.dart';
+import 'package:curio_campus/widgets/notification_drawer.dart';
+import 'package:curio_campus/models/notification_model.dart';
 
 class EmergencyScreen extends StatefulWidget {
   const EmergencyScreen({Key? key}) : super(key: key);
@@ -124,35 +128,45 @@ class _EmergencyScreenState extends State<EmergencyScreen> with SingleTickerProv
   @override
   Widget build(BuildContext context) {
     final authProvider = Provider.of<AuthProvider>(context);
+    final notificationProvider = Provider.of<NotificationProvider>(context);
     final currentUserId = authProvider.firebaseUser?.uid;
+    final unreadCount = notificationProvider.unreadCount;
 
-    return Column(
-      children: [
-        // Add TabBar here
-        TabBar(
-          controller: _tabController,
-          tabs: const [
-            Tab(text: 'All Requests'),
-            Tab(text: 'My Requests'),
-          ],
-          indicatorColor: AppTheme.primaryColor,
-          labelColor: AppTheme.primaryColor,
-          unselectedLabelColor: Colors.grey,
-        ),
-        // TabBarView takes the rest of the space
-        Expanded(
-          child: TabBarView(
+    return Scaffold(
+      // Remove the appBar here
+      body: Column(
+        children: [
+          // Add TabBar directly without AppBar
+          TabBar(
             controller: _tabController,
-            children: [
-              // All Requests Tab
-              _buildAllRequestsTab(currentUserId),
-
-              // My Requests Tab
-              _buildMyRequestsTab(),
+            tabs: const [
+              Tab(text: 'All Requests'),
+              Tab(text: 'My Requests'),
             ],
+            indicatorColor: AppTheme.primaryColor,
+            labelColor: AppTheme.primaryColor,
+            unselectedLabelColor: Colors.grey,
           ),
-        ),
-      ],
+          Expanded(
+            child: TabBarView(
+              controller: _tabController,
+              children: [
+                // All Requests Tab
+                _buildAllRequestsTab(currentUserId),
+
+                // My Requests Tab
+                _buildMyRequestsTab(),
+              ],
+            ),
+          ),
+        ],
+      ),
+      floatingActionButton: FloatingActionButton(
+        heroTag: 'emergency_fab',
+        onPressed: _navigateToCreateEmergencyRequest,
+        backgroundColor: AppTheme.primaryColor,
+        child: const Icon(Icons.add, color: Colors.white),
+      ),
     );
   }
 
@@ -425,4 +439,3 @@ class _EmergencyScreenState extends State<EmergencyScreen> with SingleTickerProv
     );
   }
 }
-

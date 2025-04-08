@@ -8,6 +8,10 @@ import 'dart:convert';
 import '../models/project_model.dart';
 import '../models/user_model.dart';
 import '../utils/constants.dart';
+import 'package:provider/provider.dart';
+import '../providers/notification_provider.dart';
+import '../models/task_model.dart';
+import '../utils/navigator_key.dart';
 
 class ProjectProvider with ChangeNotifier {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
@@ -346,6 +350,7 @@ class ProjectProvider with ChangeNotifier {
         assignedTo: assignedTo,
         dueDate: dueDate,
         createdAt: now,
+        isCompleted: false,
       );
 
       await _firestore
@@ -419,5 +424,105 @@ class ProjectProvider with ChangeNotifier {
       return false;
     }
   }
-}
 
+  // Add method to mark a task as completed and send a notification
+  Future<bool> completeTask({
+    required String projectId,
+    required String taskId,
+    required String completedById,
+  }) async {
+    if (_auth.currentUser == null) return false;
+
+    try {
+      final userId = _auth.currentUser!.uid;
+
+      // Find the project
+      final projectIndex = _projects.indexWhere((p) => p.id == projectId);
+      if (projectIndex == -1) return false;
+
+      final project = _projects[projectIndex];
+
+      // Find the task
+      final taskIndex = project.tasks.indexWhere((t) => t.id == taskId);
+      if (taskIndex == -1) return false;
+
+      final task = project.tasks[taskIndex];
+
+      // Update the task in Firestore
+      await _firestore
+          .collection(Constants.projectsCollection)
+          .doc(projectId)
+          .collection(Constants.tasksCollection)
+          .doc(taskId)
+          .update({
+        'status': TaskStatus.completed.toString().split('.').last,
+        'isCompleted': true,
+        'completedAt': DateTime.now().toIso8601String(),
+        'completedById': completedById,
+      });
+
+      // Update the task in local state
+      final updatedTask = task.copyWith(
+        status: TaskStatus.completed,
+        isCompleted: true,
+        completedAt: DateTime.now(),
+        completedById: completedById,
+      );
+
+      final updatedTasks = List<TaskModel>.from(project.tasks);
+      updatedTasks[taskIndex] = updatedTask;
+
+      // Calculate new progress
+      final completedTasks = updatedTasks.where((t) => t.isCompleted).length;
+      final totalTasks = updatedTasks.length;
+      final progress = totalTasks > 0 ? (completedTasks / totalTasks * 100).round() : 0;
+
+      // Update the project in Firestore
+      await _firestore
+          .collection(Constants.projectsCollection)
+          .doc(projectId)
+          .update({
+        'progress': progress,
+      });
+
+      // Update the project in local state
+      final updatedProject = project.copyWith(
+        tasks: updatedTasks,
+        progress: progress,
+      );
+
+      _projects[projectIndex] = updatedProject;
+
+      // Send a notification to all team members except the one who completed the task
+      for (final memberId in project.teamMembers) {
+        if (memberId != completedById) {
+          // Get the user who completed the task
+          final completer = await fetchUserById(completedById);
+          final completerName = completer?.name ?? 'A team member';
+
+          // Create a notification
+          if (navigatorKey.currentContext != null) {
+            final notificationProvider = Provider.of<NotificationProvider>(
+              navigatorKey.currentContext!,
+              listen: false,
+            );
+
+            await notificationProvider.createTaskCompletionNotification(
+              projectId: projectId,
+              projectName: project.name,
+              taskTitle: task.title,
+              completedBy: completerName,
+            );
+          }
+        }
+      }
+
+      notifyListeners();
+      return true;
+    } catch (e) {
+      _errorMessage = e.toString();
+      notifyListeners();
+      return false;
+    }
+  }
+}

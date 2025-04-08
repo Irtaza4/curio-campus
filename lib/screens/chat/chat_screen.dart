@@ -274,12 +274,6 @@ class _ChatScreenState extends State<ChatScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text(displayName),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.more_vert),
-            onPressed: _showMoreOptions,
-          ),
-        ],
       ),
       body: Column(
         children: [
@@ -509,4 +503,3 @@ class _ChatScreenState extends State<ChatScreen> {
     }
   }
 }
-

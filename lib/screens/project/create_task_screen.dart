@@ -6,6 +6,11 @@ import 'package:curio_campus/utils/app_theme.dart';
 import 'package:curio_campus/widgets/custom_button.dart';
 import 'package:curio_campus/widgets/custom_text_field.dart';
 import 'package:intl/intl.dart';
+import 'package:curio_campus/providers/chat_provider.dart';
+import 'package:curio_campus/providers/auth_provider.dart';
+
+import '../../models/task_model.dart';
+import '../../models/user_model.dart';
 
 class CreateTaskScreen extends StatefulWidget {
   final String projectId;
@@ -125,15 +130,29 @@ class _CreateTaskScreenState extends State<CreateTaskScreen> {
 
   @override
   Widget build(BuildContext context) {
-    // In a real app, you would fetch user names from the database
-    // For this demo, we'll use dummy data
-    final dummyUsers = {
-      'user1': 'Olivia Martin',
-      'user2': 'Ethan Johnson',
-      'user3': 'Sophia Williams',
-      'user4': 'Noah Brown',
-      'user5': 'Emma Jones',
-    };
+    final chatProvider = Provider.of<ChatProvider>(context, listen: false);
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    final currentUserId = authProvider.firebaseUser?.uid;
+
+    // Get chat participants for assignment
+    List<String> chatParticipants = [];
+    if (currentUserId != null) {
+      for (var chat in chatProvider.chats) {
+        for (var participantId in chat.participants) {
+          if (participantId != currentUserId && !chatParticipants.contains(participantId)) {
+            chatParticipants.add(participantId);
+          }
+        }
+      }
+    }
+
+    // Combine team members and chat participants
+    final List<String> allAssignableUsers = [...widget.teamMembers];
+    for (var participantId in chatParticipants) {
+      if (!allAssignableUsers.contains(participantId)) {
+        allAssignableUsers.add(participantId);
+      }
+    }
 
     return Scaffold(
       appBar: AppBar(
@@ -314,15 +333,28 @@ class _CreateTaskScreenState extends State<CreateTaskScreen> {
                   child: DropdownButton<String>(
                     value: _assignedTo.isEmpty ? null : _assignedTo,
                     isExpanded: true,
-                    hint: const Text('Select team member'),
+                    hint: const Text('Select team member or chat contact'),
                     icon: Icon(
                       Icons.arrow_drop_down,
                       color: AppTheme.primaryColor,
                     ),
-                    items: widget.teamMembers.map((userId) {
+                    items: allAssignableUsers.map((userId) {
+                      // For team members, use the dummy data
+                      // For chat contacts, fetch the user name from the project provider
                       return DropdownMenuItem<String>(
                         value: userId,
-                        child: Text(dummyUsers[userId] ?? 'Unknown User'),
+                        child: FutureBuilder<UserModel?>(
+                          future: Provider.of<ProjectProvider>(context, listen: false).fetchUserById(userId),
+                          builder: (context, snapshot) {
+                            if (snapshot.connectionState == ConnectionState.waiting) {
+                              return const Text('Loading...');
+                            }
+                            if (snapshot.hasData && snapshot.data != null) {
+                              return Text(snapshot.data!.name);
+                            }
+                            return Text('User $userId');
+                          },
+                        ),
                       );
                     }).toList(),
                     onChanged: (value) {
@@ -373,4 +405,3 @@ class _CreateTaskScreenState extends State<CreateTaskScreen> {
     }
   }
 }
-

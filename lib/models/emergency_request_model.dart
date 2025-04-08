@@ -1,3 +1,5 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+
 class EmergencyRequestModel {
   final String id;
   final String title;
@@ -11,6 +13,7 @@ class EmergencyRequestModel {
   final bool isResolved;
   final String? resolvedBy;
   final DateTime? resolvedAt;
+  final List<Map<String, dynamic>> responses; // Added this field
 
   EmergencyRequestModel({
     required this.id,
@@ -22,9 +25,10 @@ class EmergencyRequestModel {
     required this.requiredSkills,
     required this.deadline,
     required this.createdAt,
-    this.isResolved = false,
+    required this.isResolved,
     this.resolvedBy,
     this.resolvedAt,
+    this.responses = const [], // Initialize with empty list
   });
 
   factory EmergencyRequestModel.fromJson(Map<String, dynamic> json) {
@@ -35,14 +39,23 @@ class EmergencyRequestModel {
       requesterId: json['requesterId'] as String,
       requesterName: json['requesterName'] as String,
       requesterAvatar: json['requesterAvatar'] as String?,
-      requiredSkills: List<String>.from(json['requiredSkills'] ?? []),
-      deadline: DateTime.parse(json['deadline'] as String),
-      createdAt: DateTime.parse(json['createdAt'] as String),
-      isResolved: json['isResolved'] as bool? ?? false,
+      requiredSkills: List<String>.from(json['requiredSkills'] as List),
+      deadline: json['deadline'] is Timestamp
+          ? (json['deadline'] as Timestamp).toDate()
+          : DateTime.parse(json['deadline'] as String),
+      createdAt: json['createdAt'] is Timestamp
+          ? (json['createdAt'] as Timestamp).toDate()
+          : DateTime.parse(json['createdAt'] as String),
+      isResolved: json['isResolved'] as bool,
       resolvedBy: json['resolvedBy'] as String?,
       resolvedAt: json['resolvedAt'] != null
-          ? DateTime.parse(json['resolvedAt'] as String)
+          ? json['resolvedAt'] is Timestamp
+          ? (json['resolvedAt'] as Timestamp).toDate()
+          : DateTime.parse(json['resolvedAt'] as String)
           : null,
+      responses: json['responses'] != null
+          ? List<Map<String, dynamic>>.from(json['responses'] as List)
+          : [],
     );
   }
 
@@ -60,7 +73,39 @@ class EmergencyRequestModel {
       'isResolved': isResolved,
       'resolvedBy': resolvedBy,
       'resolvedAt': resolvedAt?.toIso8601String(),
+      'responses': responses,
     };
   }
-}
 
+  EmergencyRequestModel copyWith({
+    String? id,
+    String? title,
+    String? description,
+    String? requesterId,
+    String? requesterName,
+    String? requesterAvatar,
+    List<String>? requiredSkills,
+    DateTime? deadline,
+    DateTime? createdAt,
+    bool? isResolved,
+    String? resolvedBy,
+    DateTime? resolvedAt,
+    List<Map<String, dynamic>>? responses,
+  }) {
+    return EmergencyRequestModel(
+      id: id ?? this.id,
+      title: title ?? this.title,
+      description: description ?? this.description,
+      requesterId: requesterId ?? this.requesterId,
+      requesterName: requesterName ?? this.requesterName,
+      requesterAvatar: requesterAvatar ?? this.requesterAvatar,
+      requiredSkills: requiredSkills ?? this.requiredSkills,
+      deadline: deadline ?? this.deadline,
+      createdAt: createdAt ?? this.createdAt,
+      isResolved: isResolved ?? this.isResolved,
+      resolvedBy: resolvedBy ?? this.resolvedBy,
+      resolvedAt: resolvedAt ?? this.resolvedAt,
+      responses: responses ?? this.responses,
+    );
+  }
+}

@@ -107,6 +107,20 @@ class NotificationDrawer extends StatelessWidget {
       NotificationModel notification,
       NotificationProvider notificationProvider,
       ) {
+    // Check if this is a chat request notification
+    final additionalData = notification.additionalData;
+    final bool isChatRequest = additionalData != null &&
+        additionalData['isRequest'] == true &&
+        additionalData['accepted'] != true;
+
+    // Check if this is a task completion notification
+    final bool isTaskCompletion = additionalData != null &&
+        additionalData['isTaskCompletion'] == true;
+
+    // Check if this is a skill-matched emergency notification
+    final bool isSkillMatch = additionalData != null &&
+        additionalData['isSkillMatch'] == true;
+
     return Dismissible(
       key: Key(notification.id),
       background: Container(
@@ -119,37 +133,118 @@ class NotificationDrawer extends StatelessWidget {
       onDismissed: (direction) {
         notificationProvider.deleteNotification(notification.id);
       },
-      child: ListTile(
-        leading: CircleAvatar(
-          backgroundColor: notification.getColor().withOpacity(0.2),
-          child: Icon(notification.getIcon(), color: notification.getColor()),
-        ),
-        title: Text(
-          notification.title,
-          style: TextStyle(
-            fontWeight: notification.isRead ? FontWeight.normal : FontWeight.bold,
-          ),
-        ),
-        subtitle: Text(notification.message),
-        trailing: Text(
-          notification.getTimeAgo(),
-          style: TextStyle(
-            fontSize: 12,
-            color: Colors.grey[600],
-          ),
-        ),
-        onTap: () async {
-          // Mark as read
-          if (!notification.isRead) {
-            await notificationProvider.markAsRead(notification.id);
-          }
+      child: Column(
+        children: [
+          ListTile(
+            leading: CircleAvatar(
+              backgroundColor: notification.getColor().withOpacity(0.2),
+              child: Icon(notification.getIcon(), color: notification.getColor()),
+            ),
+            title: Text(
+              notification.title,
+              style: TextStyle(
+                fontWeight: notification.isRead ? FontWeight.normal : FontWeight.bold,
+              ),
+            ),
+            subtitle: Text(notification.message),
+            trailing: Text(
+              notification.getTimeAgo(),
+              style: TextStyle(
+                fontSize: 12,
+                color: Colors.grey[600],
+              ),
+            ),
+            onTap: () async {
+              // Mark as read
+              if (!notification.isRead) {
+                await notificationProvider.markAsRead(notification.id);
+              }
 
-          // Navigate based on notification type
-          if (context.mounted) {
-            Navigator.pop(context); // Close the drawer
-            _navigateToNotificationDestination(context, notification);
-          }
-        },
+              // Navigate based on notification type
+              if (context.mounted) {
+                Navigator.pop(context); // Close the drawer
+                _navigateToNotificationDestination(context, notification);
+              }
+            },
+          ),
+
+          // Show accept/reject buttons for chat requests
+          if (isChatRequest)
+            Padding(
+              padding: const EdgeInsets.only(left: 72, right: 16, bottom: 8),
+              child: Row(
+                children: [
+                  ElevatedButton(
+                    onPressed: () async {
+                      await notificationProvider.acceptChatRequest(notification.id);
+                      if (context.mounted) {
+                        Navigator.pop(context); // Close the drawer
+                        _navigateToNotificationDestination(context, notification);
+                      }
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.green,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                    ),
+                    child: const Text('Accept'),
+                  ),
+                  const SizedBox(width: 8),
+                  OutlinedButton(
+                    onPressed: () async {
+                      await notificationProvider.rejectChatRequest(notification.id);
+                    },
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: Colors.red,
+                      side: const BorderSide(color: Colors.red),
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                    ),
+                    child: const Text('Reject'),
+                  ),
+                ],
+              ),
+            ),
+
+          // Show additional info for task completions
+          if (isTaskCompletion)
+            Padding(
+              padding: const EdgeInsets.only(left: 72, right: 16, bottom: 8),
+              child: Row(
+                children: [
+                  Icon(Icons.check_circle, color: Colors.green, size: 16),
+                  const SizedBox(width: 4),
+                  Text(
+                    'Task completed',
+                    style: TextStyle(
+                      color: Colors.green,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 12,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+          // Show additional info for skill-matched emergency requests
+          if (isSkillMatch)
+            Padding(
+              padding: const EdgeInsets.only(left: 72, right: 16, bottom: 8),
+              child: Row(
+                children: [
+                  Icon(Icons.priority_high, color: Colors.orange, size: 16),
+                  const SizedBox(width: 4),
+                  Text(
+                    'Matches your skills',
+                    style: TextStyle(
+                      color: Colors.orange,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 12,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+        ],
       ),
     );
   }
@@ -223,4 +318,3 @@ class NotificationDrawer extends StatelessWidget {
     }
   }
 }
-

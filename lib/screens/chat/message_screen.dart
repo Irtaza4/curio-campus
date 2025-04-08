@@ -8,6 +8,10 @@ import 'package:curio_campus/utils/app_theme.dart';
 import 'package:curio_campus/screens/chat/create_group_chat_screen.dart';
 import 'package:curio_campus/providers/project_provider.dart';
 import 'package:curio_campus/models/user_model.dart';
+import 'package:curio_campus/widgets/notification_badge.dart';
+import 'package:curio_campus/providers/notification_provider.dart';
+import 'package:curio_campus/widgets/notification_drawer.dart';
+import 'package:curio_campus/models/notification_model.dart';
 
 class MessagesScreen extends StatefulWidget {
   const MessagesScreen({Key? key}) : super(key: key);
@@ -114,16 +118,34 @@ class _MessagesScreenState extends State<MessagesScreen> {
   Widget build(BuildContext context) {
     final chatProvider = Provider.of<ChatProvider>(context);
     final authProvider = Provider.of<AuthProvider>(context);
+    final notificationProvider = Provider.of<NotificationProvider>(context);
     final currentUserId = authProvider.firebaseUser?.uid;
     final chats = chatProvider.chats;
+    final unreadCount = notificationProvider.unreadCount;
 
-    return _isLoading
-        ? const Center(child: CircularProgressIndicator())
-        : RefreshIndicator(
-      onRefresh: _fetchChats,
-      child: chats.isEmpty
-          ? const Center(child: Text('No messages yet'))
-          : _buildChatList(chats, currentUserId),
+    return Scaffold(
+      // Remove the appBar here
+      body: _isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : RefreshIndicator(
+        onRefresh: _fetchChats,
+        child: chats.isEmpty
+            ? const Center(child: Text('No messages yet'))
+            : _buildChatList(chats, currentUserId),
+      ),
+      floatingActionButton: FloatingActionButton(
+        heroTag: 'messages_fab',
+        onPressed: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => const CreateGroupChatScreen(),
+            ),
+          );
+        },
+        backgroundColor: AppTheme.primaryColor,
+        child: const Icon(Icons.add, color: Colors.white),
+      ),
     );
   }
 
@@ -268,4 +290,3 @@ class _MessagesScreenState extends State<MessagesScreen> {
     }
   }
 }
-

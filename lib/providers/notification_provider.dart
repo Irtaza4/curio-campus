@@ -317,51 +317,28 @@ class NotificationProvider with ChangeNotifier {
 
 // Method to handle incoming notifications from Firebase Cloud Messaging
   Future<void> handleIncomingNotification(Map<String, dynamic> data) async {
-    if (_auth.currentUser == null) return;
-
     try {
-      final userId = _auth.currentUser!.uid;
-      final now = DateTime.now();
-      final notificationId = const Uuid().v4();
-
       // Extract notification data
       final title = data['title'] as String? ?? 'New Notification';
       final message = data['body'] as String? ?? '';
       final type = _parseNotificationType(data['type'] as String? ?? 'system');
       final relatedId = data['relatedId'] as String?;
-      final additionalData = data['data'] as Map<String, dynamic>?;
 
-      final notification = NotificationModel(
-        id: notificationId,
+      // Add notification using the existing method
+      await addNotification(
         title: title,
         message: message,
-        timestamp: now,
         type: type,
         relatedId: relatedId,
-        isRead: false,
-        additionalData: additionalData,
+        additionalData: data,
       );
-
-      // Save to Firestore
-      await _firestore
-          .collection(Constants.usersCollection)
-          .doc(userId)
-          .collection('notifications')
-          .doc(notificationId)
-          .set(notification.toJson());
-
-      // Add to local list
-      _notifications.insert(0, notification);
-      _unreadCount++;
-
-      notifyListeners();
     } catch (e) {
       _errorMessage = e.toString();
       notifyListeners();
     }
   }
 
-// Parse notification type from string
+  // Helper method to parse notification type
   NotificationType _parseNotificationType(String type) {
     switch (type.toLowerCase()) {
       case 'chat':
@@ -442,5 +419,146 @@ class NotificationProvider with ChangeNotifier {
       },
     );
   }
-}
 
+// Add methods to handle chat request notifications and project/emergency notifications
+
+// Method to create a chat request notification
+  Future<void> createChatRequestNotification({
+    required String senderId,
+    required String senderName,
+    required String chatId,
+    required String message,
+  }) async {
+    if (_auth.currentUser == null) return;
+
+    await addNotification(
+      title: 'New chat request from $senderName',
+      message: message,
+      type: NotificationType.chat,
+      relatedId: chatId,
+      additionalData: {
+        'senderId': senderId,
+        'senderName': senderName,
+        'isRequest': true,
+        'chatId': chatId
+      },
+    );
+  }
+
+// Method to create a task completion notification
+  Future<void> createTaskCompletionNotification({
+    required String projectId,
+    required String projectName,
+    required String taskTitle,
+    required String completedBy,
+  }) async {
+    await addNotification(
+      title: 'Task Completed in $projectName',
+      message: '$completedBy completed the task: $taskTitle',
+      type: NotificationType.project,
+      relatedId: projectId,
+      additionalData: {
+        'projectName': projectName,
+        'taskTitle': taskTitle,
+        'completedBy': completedBy,
+        'isTaskCompletion': true
+      },
+    );
+  }
+
+// Method to create a skill-matched emergency request notification
+  Future<void> createSkillMatchedEmergencyNotification({
+    required String requestId,
+    required String requesterName,
+    required String title,
+    required String skill,
+  }) async {
+    await addNotification(
+      title: 'Emergency Request Matching Your Skills',
+      message: '$requesterName needs help with $skill: $title',
+      type: NotificationType.emergency,
+      relatedId: requestId,
+      additionalData: {
+        'requesterName': requesterName,
+        'skill': skill,
+        'isSkillMatch': true
+      },
+    );
+  }
+
+// Method to accept a chat request
+  Future<void> acceptChatRequest(String notificationId) async {
+    if (_auth.currentUser == null) return;
+
+    try {
+      final userId = _auth.currentUser!.uid;
+
+      // Find the notification
+      final index = _notifications.indexWhere((n) => n.id == notificationId);
+      if (index == -1) return;
+
+      final notification = _notifications[index];
+      final additionalData = notification.additionalData;
+      if (additionalData == null) return;
+
+      final senderId = additionalData['senderId'] as String?;
+      final senderName = additionalData['senderName'] as String?;
+      final chatId = additionalData['chatId'] as String?;
+
+      if (senderId == null || senderName == null || chatId == null) return;
+
+      // Mark the notification as read
+      await markAsRead(notificationId);
+
+      // Update the notification to show it was accepted
+      await _firestore
+          .collection(Constants.usersCollection)
+          .doc(userId)
+          .collection('notifications')
+          .doc(notificationId)
+          .update({
+        'additionalData.accepted': true,
+      });
+
+      // Update local notification
+      _notifications[index] = NotificationModel(
+        id: notification.id,
+        title: notification.title,
+        message: notification.message,
+        timestamp: notification.timestamp,
+        type: notification.type,
+        relatedId: notification.relatedId,
+        isRead: true,
+        additionalData: {
+          ...additionalData,
+          'accepted': true,
+        },
+      );
+
+      notifyListeners();
+    } catch (e) {
+      _errorMessage = e.toString();
+      notifyListeners();
+    }
+  }
+
+// Method to reject a chat request
+  Future<void> rejectChatRequest(String notificationId) async {
+    if (_auth.currentUser == null) return;
+
+    try {
+      final userId = _auth.currentUser!.uid;
+
+      // Find the notification
+      final index = _notifications.indexWhere((n) => n.id == notificationId);
+      if (index == -1) return;
+
+      // Delete the notification
+      await deleteNotification(notificationId);
+
+    } catch (e) {
+      _errorMessage = e.toString();
+      notifyListeners();
+    }
+  }
+}

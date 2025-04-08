@@ -8,6 +8,10 @@ import 'package:curio_campus/utils/app_theme.dart';
 import 'package:intl/intl.dart';
 import 'package:curio_campus/providers/auth_provider.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:curio_campus/widgets/notification_badge.dart';
+import 'package:curio_campus/providers/notification_provider.dart';
+import 'package:curio_campus/widgets/notification_drawer.dart';
+import 'package:curio_campus/models/notification_model.dart';
 
 class ProjectsScreen extends StatefulWidget {
   const ProjectsScreen({Key? key}) : super(key: key);
@@ -125,61 +129,72 @@ class _ProjectsScreenState extends State<ProjectsScreen> {
   @override
   Widget build(BuildContext context) {
     final projectProvider = Provider.of<ProjectProvider>(context);
+    final notificationProvider = Provider.of<NotificationProvider>(context);
     final allProjects = projectProvider.projects;
+    final unreadCount = notificationProvider.unreadCount;
 
     // Separate projects into active and completed
     final activeProjects = allProjects.where((p) => p.progress < 100).toList();
     final completedProjects = allProjects.where((p) => p.progress == 100).toList();
 
-    return _isLoading
-        ? const Center(child: CircularProgressIndicator())
-        : allProjects.isEmpty
-        ? Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          const Text(
-            'No projects yet',
-            style: TextStyle(fontSize: 18),
-          ),
-          const SizedBox(height: 16),
-          ElevatedButton(
-            onPressed: _navigateToCreateProject,
-            child: const Text('Create Project'),
-          ),
-        ],
-      ),
-    )
-        : RefreshIndicator(
-      onRefresh: _fetchProjects,
-      child: ListView(
-        padding: const EdgeInsets.all(16),
-        children: [
-          if (activeProjects.isNotEmpty) ...[
+    return Scaffold(
+      // Remove the appBar here
+      body: _isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : allProjects.isEmpty
+          ? Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
             const Text(
-              'Active Projects',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-              ),
+              'No projects yet',
+              style: TextStyle(fontSize: 18),
             ),
-            const SizedBox(height: 8),
-            ...activeProjects.map((project) => _buildProjectCard(project)),
+            const SizedBox(height: 16),
+            ElevatedButton(
+              onPressed: _navigateToCreateProject,
+              child: const Text('Create Project'),
+            ),
           ],
+        ),
+      )
+          : RefreshIndicator(
+        onRefresh: _fetchProjects,
+        child: ListView(
+          padding: const EdgeInsets.all(16),
+          children: [
+            if (activeProjects.isNotEmpty) ...[
+              const Text(
+                'Active Projects',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 8),
+              ...activeProjects.map((project) => _buildProjectCard(project)),
+            ],
 
-          if (completedProjects.isNotEmpty) ...[
-            const SizedBox(height: 24),
-            const Text(
-              'Completed Projects',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
+            if (completedProjects.isNotEmpty) ...[
+              const SizedBox(height: 24),
+              const Text(
+                'Completed Projects',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
-            ),
-            const SizedBox(height: 8),
-            ...completedProjects.map((project) => _buildProjectCard(project)),
+              const SizedBox(height: 8),
+              ...completedProjects.map((project) => _buildProjectCard(project)),
+            ],
           ],
-        ],
+        ),
+      ),
+      floatingActionButton: FloatingActionButton(
+        heroTag: 'projects_fab',
+        onPressed: _navigateToCreateProject,
+        backgroundColor: AppTheme.primaryColor,
+        child: const Icon(Icons.add, color: Colors.white),
       ),
     );
   }
@@ -351,4 +366,3 @@ class _ProjectsScreenState extends State<ProjectsScreen> {
     }
   }
 }
-

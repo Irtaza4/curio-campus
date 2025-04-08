@@ -25,7 +25,10 @@ class _MatchmakingScreenState extends State<MatchmakingScreen> {
   @override
   void initState() {
     super.initState();
-    _fetchUserProjects();
+    // Use a post-frame callback to avoid calling setState during build
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _fetchUserProjects();
+    });
   }
 
   Future<void> _fetchUserProjects() async {
@@ -40,13 +43,13 @@ class _MatchmakingScreenState extends State<MatchmakingScreen> {
       setState(() {
         _userProjects = projectProvider.projects;
         _isLoading = false;
-      });
 
-      // If there are projects, find matches for the first one by default
-      if (_userProjects.isNotEmpty) {
-        _selectedProject = _userProjects.first;
-        _findMatches();
-      }
+        // If there are projects, find matches for the first one by default
+        if (_userProjects.isNotEmpty) {
+          _selectedProject = _userProjects.first;
+          _findMatches();
+        }
+      });
     } catch (e) {
       setState(() {
         _isLoading = false;
@@ -128,11 +131,55 @@ class _MatchmakingScreenState extends State<MatchmakingScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Matchmaking'),
+        title: const Text('Find Team Members'),
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh),
             onPressed: _findMatches,
+          ),
+          IconButton(
+            icon: const Icon(Icons.more_vert),
+            onPressed: () {
+              showModalBottomSheet(
+                context: context,
+                shape: const RoundedRectangleBorder(
+                  borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+                ),
+                builder: (context) {
+                  return SafeArea(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        ListTile(
+                          leading: Icon(Icons.filter_list, color: AppTheme.primaryColor),
+                          title: const Text('Filter Options'),
+                          onTap: () {
+                            Navigator.pop(context);
+                            // Show filter options
+                          },
+                        ),
+                        ListTile(
+                          leading: Icon(Icons.sort, color: AppTheme.primaryColor),
+                          title: const Text('Sort By'),
+                          onTap: () {
+                            Navigator.pop(context);
+                            // Show sort options
+                          },
+                        ),
+                        ListTile(
+                          leading: Icon(Icons.help_outline, color: AppTheme.primaryColor),
+                          title: const Text('How Matchmaking Works'),
+                          onTap: () {
+                            Navigator.pop(context);
+                            // Show help info
+                          },
+                        ),
+                      ],
+                    ),
+                  );
+                },
+              );
+            },
           ),
         ],
       ),
@@ -396,4 +443,3 @@ class _MatchmakingScreenState extends State<MatchmakingScreen> {
     );
   }
 }
-

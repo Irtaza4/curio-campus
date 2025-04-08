@@ -1,4 +1,4 @@
-import 'package:curio_campus/screens/project/create_project_screen.dart';
+import 'package:curio_campus/screens/emergency/create_emergency_request_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:curio_campus/providers/auth_provider.dart';
@@ -121,27 +121,31 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final authProvider = Provider.of<AuthProvider>(context);
     final notificationProvider = Provider.of<NotificationProvider>(context);
+    final unreadCount = notificationProvider.unreadCount;
 
     return Scaffold(
-      // Single app bar for all screens
       appBar: AppBar(
         title: Text(_getScreenTitle()),
         automaticallyImplyLeading: false, // No back button
         actions: [
-          // Add + button only for Projects screen
-          if (_currentIndex == 1)
-            IconButton(
-              icon: const Icon(Icons.add),
-              onPressed: () {
-                Navigator.push(context, MaterialPageRoute(builder: (_)=>CreateProjectScreen()));
-              },
-            ),
           NotificationBadge(
-            count: notificationProvider.unreadCount,
+            count: unreadCount,
             child: IconButton(
-              icon: const Icon(Icons.notifications_outlined),
-              onPressed: _showNotifications,
+              icon: const Icon(Icons.notifications),
+              onPressed: () {
+                showModalBottomSheet(
+                  context: context,
+                  isScrollControlled: true,
+                  shape: const RoundedRectangleBorder(
+                    borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+                  ),
+                  builder: (context) => const NotificationDrawer(
+                    title: 'Notifications',
+                  ),
+                );
+              },
             ),
           ),
           IconButton(
@@ -159,7 +163,6 @@ class _HomeScreenState extends State<HomeScreen> {
           });
         },
         type: BottomNavigationBarType.fixed,
-        backgroundColor: Colors.white,
         selectedItemColor: AppTheme.primaryColor,
         unselectedItemColor: Colors.grey,
         items: const [
@@ -193,6 +196,7 @@ class _HomeScreenState extends State<HomeScreen> {
     switch (_currentIndex) {
       case 1: // Projects screen
         return FloatingActionButton(
+          heroTag: 'home_projects_fab',
           onPressed: () {
             // Navigate to matchmaking screen
             Navigator.push(
@@ -207,9 +211,10 @@ class _HomeScreenState extends State<HomeScreen> {
         );
       case 2: // Emergency screen
         return FloatingActionButton(
+          heroTag: 'home_emergency_fab',
           onPressed: () {
             // Navigate to create emergency request screen
-            Navigator.pushNamed(context, '/create_emergency');
+            Navigator.push(context, MaterialPageRoute(builder: (_)=>CreateEmergencyRequestScreen()));
           },
           backgroundColor: AppTheme.primaryColor,
           child: const Icon(Icons.add, color: Colors.white),
@@ -219,4 +224,3 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 }
-

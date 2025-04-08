@@ -14,9 +14,10 @@ import 'package:curio_campus/services/notification_service.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:curio_campus/utils/navigator_key.dart'; // Import the navigator key
 
 // Define a single global navigator key
-final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
+// final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>(); // Moved to navigator_key.dart
 
 // Update the main function to handle notification clicks
 void main() async {
@@ -67,7 +68,7 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => NotificationProvider()),
       ],
       child: MaterialApp(
-        navigatorKey: navigatorKey, // Add the navigator key
+        navigatorKey: navigatorKey, // Use the navigator key from utils
         title: 'CurioCampus',
         debugShowCheckedModeBanner: false,
         theme: AppTheme.lightTheme,
@@ -76,4 +77,3 @@ class MyApp extends StatelessWidget {
     );
   }
 }
-

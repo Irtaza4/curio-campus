@@ -138,6 +138,7 @@ class EmergencyProvider with ChangeNotifier {
         deadline: deadline,
         createdAt: now,
         isResolved: false,
+        responses: [], // Initialize with empty list
       );
 
       await _firestore
@@ -175,6 +176,108 @@ class EmergencyProvider with ChangeNotifier {
       return requestId;
     } catch (e) {
       _isLoading = false;
+      _errorMessage = e.toString();
+      notifyListeners();
+      return null;
+    }
+  }
+
+  // Add method to create an emergency request that matches user skills
+  Future<String?> createEmergencyRequestWithSkillMatching({
+    required String title,
+    required String description,
+    required List<String> requiredSkills,
+    required DateTime deadline,
+  }) async {
+    if (_auth.currentUser == null) return null;
+
+    try {
+      final userId = _auth.currentUser!.uid;
+      final userDoc = await _firestore
+          .collection(Constants.usersCollection)
+          .doc(userId)
+          .get();
+
+      if (!userDoc.exists) return null;
+
+      final userData = userDoc.data() as Map<String, dynamic>;
+      final userName = userData['name'] as String;
+      final userAvatar = userData['profileImageUrl'] as String?;
+
+      final now = DateTime.now();
+      final requestId = const Uuid().v4();
+
+      final request = EmergencyRequestModel(
+        id: requestId,
+        title: title,
+        description: description,
+        requiredSkills: requiredSkills,
+        deadline: deadline,
+        requesterId: userId,
+        requesterName: userName,
+        requesterAvatar: userAvatar,
+        createdAt: now,
+        isResolved: false,
+        responses: [],
+      );
+
+      await _firestore
+          .collection(Constants.emergencyRequestsCollection)
+          .doc(requestId)
+          .set(request.toJson());
+
+      // Add to local list
+      _myEmergencyRequests.add(request);
+      _emergencyRequests.add(request);
+
+      // Find users with matching skills and send notifications
+      final usersSnapshot = await _firestore
+          .collection(Constants.usersCollection)
+          .get();
+
+      for (final userDoc in usersSnapshot.docs) {
+        final userData = userDoc.data();
+        final userId = userDoc.id;
+
+        // Skip the requester
+        if (userId == request.requesterId) continue;
+
+        final majorSkills = List<String>.from(userData['majorSkills'] ?? []);
+        final minorSkills = List<String>.from(userData['minorSkills'] ?? []);
+        final allSkills = [...majorSkills, ...minorSkills];
+
+        // Check if any required skill matches the user's skills
+        final matchingSkills = requiredSkills.where((skill) => allSkills.contains(skill)).toList();
+
+        if (matchingSkills.isNotEmpty) {
+          // Create a notification for this user
+          final notificationId = const Uuid().v4();
+
+          await _firestore
+              .collection(Constants.usersCollection)
+              .doc(userId)
+              .collection('notifications')
+              .doc(notificationId)
+              .set({
+            'id': notificationId,
+            'title': 'Emergency Request Matching Your Skills',
+            'message': '$userName needs help with ${matchingSkills.first}: $title',
+            'timestamp': now.toIso8601String(),
+            'type': 'emergency',
+            'relatedId': requestId,
+            'isRead': false,
+            'additionalData': {
+              'requesterName': userName,
+              'skill': matchingSkills.first,
+              'isSkillMatch': true
+            },
+          });
+        }
+      }
+
+      notifyListeners();
+      return requestId;
+    } catch (e) {
       _errorMessage = e.toString();
       notifyListeners();
       return null;
@@ -377,4 +480,3 @@ class EmergencyProvider with ChangeNotifier {
     }
   }
 }
-

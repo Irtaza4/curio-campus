@@ -9,6 +9,7 @@ import 'package:curio_campus/screens/project/create_task_screen.dart';
 import 'package:curio_campus/screens/project/edit_project_screen.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 
+import '../../models/task_model.dart';
 import '../../models/user_model.dart';
 
 class ProjectDetailScreen extends StatefulWidget {
@@ -150,6 +151,44 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
     );
   }
 
+  Future<void> _showDeleteProjectDialog(ProjectModel project) async {
+    return showDialog<void>(
+      context: context,
+      barrierDismissible: false, // user must tap button!
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Delete Project'),
+          content: SingleChildScrollView(
+            child: ListBody(
+              children: const <Widget>[
+                Text('Are you sure you want to delete this project?'),
+                Text('This action cannot be undone.'),
+              ],
+            ),
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: const Text('Cancel'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+            TextButton(
+              child: const Text('Delete', style: TextStyle(color: Colors.red)),
+              onPressed: () async {
+                Navigator.of(context).pop();
+                await Provider.of<ProjectProvider>(context, listen: false).deleteProject(project.id);
+                if (mounted) {
+                  Navigator.of(context).pop();
+                }
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final projectProvider = Provider.of<ProjectProvider>(context);
@@ -165,7 +204,55 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
           ),
           IconButton(
             icon: const Icon(Icons.more_vert),
-            onPressed: _showMoreOptions,
+            onPressed: () {
+              showModalBottomSheet(
+                context: context,
+                shape: const RoundedRectangleBorder(
+                  borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+                ),
+                builder: (context) {
+                  return SafeArea(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        ListTile(
+                          leading: Icon(Icons.share, color: AppTheme.primaryColor),
+                          title: const Text('Share Project'),
+                          onTap: () {
+                            Navigator.pop(context);
+                            // Share functionality
+                          },
+                        ),
+                        ListTile(
+                          leading: Icon(Icons.delete, color: Colors.red),
+                          title: const Text('Delete Project', style: TextStyle(color: Colors.red)),
+                          onTap: () async {
+                            Navigator.pop(context);
+                            _showDeleteProjectDialog(project!);
+                          },
+                        ),
+                        ListTile(
+                          leading: Icon(Icons.archive, color: AppTheme.primaryColor),
+                          title: const Text('Archive Project'),
+                          onTap: () {
+                            Navigator.pop(context);
+                            // Archive functionality
+                          },
+                        ),
+                        ListTile(
+                          leading: Icon(Icons.help_outline, color: AppTheme.primaryColor),
+                          title: const Text('Project Help'),
+                          onTap: () {
+                            Navigator.pop(context);
+                            // Show help info
+                          },
+                        ),
+                      ],
+                    ),
+                  );
+                },
+              );
+            },
           ),
         ],
       ),
@@ -563,4 +650,3 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
     }
   }
 }
-
