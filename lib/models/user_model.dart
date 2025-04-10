@@ -53,6 +53,22 @@ class UserModel {
     };
   }
 
+  // Method to convert UserModel to Map<String, dynamic>
+  Map<String, dynamic> toMap() {
+    return {
+      'id': id,
+      'name': name,
+      'email': email,
+      'majorSkills': majorSkills,
+      'minorSkills': minorSkills,
+      'profileImageBase64': profileImageBase64,
+      'completedProjects': completedProjects,
+      'teamMembers': teamMembers,
+      'createdAt': createdAt.toIso8601String(),
+      'lastActive': lastActive.toIso8601String(),
+    };
+  }
+
   UserModel copyWith({
     String? id,
     String? name,

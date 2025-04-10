@@ -80,8 +80,8 @@ class _LoginScreenState extends State<LoginScreen> {
                     children: [
                       Image.asset(
                         'assets/images/logo.png',
-                        width: 80,
-                        height: 80,
+                        width: 200,
+                        height: 200,
                         errorBuilder: (context, error, stackTrace) {
                           return Icon(
                             Icons.hub,

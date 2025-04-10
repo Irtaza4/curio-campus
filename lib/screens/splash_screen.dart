@@ -178,10 +178,17 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
                     SizedBox(
                       width: 180,
                       height: 180,
-                      child: Icon(
-                        Icons.hub,
-                        size: 100,
-                        color: AppTheme.primaryColor,
+                      child:  Image.asset(
+                        'assets/images/logo.png',
+                        width: 200,
+                        height: 200,
+                        errorBuilder: (context, error, stackTrace) {
+                          return Icon(
+                            Icons.hub,
+                            size: 80,
+                            color: AppTheme.primaryColor,
+                          );
+                        },
                       ),
                     ),
                     const SizedBox(height: 24),

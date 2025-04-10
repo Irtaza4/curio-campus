@@ -32,6 +32,7 @@ class ChatProvider with ChangeNotifier {
   String? get errorMessage => _errorMessage;
   String? get currentChatId => _currentChatId;
 
+
   // Setup real-time listener for messages
   void setupMessageListener({
     required String chatId,
@@ -219,6 +220,28 @@ class ChatProvider with ChangeNotifier {
       _isLoading = false;
       _errorMessage = e.toString();
       notifyListeners();
+    }
+  }
+  Future<List<UserModel>> getUsers() async {
+    try {
+      // Fetch all users from Firestore (adjust the query as needed)
+      final querySnapshot = await _firestore
+          .collection(Constants.usersCollection)
+          .get();
+
+      // Map the fetched data into a list of UserModel objects
+      final users = querySnapshot.docs.map((doc) {
+        return UserModel.fromJson({
+          'id': doc.id,
+          ...doc.data(),
+        });
+      }).toList();
+
+      return users;
+    } catch (e) {
+      _errorMessage = e.toString();
+      notifyListeners();
+      return [];
     }
   }
 

@@ -1,6 +1,6 @@
+import 'dart:convert';
 import 'dart:io';
 import 'package:image_picker/image_picker.dart';
-import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:curio_campus/providers/auth_provider.dart';
@@ -26,6 +26,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   List<String> _selectedMajorSkills = [];
   List<String> _selectedMinorSkills = [];
   File? _profileImage;
+  String? _profileImageBase64;
   bool _isLoading = false;
 
   @override
@@ -47,8 +48,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
       );
 
       if (pickedFile != null) {
+        final imageBytes = await pickedFile.readAsBytes();
         setState(() {
           _profileImage = File(pickedFile.path);
+          _profileImageBase64 = base64Encode(imageBytes);
         });
       }
     } catch (e) {
@@ -79,47 +82,13 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
       final authProvider = Provider.of<AuthProvider>(context, listen: false);
 
-      // Upload profile image if selected
-      String? profileImageUrl;
-      if (_profileImage != null) {
-        try {
-          final storage = FirebaseStorage.instance;
-          final timestamp = DateTime.now().millisecondsSinceEpoch;
-          final path = 'profile_images/temp/$timestamp.jpg';
-
-          // Create the storage reference
-          final storageRef = storage.ref().child(path);
-
-          // Upload the file
-          final uploadTask = storageRef.putFile(_profileImage!);
-
-          // Wait for the upload to complete
-          final snapshot = await uploadTask;
-
-          // Get the download URL
-          profileImageUrl = await snapshot.ref.getDownloadURL();
-        } catch (e) {
-          setState(() {
-            _isLoading = false;
-          });
-
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('Failed to upload profile image: ${e.toString()}'),
-              backgroundColor: Colors.red,
-            ),
-          );
-          return;
-        }
-      }
-
       final success = await authProvider.register(
         name: _nameController.text.trim(),
         email: _emailController.text.trim(),
         password: _passwordController.text,
         majorSkills: _selectedMajorSkills,
         minorSkills: _selectedMinorSkills,
-        profileImageBase64: profileImageUrl,
+        profileImageBase64: _profileImageBase64,
       );
 
       setState(() {
@@ -154,63 +123,35 @@ class _RegisterScreenState extends State<RegisterScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Back button
                 IconButton(
                   icon: const Icon(Icons.arrow_back, color: AppTheme.primaryColor),
                   onPressed: () {
                     Navigator.pop(context);
                   },
                 ),
-
                 const SizedBox(height: 20),
-
-                // Title
                 Center(
                   child: Column(
                     children: [
-                      Text(
-                        'Create new',
-                        style: TextStyle(
-                          fontSize: 32,
-                          fontWeight: FontWeight.bold,
-                          color: AppTheme.primaryColor,
-                        ),
-                      ),
-                      Text(
-                        'Account',
-                        style: TextStyle(
-                          fontSize: 32,
-                          fontWeight: FontWeight.bold,
-                          color: AppTheme.primaryColor,
-                        ),
-                      ),
+                      Text('Create new',
+                          style: TextStyle(fontSize: 32, fontWeight: FontWeight.bold, color: AppTheme.primaryColor)),
+                      Text('Account',
+                          style: TextStyle(fontSize: 32, fontWeight: FontWeight.bold, color: AppTheme.primaryColor)),
                       const SizedBox(height: 8),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          const Text(
-                            'Already Registered?',
-                            style: TextStyle(color: Colors.grey),
-                          ),
+                          const Text('Already Registered?', style: TextStyle(color: Colors.grey)),
                           TextButton(
-                            onPressed: () {
-                              Navigator.pop(context);
-                            },
-                            child: const Text(
-                              'Log in here',
-                              style: TextStyle(
-                                color: AppTheme.primaryColor,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
+                            onPressed: () => Navigator.pop(context),
+                            child: const Text('Log in here',
+                                style: TextStyle(color: AppTheme.primaryColor, fontWeight: FontWeight.bold)),
                           ),
                         ],
                       ),
                     ],
                   ),
                 ),
-
-                // After the title section
                 Center(
                   child: Stack(
                     children: [
@@ -219,11 +160,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         backgroundColor: AppTheme.lightGrayColor,
                         backgroundImage: _profileImage != null ? FileImage(_profileImage!) : null,
                         child: _profileImage == null
-                            ? Icon(
-                          Icons.person,
-                          size: 50,
-                          color: AppTheme.primaryColor,
-                        )
+                            ? Icon(Icons.person, size: 50, color: AppTheme.primaryColor)
                             : null,
                       ),
                       Positioned(
@@ -233,15 +170,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           onTap: _pickImage,
                           child: Container(
                             padding: const EdgeInsets.all(8),
-                            decoration: BoxDecoration(
+                            decoration: const BoxDecoration(
                               color: AppTheme.primaryColor,
                               shape: BoxShape.circle,
                             ),
-                            child: const Icon(
-                              Icons.camera_alt,
-                              color: Colors.white,
-                              size: 20,
-                            ),
+                            child: const Icon(Icons.camera_alt, color: Colors.white, size: 20),
                           ),
                         ),
                       ),
@@ -249,75 +182,34 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   ),
                 ),
                 const SizedBox(height: 24),
-
-
-                const SizedBox(height: 32),
-
-                // Registration form
                 Form(
                   key: _formKey,
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // Name field
-                      const Text(
-                        'NAME',
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w500,
-                          color: Colors.grey,
-                        ),
-                      ),
+                      const Text('NAME', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: Colors.grey)),
                       const SizedBox(height: 8),
                       CustomTextField(
                         controller: _nameController,
                         hintText: 'Your name',
-                        validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return 'Please enter your name';
-                          }
-                          return null;
-                        },
+                        validator: (value) => value == null || value.isEmpty ? 'Please enter your name' : null,
                       ),
-
                       const SizedBox(height: 24),
-
-                      // Email field
-                      const Text(
-                        'EMAIL',
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w500,
-                          color: Colors.grey,
-                        ),
-                      ),
+                      const Text('EMAIL', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: Colors.grey)),
                       const SizedBox(height: 8),
                       CustomTextField(
                         controller: _emailController,
                         hintText: 'email@gmail.com',
                         keyboardType: TextInputType.emailAddress,
                         validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return 'Please enter your email';
-                          }
-                          if (!value.contains('@')) {
-                            return 'Please enter a valid email';
-                          }
+                          if (value == null || value.isEmpty) return 'Please enter your email';
+                          if (!value.contains('@')) return 'Please enter a valid email';
                           return null;
                         },
                       ),
-
                       const SizedBox(height: 24),
-
-                      // Password field
-                      const Text(
-                        'PASSWORD',
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w500,
-                          color: Colors.grey,
-                        ),
-                      ),
+                      const Text('PASSWORD',
+                          style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: Colors.grey)),
                       const SizedBox(height: 8),
                       CustomTextField(
                         controller: _passwordController,
@@ -325,73 +217,34 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         obscureText: !_isPasswordVisible,
                         suffixIcon: IconButton(
                           icon: Icon(
-                            _isPasswordVisible
-                                ? Icons.visibility_off
-                                : Icons.visibility,
+                            _isPasswordVisible ? Icons.visibility_off : Icons.visibility,
                             color: Colors.grey,
                           ),
-                          onPressed: () {
-                            setState(() {
-                              _isPasswordVisible = !_isPasswordVisible;
-                            });
-                          },
+                          onPressed: () => setState(() => _isPasswordVisible = !_isPasswordVisible),
                         ),
                         validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return 'Please enter a password';
-                          }
-                          if (value.length < 6) {
-                            return 'Password must be at least 6 characters';
-                          }
+                          if (value == null || value.isEmpty) return 'Please enter a password';
+                          if (value.length < 6) return 'Password must be at least 6 characters';
                           return null;
                         },
                       ),
-
                       const SizedBox(height: 24),
-
-                      // Major skills
-                      const Text(
-                        'MAJOR SKILLS',
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w500,
-                          color: Colors.grey,
-                        ),
-                      ),
+                      const Text('MAJOR SKILLS',
+                          style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: Colors.grey)),
                       const SizedBox(height: 8),
                       SkillSelector(
                         selectedSkills: _selectedMajorSkills,
-                        onSkillsChanged: (skills) {
-                          setState(() {
-                            _selectedMajorSkills = skills;
-                          });
-                        },
+                        onSkillsChanged: (skills) => setState(() => _selectedMajorSkills = skills),
                       ),
-
                       const SizedBox(height: 24),
-
-                      // Minor skills
-                      const Text(
-                        'MINOR SKILLS (FRAMEWORKS & TOOLS)',
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w500,
-                          color: Colors.grey,
-                        ),
-                      ),
+                      const Text('MINOR SKILLS (FRAMEWORKS & TOOLS)',
+                          style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: Colors.grey)),
                       const SizedBox(height: 8),
                       SkillSelector(
                         selectedSkills: _selectedMinorSkills,
-                        onSkillsChanged: (skills) {
-                          setState(() {
-                            _selectedMinorSkills = skills;
-                          });
-                        },
+                        onSkillsChanged: (skills) => setState(() => _selectedMinorSkills = skills),
                       ),
-
                       const SizedBox(height: 32),
-
-                      // Register button
                       CustomButton(
                         text: 'Sign up',
                         isLoading: _isLoading || authProvider.isLoading,
@@ -408,4 +261,3 @@ class _RegisterScreenState extends State<RegisterScreen> {
     );
   }
 }
-

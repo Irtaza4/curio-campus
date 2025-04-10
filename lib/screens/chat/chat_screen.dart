@@ -273,8 +273,11 @@ class _ChatScreenState extends State<ChatScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(displayName),
+        title: Text(
+          _senderName.isNotEmpty ? ' ${widget.chatName} ' : widget.chatName,
+        ),
       ),
+
       body: Column(
         children: [
           // Chat messages

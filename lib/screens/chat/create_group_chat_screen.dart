@@ -6,6 +6,8 @@ import 'package:curio_campus/utils/app_theme.dart';
 import 'package:curio_campus/widgets/custom_button.dart';
 import 'package:curio_campus/widgets/custom_text_field.dart';
 
+import '../../models/user_model.dart';
+
 class CreateGroupChatScreen extends StatefulWidget {
   const CreateGroupChatScreen({Key? key}) : super(key: key);
 
@@ -140,92 +142,110 @@ class _CreateGroupChatScreenState extends State<CreateGroupChatScreen> {
   }
 
   Widget _buildParticipantsSection() {
-    // In a real app, you would fetch users from the database
-    // For this demo, we'll use dummy data
-    final dummyUsers = [
-      {'id': 'user1', 'name': 'Olivia Martin', 'email': 'olivia@example.com'},
-      {'id': 'user2', 'name': 'Ethan Johnson', 'email': 'ethan@example.com'},
-      {'id': 'user3', 'name': 'Sophia Williams', 'email': 'sophia@example.com'},
-      {'id': 'user4', 'name': 'Noah Brown', 'email': 'noah@example.com'},
-      {'id': 'user5', 'name': 'Emma Jones', 'email': 'emma@example.com'},
-    ];
+    return FutureBuilder<List<UserModel>>(
+      future: ChatProvider().getUsers(),  // Fetch users from Firestore
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator());
+        } else if (snapshot.hasError) {
+          return Center(child: Text('Error: ${snapshot.error}'));
+        } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+          return const Center(child: Text('No users found'));
+        }
 
-    return Column(
-      children: [
-        // Selected participants
-        if (_selectedParticipants.isNotEmpty) ...[
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: AppTheme.lightGrayColor,
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: _selectedParticipants.map((userId) {
-                final user = dummyUsers.firstWhere(
-                      (u) => u['id'] == userId,
-                  orElse: () => {'id': userId, 'name': 'Unknown User', 'email': ''},
-                );
+        final users = snapshot.data!;
 
-                return Chip(
-                  label: Text(user['name'] as String),
-                  backgroundColor: AppTheme.primaryColor.withOpacity(0.1),
-                  deleteIconColor: AppTheme.primaryColor,
-                  onDeleted: () {
-                    setState(() {
-                      _selectedParticipants.remove(userId);
-                    });
-                  },
-                );
-              }).toList(),
-            ),
-          ),
-          const SizedBox(height: 16),
-        ],
-
-        // Add participants button
-        InkWell(
-          onTap: () {
-            _showAddParticipantsDialog(dummyUsers);
-          },
-          borderRadius: BorderRadius.circular(8),
-          child: Container(
-            width: double.infinity,
-            padding: const EdgeInsets.symmetric(
-              horizontal: 16,
-              vertical: 16,
-            ),
-            decoration: BoxDecoration(
-              border: Border.all(color: AppTheme.primaryColor),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(
-                  Icons.person_add,
-                  color: AppTheme.primaryColor,
-                  size: 20,
+        return Column(
+          children: [
+            // Selected participants
+            if (_selectedParticipants.isNotEmpty) ...[
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: AppTheme.lightGrayColor,
+                  borderRadius: BorderRadius.circular(8),
                 ),
-                const SizedBox(width: 8),
-                Text(
-                  'Add Participants',
-                  style: TextStyle(
-                    fontSize: 16,
-                    color: AppTheme.primaryColor,
-                    fontWeight: FontWeight.w500,
-                  ),
+                child: Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: _selectedParticipants.map((userId) {
+                    final user = users.firstWhere(
+                          (u) => u.id == userId,
+                      orElse: () => UserModel(
+                          id: userId,
+                          name: 'Unknown User',
+                          email: '',
+                          majorSkills: [],
+                          minorSkills: [],
+                          createdAt: DateTime.now(),
+                          lastActive: DateTime.now()
+                      ),
+                    );
+
+                    return Chip(
+                      label: Text(user.name),
+                      backgroundColor: AppTheme.primaryColor.withOpacity(0.1),
+                      deleteIconColor: AppTheme.primaryColor,
+                      onDeleted: () {
+                        setState(() {
+                          _selectedParticipants.remove(userId);
+                        });
+                      },
+                    );
+                  }).toList(),
                 ),
-              ],
-            ),
-          ),
-        ),
-      ],
+              ),
+              const SizedBox(height: 16),
+            ],
+
+            // Add participants button
+            InkWell(
+              onTap: () {
+                // Convert List<UserModel> to List<Map<String, dynamic>> by calling toMap() on each UserModel
+                final usersMap = users.map((user) => user.toMap()).toList();
+                _showAddParticipantsDialog(usersMap);
+              },
+              borderRadius: BorderRadius.circular(8),
+              child: Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 16,
+                ),
+                decoration: BoxDecoration(
+                  border: Border.all(color: AppTheme.primaryColor),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      Icons.person_add,
+                      color: AppTheme.primaryColor,
+                      size: 20,
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      'Add Participants',
+                      style: TextStyle(
+                        fontSize: 16,
+                        color: AppTheme.primaryColor,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            )
+
+          ],
+        );
+      },
     );
   }
+
+
 
   void _showAddParticipantsDialog(List<Map<String, dynamic>> users) {
     showDialog(
@@ -277,4 +297,3 @@ class _CreateGroupChatScreenState extends State<CreateGroupChatScreen> {
     );
   }
 }
-
