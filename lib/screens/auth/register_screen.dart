@@ -113,9 +113,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
   @override
   Widget build(BuildContext context) {
     final authProvider = Provider.of<AuthProvider>(context);
-
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: isDark ? AppTheme.darkBackgroundColor : Colors.white, // Use dark theme background color
       body: SafeArea(
         child: SingleChildScrollView(
           child: Padding(
@@ -141,7 +141,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          const Text('Already Registered?', style: TextStyle(color: Colors.grey)),
+                          const Text('Already Registered?', style: TextStyle(color: Colors.white)),
                           TextButton(
                             onPressed: () => Navigator.pop(context),
                             child: const Text('Log in here',

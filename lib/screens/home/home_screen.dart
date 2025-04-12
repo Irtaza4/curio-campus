@@ -243,7 +243,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           child: const Text('Cancel'),
                         ),
                         TextButton(
-                          onPressed: () => Navigator.pop(context, true),
+                          onPressed: () => Navigator.pushReplacement(context,MaterialPageRoute(builder: (_)=>LoginScreen())),
                           child: const Text('Logout', style: TextStyle(color: Colors.red)),
                         ),
                       ],

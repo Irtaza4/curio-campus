@@ -13,6 +13,8 @@ import 'package:curio_campus/widgets/notification_badge.dart';
 import 'package:curio_campus/widgets/notification_drawer.dart';
 import 'package:curio_campus/models/notification_model.dart';
 
+import '../../utils/image_utils.dart';
+
 class EmergencyScreen extends StatefulWidget {
   const EmergencyScreen({Key? key}) : super(key: key);
 
@@ -256,21 +258,17 @@ class _EmergencyScreenState extends State<EmergencyScreen> with SingleTickerProv
             CircleAvatar(
               radius: 24,
               backgroundColor: AppTheme.primaryColor,
-              backgroundImage: request.requesterAvatar != null && request.requesterAvatar!.isNotEmpty
-                  ? NetworkImage(request.requesterAvatar!)
-                  : null,
-              child: (request.requesterAvatar == null || request.requesterAvatar!.isEmpty)
-                  ? Text(
-                request.requesterName.isNotEmpty
-                    ? request.requesterName[0].toUpperCase()
-                    : '?',
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 18,
-                ),
-              )
-                  : null,
+              child: ImageUtils.getUserPlaceholder(
+                initial: request.requesterName.isNotEmpty ? request.requesterName[0].toUpperCase() : '?',
+              ),
             ),
+
+
+
+
+
+
+
             const SizedBox(width: 16),
 
             // Request info

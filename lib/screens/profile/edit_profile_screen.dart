@@ -1,3 +1,5 @@
+// EditProfileScreen.dart
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:curio_campus/providers/auth_provider.dart';
@@ -64,7 +66,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Error picking image: ${e.toString()}'),
-          backgroundColor: Colors.red,
+          backgroundColor: Theme.of(context).colorScheme.error,
         ),
       );
     }
@@ -77,8 +79,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       });
 
       final authProvider = Provider.of<AuthProvider>(context, listen: false);
-
-      // Upload image if selected
       String? profileImageBase64;
       if (_profileImage != null) {
         profileImageBase64 = await authProvider.convertImageToBase64(_profileImage!);
@@ -89,9 +89,9 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           });
 
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Failed to upload profile image'),
-              backgroundColor: Colors.red,
+            SnackBar(
+              content: const Text('Failed to upload profile image'),
+              backgroundColor: Theme.of(context).colorScheme.error,
             ),
           );
           return;
@@ -112,8 +112,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       if (success && mounted) {
         Navigator.pop(context);
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Profile updated successfully'),
+          SnackBar(
+            content: const Text('Profile updated successfully'),
             backgroundColor: Colors.green,
           ),
         );
@@ -121,7 +121,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(authProvider.errorMessage ?? 'Failed to update profile'),
-            backgroundColor: Colors.red,
+            backgroundColor: Theme.of(context).colorScheme.error,
           ),
         );
       }
@@ -131,6 +131,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   @override
   Widget build(BuildContext context) {
     final user = Provider.of<AuthProvider>(context).userModel;
+    final theme = Theme.of(context);
+    final textTheme = theme.textTheme;
 
     if (user == null) {
       return const Scaffold(
@@ -149,48 +151,48 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Profile image
               Center(
                 child: Stack(
                   children: [
                     _profileImage != null
                         ? CircleAvatar(
                       radius: 60,
-                      backgroundColor: AppTheme.lightGrayColor,
+                      backgroundColor: theme.colorScheme.surfaceVariant,
                       backgroundImage: FileImage(_profileImage!),
                     )
-                        : user.profileImageBase64 != null && user.profileImageBase64!.isNotEmpty
+                        : user.profileImageBase64 != null &&
+                        user.profileImageBase64!.isNotEmpty
                         ? CachedNetworkImage(
                       imageUrl: user.profileImageBase64!,
                       imageBuilder: (context, imageProvider) => CircleAvatar(
                         radius: 60,
-                        backgroundColor: AppTheme.lightGrayColor,
+                        backgroundColor: theme.colorScheme.surfaceVariant,
                         backgroundImage: imageProvider,
                       ),
                       placeholder: (context, url) => CircleAvatar(
                         radius: 60,
-                        backgroundColor: AppTheme.lightGrayColor,
+                        backgroundColor: theme.colorScheme.surfaceVariant,
                         child: CircularProgressIndicator(
-                          color: AppTheme.primaryColor,
+                          color: theme.colorScheme.primary,
                         ),
                       ),
                       errorWidget: (context, url, error) => CircleAvatar(
                         radius: 60,
-                        backgroundColor: AppTheme.lightGrayColor,
+                        backgroundColor: theme.colorScheme.surfaceVariant,
                         child: Icon(
                           Icons.person,
                           size: 60,
-                          color: AppTheme.primaryColor,
+                          color: theme.colorScheme.primary,
                         ),
                       ),
                     )
                         : CircleAvatar(
                       radius: 60,
-                      backgroundColor: AppTheme.lightGrayColor,
+                      backgroundColor: theme.colorScheme.surfaceVariant,
                       child: Icon(
                         Icons.person,
                         size: 60,
-                        color: AppTheme.primaryColor,
+                        color: theme.colorScheme.primary,
                       ),
                     ),
                     Positioned(
@@ -201,7 +203,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                         child: Container(
                           padding: const EdgeInsets.all(8),
                           decoration: BoxDecoration(
-                            color: AppTheme.primaryColor,
+                            color: theme.colorScheme.primary,
                             shape: BoxShape.circle,
                           ),
                           child: const Icon(
@@ -215,16 +217,10 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                   ],
                 ),
               ),
-
               const SizedBox(height: 32),
-
-              // Name
-              const Text(
+              Text(
                 'Name',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w500,
-                ),
+                style: textTheme.titleMedium,
               ),
               const SizedBox(height: 8),
               CustomTextField(
@@ -237,16 +233,10 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                   return null;
                 },
               ),
-
               const SizedBox(height: 24),
-
-              // Major skills
-              const Text(
+              Text(
                 'Major Skills',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w500,
-                ),
+                style: textTheme.titleMedium,
               ),
               const SizedBox(height: 8),
               SkillSelector(
@@ -257,16 +247,10 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                   });
                 },
               ),
-
               const SizedBox(height: 24),
-
-              // Minor skills
-              const Text(
+              Text(
                 'Minor Skills (Frameworks & Tools)',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w500,
-                ),
+                style: textTheme.titleMedium,
               ),
               const SizedBox(height: 8),
               SkillSelector(
@@ -277,10 +261,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                   });
                 },
               ),
-
               const SizedBox(height: 32),
-
-              // Update button
               CustomButton(
                 text: 'Update Profile',
                 isLoading: _isLoading,

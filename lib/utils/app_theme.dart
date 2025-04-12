@@ -15,7 +15,7 @@ class AppTheme {
   // Dark theme colors
   static const Color darkPrimaryColor = Color(0xFF00A0B0); // Keep the same for brand consistency
   static const Color darkSecondaryColor = Color(0xFF6ECACB); // Keep the same for brand consistency
-  static const Color darkBackgroundColor = Color(0xFF121212);
+  static const Color darkBackgroundColor = Color(0xFF121219);
   static const Color darkSurfaceColor = Color(0xFF1E1E1E);
   static const Color darkAppBarColor = Color(0xFF00828F); // Slightly darker than primary for app bar
   static const Color darkTextColor = Colors.white;

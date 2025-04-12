@@ -215,35 +215,42 @@ class _EditEmergencyRequestScreenState extends State<EditEmergencyRequestScreen>
               InkWell(
                 onTap: () => _selectDateTime(context),
                 borderRadius: BorderRadius.circular(8),
-                child: Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 16,
-                  ),
-                  decoration: BoxDecoration(
-                    color: AppTheme.lightGrayColor,
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        DateFormat('MMMM dd, yyyy - h:mm a').format(_deadline),
-                        style: const TextStyle(
-                          fontSize: 16,
-                          color: Colors.black87,
-                        ),
+                child: Builder(
+                  builder: (context) {
+                    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+                    return Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 16,
                       ),
-                      Icon(
-                        Icons.calendar_today,
-                        color: AppTheme.primaryColor,
-                        size: 20,
+                      decoration: BoxDecoration(
+                        color: isDark ? AppTheme.darkMediumGrayColor : AppTheme.lightGrayColor, // Change container color based on theme
+                        borderRadius: BorderRadius.circular(8),
                       ),
-                    ],
-                  ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            DateFormat('MMMM dd, yyyy - h:mm a').format(_deadline),
+                            style: TextStyle(
+                              fontSize: 16,
+                              color: isDark ? Colors.white70 : Colors.black87, // Change text color based on theme
+                            ),
+                          ),
+                          Icon(
+                            Icons.calendar_today,
+                            color: AppTheme.primaryColor,
+                            size: 20,
+                          ),
+                        ],
+                      ),
+                    );
+                  },
                 ),
               ),
+
 
               const SizedBox(height: 24),
 

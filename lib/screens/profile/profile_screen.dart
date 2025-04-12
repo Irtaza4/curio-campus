@@ -176,23 +176,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 child: Center(
                   child: Column(
                     children: [
-                      GestureDetector(
-                        onTap: () async {
-                          // Pick an image using image picker
-                          XFile? pickedImage = await _picker.pickImage(source: ImageSource.gallery);
-
-                          if (pickedImage != null) {
-                            // Convert the image to base64 and get the base64 string
-                            String? base64Image = await convertImageToBase64(pickedImage);
-
-                            if (base64Image != null) {
-                              // Update the user's profile with the new base64 image data
-                              await updateUserProfileImage(base64Image);
-                            }
-                          }
-                        },
-                        child: _buildProfileAvatar(user.profileImageBase64),
-                      ),
+                      _buildProfileAvatar(user.profileImageBase64),
                       const SizedBox(height: 16),
                       Text(
                         user.name,
@@ -246,13 +230,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       },
                     ),
                     const SizedBox(height: 16),
-                    _buildActionButton(
-                      icon: Icons.info_outline,
-                      label: 'Info and Help',
-                      onTap: () {
-                        // Navigate to help screen
-                      },
-                    ),
+
                     const SizedBox(height: 24),
                     SizedBox(
                       width: double.infinity,

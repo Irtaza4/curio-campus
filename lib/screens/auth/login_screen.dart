@@ -54,9 +54,10 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     final authProvider = Provider.of<AuthProvider>(context);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: isDark ? AppTheme.darkBackgroundColor : Colors.white, // Adjust background color
       body: SafeArea(
         child: SingleChildScrollView(
           child: Padding(
@@ -66,7 +67,7 @@ class _LoginScreenState extends State<LoginScreen> {
               children: [
                 // Back button
                 IconButton(
-                  icon: const Icon(Icons.arrow_back, color: AppTheme.primaryColor),
+                  icon: Icon(Icons.arrow_back, color: isDark ? Colors.white : AppTheme.primaryColor),
                   onPressed: () {
                     Navigator.pop(context);
                   },
@@ -86,7 +87,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           return Icon(
                             Icons.hub,
                             size: 80,
-                            color: AppTheme.primaryColor,
+                            color: isDark ? Colors.white : AppTheme.primaryColor,
                           );
                         },
                       ),
@@ -96,7 +97,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         style: TextStyle(
                           fontSize: 32,
                           fontWeight: FontWeight.bold,
-                          color: AppTheme.primaryColor,
+                          color: isDark ? Colors.white : AppTheme.primaryColor,
                         ),
                       ),
                       const SizedBox(height: 8),
@@ -165,7 +166,7 @@ class _LoginScreenState extends State<LoginScreen> {
                             _isPasswordVisible
                                 ? Icons.visibility_off
                                 : Icons.visibility,
-                            color: Colors.grey,
+                            color: isDark ? Colors.white : Colors.grey,
                           ),
                           onPressed: () {
                             setState(() {
@@ -186,22 +187,8 @@ class _LoginScreenState extends State<LoginScreen> {
 
                       const SizedBox(height: 16),
 
-                      // Forgot password
-                      Align(
-                        alignment: Alignment.centerRight,
-                        child: TextButton(
-                          onPressed: () {
-                            // Navigate to forgot password screen
-                          },
-                          child: const Text(
-                            'Forgot Password?',
-                            style: TextStyle(
-                              color: AppTheme.primaryColor,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                        ),
-                      ),
+
+
 
                       const SizedBox(height: 32),
 
@@ -252,4 +239,3 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 }
-

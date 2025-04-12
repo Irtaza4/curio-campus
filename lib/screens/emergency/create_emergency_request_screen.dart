@@ -131,6 +131,8 @@ class _CreateEmergencyRequestScreenState extends State<CreateEmergencyRequestScr
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final theme = Theme.of(context);
     return Scaffold(
       appBar: AppBar(
         title: const Text('Create Emergency Request'),
@@ -196,38 +198,36 @@ class _CreateEmergencyRequestScreenState extends State<CreateEmergencyRequestScr
                 ),
               ),
               const SizedBox(height: 8),
-              InkWell(
-                onTap: () => _selectDateTime(context),
-                borderRadius: BorderRadius.circular(8),
-                child: Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 16,
-                  ),
-                  decoration: BoxDecoration(
-                    color: AppTheme.lightGrayColor,
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        DateFormat('MMMM dd, yyyy - h:mm a').format(_deadline),
-                        style: const TextStyle(
-                          fontSize: 16,
-                          color: Colors.black87,
-                        ),
-                      ),
-                      Icon(
-                        Icons.calendar_today,
-                        color: AppTheme.primaryColor,
-                        size: 20,
-                      ),
-                    ],
-                  ),
-                ),
+             InkWell(
+            onTap: () => _selectDateTime(context),
+      borderRadius: BorderRadius.circular(8),
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: 16,
+        ),
+        decoration: BoxDecoration(
+          color: isDark ? Colors.grey[800] : Colors.grey[300], // background
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              DateFormat('MMMM dd, yyyy - h:mm a').format(_deadline),
+              style: TextStyle(
+                fontSize: 16,
+                color: isDark ? Colors.white : Colors.black87,
               ),
+            ),
+            Icon(
+              Icons.calendar_today,
+              color: theme.colorScheme.primary,
+              size: 20,
+            ),
+          ],
+        ),)),
 
               const SizedBox(height: 24),
 

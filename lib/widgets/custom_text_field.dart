@@ -41,6 +41,11 @@ class CustomTextField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+    final textColor = isDarkMode ? Colors.white : Colors.black87;
+    final fillColor = isDarkMode ? Colors.grey[800] : AppTheme.lightGrayColor;
+    final hintColor = isDarkMode ? Colors.grey[400] : Colors.grey[600];
+
     return TextFormField(
       controller: controller,
       obscureText: obscureText,
@@ -54,17 +59,19 @@ class CustomTextField extends StatelessWidget {
       textInputAction: textInputAction,
       onTap: onTap,
       readOnly: readOnly,
-      style: const TextStyle(
+      style: TextStyle(
         fontSize: 16,
-        color: Colors.black87,
+        color: textColor,
       ),
       decoration: InputDecoration(
         hintText: hintText,
+        hintStyle: TextStyle(color: hintColor),
         labelText: labelText,
+        labelStyle: TextStyle(color: hintColor),
         prefixIcon: prefixIcon,
         suffixIcon: suffixIcon,
         filled: true,
-        fillColor: AppTheme.lightGrayColor,
+        fillColor: fillColor,
         contentPadding: const EdgeInsets.symmetric(
           horizontal: 16,
           vertical: 16,
@@ -90,4 +97,3 @@ class CustomTextField extends StatelessWidget {
     );
   }
 }
-
