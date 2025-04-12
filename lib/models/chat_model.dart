@@ -10,6 +10,7 @@ class ChatModel {
   final String? lastMessageContent;
   final String? lastMessageSenderId;
   final String? groupImageUrl;
+  final String? creatorId; // Added field to track who created the group
 
   ChatModel({
     required this.id,
@@ -21,6 +22,7 @@ class ChatModel {
     this.lastMessageContent,
     this.lastMessageSenderId,
     this.groupImageUrl,
+    this.creatorId, // Added to constructor
   });
 
   factory ChatModel.fromJson(Map<String, dynamic> json) {
@@ -37,6 +39,7 @@ class ChatModel {
       lastMessageContent: json['lastMessageContent'] as String?,
       lastMessageSenderId: json['lastMessageSenderId'] as String?,
       groupImageUrl: json['groupImageUrl'] as String?,
+      creatorId: json['creatorId'] as String?, // Added to fromJson
     );
   }
 
@@ -51,7 +54,7 @@ class ChatModel {
       'lastMessageContent': lastMessageContent,
       'lastMessageSenderId': lastMessageSenderId,
       'groupImageUrl': groupImageUrl,
+      'creatorId': creatorId, // Added to toJson
     };
   }
 }
-

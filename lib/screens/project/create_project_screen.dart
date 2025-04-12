@@ -30,7 +30,10 @@ class _CreateProjectScreenState extends State<CreateProjectScreen> {
   @override
   void initState() {
     super.initState();
-    _fetchChatContacts();
+    // Use Future.microtask to schedule the fetch after the build is complete
+    Future.microtask(() {
+      _fetchChatContacts();
+    });
   }
 
   @override
@@ -41,14 +44,16 @@ class _CreateProjectScreenState extends State<CreateProjectScreen> {
   }
 
   Future<void> _fetchChatContacts() async {
+    if (!mounted) return;
+
     setState(() {
       _isLoadingContacts = true;
     });
 
     try {
       // Fetch chats to get contacts
-      await Provider.of<ChatProvider>(context, listen: false).fetchChats();
       final chatProvider = Provider.of<ChatProvider>(context, listen: false);
+      await chatProvider.fetchChats();
 
       // Get unique user IDs from chats
       final Set<String> contactIds = {};
@@ -69,23 +74,25 @@ class _CreateProjectScreenState extends State<CreateProjectScreen> {
         }
       }
 
+      if (!mounted) return;
+
       setState(() {
         _chatContacts = contacts;
         _isLoadingContacts = false;
       });
     } catch (e) {
+      if (!mounted) return;
+
       setState(() {
         _isLoadingContacts = false;
       });
 
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error fetching contacts: ${e.toString()}'),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error fetching contacts: ${e.toString()}'),
+          backgroundColor: Colors.red,
+        ),
+      );
     }
   }
 
@@ -96,13 +103,18 @@ class _CreateProjectScreenState extends State<CreateProjectScreen> {
       firstDate: DateTime.now(),
       lastDate: DateTime.now().add(const Duration(days: 365)),
       builder: (context, child) {
+        final theme = Theme.of(context);
+        final isDarkMode = theme.brightness == Brightness.dark;
+
         return Theme(
           data: Theme.of(context).copyWith(
             colorScheme: ColorScheme.light(
               primary: AppTheme.primaryColor,
               onPrimary: Colors.white,
-              onSurface: Colors.black,
+              surface: isDarkMode ? AppTheme.darkSurfaceColor : Colors.white,
+              onSurface: isDarkMode ? AppTheme.darkTextColor : AppTheme.textColor,
             ),
+            dialogBackgroundColor: isDarkMode ? AppTheme.darkSurfaceColor : Colors.white,
           ),
           child: child!,
         );
@@ -136,11 +148,19 @@ class _CreateProjectScreenState extends State<CreateProjectScreen> {
     }
 
     final List<String> tempSelectedMembers = List.from(_selectedTeamMembers);
+    final theme = Theme.of(context);
+    final isDarkMode = theme.brightness == Brightness.dark;
 
     await showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Add Team Members'),
+        backgroundColor: isDarkMode ? AppTheme.darkSurfaceColor : Colors.white,
+        title: Text(
+          'Add Team Members',
+          style: TextStyle(
+            color: isDarkMode ? AppTheme.darkTextColor : AppTheme.textColor,
+          ),
+        ),
         content: SizedBox(
           width: double.maxFinite,
           child: ListView.builder(
@@ -151,9 +171,20 @@ class _CreateProjectScreenState extends State<CreateProjectScreen> {
               final isSelected = tempSelectedMembers.contains(contact.id);
 
               return CheckboxListTile(
-                title: Text(contact.name),
-                subtitle: Text(contact.email),
+                title: Text(
+                  contact.name,
+                  style: TextStyle(
+                    color: isDarkMode ? AppTheme.darkTextColor : AppTheme.textColor,
+                  ),
+                ),
+                subtitle: Text(
+                  contact.email,
+                  style: TextStyle(
+                    color: isDarkMode ? AppTheme.darkDarkGrayColor : AppTheme.darkGrayColor,
+                  ),
+                ),
                 value: isSelected,
+                activeColor: AppTheme.primaryColor,
                 onChanged: (value) {
                   if (value == true) {
                     tempSelectedMembers.add(contact.id);
@@ -169,7 +200,12 @@ class _CreateProjectScreenState extends State<CreateProjectScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
+            child: Text(
+              'Cancel',
+              style: TextStyle(
+                color: AppTheme.primaryColor,
+              ),
+            ),
           ),
           TextButton(
             onPressed: () {
@@ -178,7 +214,12 @@ class _CreateProjectScreenState extends State<CreateProjectScreen> {
               });
               Navigator.pop(context);
             },
-            child: const Text('Done'),
+            child: Text(
+              'Done',
+              style: TextStyle(
+                color: AppTheme.primaryColor,
+              ),
+            ),
           ),
         ],
       ),
@@ -187,10 +228,19 @@ class _CreateProjectScreenState extends State<CreateProjectScreen> {
 
   // New method to select required skills
   Future<void> _selectRequiredSkills() async {
+    final theme = Theme.of(context);
+    final isDarkMode = theme.brightness == Brightness.dark;
+
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Required Skills'),
+        backgroundColor: isDarkMode ? AppTheme.darkSurfaceColor : Colors.white,
+        title: Text(
+          'Required Skills',
+          style: TextStyle(
+            color: isDarkMode ? AppTheme.darkTextColor : AppTheme.textColor,
+          ),
+        ),
         content: SizedBox(
           width: double.maxFinite,
           child: SkillSelector(
@@ -205,7 +255,12 @@ class _CreateProjectScreenState extends State<CreateProjectScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Done'),
+            child: Text(
+              'Done',
+              style: TextStyle(
+                color: AppTheme.primaryColor,
+              ),
+            ),
           ),
         ],
       ),
@@ -258,6 +313,9 @@ class _CreateProjectScreenState extends State<CreateProjectScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDarkMode = theme.brightness == Brightness.dark;
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Create Project'),
@@ -303,11 +361,12 @@ class _CreateProjectScreenState extends State<CreateProjectScreen> {
               const SizedBox(height: 16),
 
               // Required Skills
-              const Text(
+              Text(
                 'Required Skills',
                 style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
+                  color: isDarkMode ? AppTheme.darkTextColor : AppTheme.textColor,
                 ),
               ),
               const SizedBox(height: 8),
@@ -319,8 +378,11 @@ class _CreateProjectScreenState extends State<CreateProjectScreen> {
                     vertical: 12,
                   ),
                   decoration: BoxDecoration(
-                    border: Border.all(color: Colors.grey[300]!),
+                    border: Border.all(
+                      color: isDarkMode ? AppTheme.darkMediumGrayColor : Colors.grey[300]!,
+                    ),
                     borderRadius: BorderRadius.circular(8),
+                    color: isDarkMode ? AppTheme.darkInputBackgroundColor : Colors.transparent,
                   ),
                   child: Row(
                     children: [
@@ -334,7 +396,10 @@ class _CreateProjectScreenState extends State<CreateProjectScreen> {
                         _selectedSkills.isEmpty
                             ? 'Select required skills'
                             : '${_selectedSkills.length} skill(s) selected',
-                        style: const TextStyle(fontSize: 16),
+                        style: TextStyle(
+                          fontSize: 16,
+                          color: isDarkMode ? AppTheme.darkTextColor : AppTheme.textColor,
+                        ),
                       ),
                     ],
                   ),
@@ -348,7 +413,15 @@ class _CreateProjectScreenState extends State<CreateProjectScreen> {
                   runSpacing: 8,
                   children: _selectedSkills.map((skill) {
                     return Chip(
-                      label: Text(skill),
+                      label: Text(
+                        skill,
+                        style: TextStyle(
+                          color: isDarkMode ? AppTheme.darkTextColor : AppTheme.textColor,
+                        ),
+                      ),
+                      backgroundColor: isDarkMode
+                          ? AppTheme.darkLightGrayColor
+                          : AppTheme.lightGrayColor,
                       deleteIcon: const Icon(Icons.close, size: 18),
                       onDeleted: () {
                         setState(() {
@@ -363,11 +436,12 @@ class _CreateProjectScreenState extends State<CreateProjectScreen> {
               const SizedBox(height: 16),
 
               // Deadline
-              const Text(
+              Text(
                 'Deadline',
                 style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
+                  color: isDarkMode ? AppTheme.darkTextColor : AppTheme.textColor,
                 ),
               ),
               const SizedBox(height: 8),
@@ -379,8 +453,11 @@ class _CreateProjectScreenState extends State<CreateProjectScreen> {
                     vertical: 12,
                   ),
                   decoration: BoxDecoration(
-                    border: Border.all(color: Colors.grey[300]!),
+                    border: Border.all(
+                      color: isDarkMode ? AppTheme.darkMediumGrayColor : Colors.grey[300]!,
+                    ),
                     borderRadius: BorderRadius.circular(8),
+                    color: isDarkMode ? AppTheme.darkInputBackgroundColor : Colors.transparent,
                   ),
                   child: Row(
                     children: [
@@ -392,7 +469,10 @@ class _CreateProjectScreenState extends State<CreateProjectScreen> {
                       const SizedBox(width: 8),
                       Text(
                         DateFormat('MMMM d, yyyy').format(_deadline),
-                        style: const TextStyle(fontSize: 16),
+                        style: TextStyle(
+                          fontSize: 16,
+                          color: isDarkMode ? AppTheme.darkTextColor : AppTheme.textColor,
+                        ),
                       ),
                     ],
                   ),
@@ -402,11 +482,12 @@ class _CreateProjectScreenState extends State<CreateProjectScreen> {
               const SizedBox(height: 24),
 
               // Team members
-              const Text(
+              Text(
                 'Team Members',
                 style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
+                  color: isDarkMode ? AppTheme.darkTextColor : AppTheme.textColor,
                 ),
               ),
               const SizedBox(height: 8),
@@ -418,8 +499,11 @@ class _CreateProjectScreenState extends State<CreateProjectScreen> {
                     vertical: 12,
                   ),
                   decoration: BoxDecoration(
-                    border: Border.all(color: Colors.grey[300]!),
+                    border: Border.all(
+                      color: isDarkMode ? AppTheme.darkMediumGrayColor : Colors.grey[300]!,
+                    ),
                     borderRadius: BorderRadius.circular(8),
+                    color: isDarkMode ? AppTheme.darkInputBackgroundColor : Colors.transparent,
                   ),
                   child: Row(
                     children: [
@@ -433,7 +517,10 @@ class _CreateProjectScreenState extends State<CreateProjectScreen> {
                         _selectedTeamMembers.isEmpty
                             ? 'Add team members'
                             : '${_selectedTeamMembers.length} member(s) selected',
-                        style: const TextStyle(fontSize: 16),
+                        style: TextStyle(
+                          fontSize: 16,
+                          color: isDarkMode ? AppTheme.darkTextColor : AppTheme.textColor,
+                        ),
                       ),
                     ],
                   ),
@@ -460,7 +547,15 @@ class _CreateProjectScreenState extends State<CreateProjectScreen> {
                     );
 
                     return Chip(
-                      label: Text(user.name),
+                      label: Text(
+                        user.name,
+                        style: TextStyle(
+                          color: isDarkMode ? AppTheme.darkTextColor : AppTheme.textColor,
+                        ),
+                      ),
+                      backgroundColor: isDarkMode
+                          ? AppTheme.darkLightGrayColor
+                          : AppTheme.lightGrayColor,
                       deleteIcon: const Icon(Icons.close, size: 18),
                       onDeleted: () {
                         setState(() {
@@ -487,4 +582,3 @@ class _CreateProjectScreenState extends State<CreateProjectScreen> {
     );
   }
 }
-

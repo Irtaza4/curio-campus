@@ -222,6 +222,7 @@ class ChatProvider with ChangeNotifier {
       notifyListeners();
     }
   }
+
   Future<List<UserModel>> getUsers() async {
     try {
       // Fetch all users from Firestore (adjust the query as needed)
@@ -470,6 +471,7 @@ class ChatProvider with ChangeNotifier {
     }
   }
 
+  // Updated to include creatorId
   Future<String?> createGroupChat({
     required String name,
     required List<String> participants,
@@ -497,6 +499,7 @@ class ChatProvider with ChangeNotifier {
         createdAt: now,
         lastMessageAt: now,
         groupImageUrl: groupImageUrl,
+        creatorId: userId, // Set the creator ID to the current user
       );
 
       await _firestore
@@ -509,6 +512,81 @@ class ChatProvider with ChangeNotifier {
       notifyListeners();
 
       return chatId;
+    } catch (e) {
+      _errorMessage = e.toString();
+      notifyListeners();
+      return null;
+    }
+  }
+
+  // New method to update a group chat
+  Future<void> updateGroupChat({
+    required String chatId,
+    required String name,
+    String? groupImageBase64,
+    required List<String> participants,
+  }) async {
+    if (_auth.currentUser == null) return;
+
+    try {
+      final userId = _auth.currentUser!.uid;
+
+      // Ensure current user is in participants
+      if (!participants.contains(userId)) {
+        participants.add(userId);
+      }
+
+      // Update the chat document
+      await _firestore
+          .collection(Constants.chatsCollection)
+          .doc(chatId)
+          .update({
+        'name': name,
+        'participants': participants,
+        if (groupImageBase64 != null) 'groupImageUrl': groupImageBase64,
+      });
+
+      // Update the local chat list
+      final index = _chats.indexWhere((chat) => chat.id == chatId);
+      if (index != -1) {
+        final updatedChat = ChatModel(
+          id: _chats[index].id,
+          name: name,
+          participants: participants,
+          type: _chats[index].type,
+          createdAt: _chats[index].createdAt,
+          lastMessageAt: _chats[index].lastMessageAt,
+          lastMessageContent: _chats[index].lastMessageContent,
+          lastMessageSenderId: _chats[index].lastMessageSenderId,
+          groupImageUrl: groupImageBase64 ?? _chats[index].groupImageUrl,
+          creatorId: _chats[index].creatorId,
+        );
+
+        _chats[index] = updatedChat;
+        notifyListeners();
+      }
+    } catch (e) {
+      _errorMessage = e.toString();
+      notifyListeners();
+      throw e;
+    }
+  }
+
+  // New method to get chat details
+  Future<ChatModel?> getChatDetails(String chatId) async {
+    try {
+      final docSnapshot = await _firestore
+          .collection(Constants.chatsCollection)
+          .doc(chatId)
+          .get();
+
+      if (docSnapshot.exists) {
+        return ChatModel.fromJson({
+          'id': docSnapshot.id,
+          ...docSnapshot.data()!,
+        });
+      }
+      return null;
     } catch (e) {
       _errorMessage = e.toString();
       notifyListeners();
@@ -580,7 +658,8 @@ class ChatProvider with ChangeNotifier {
 
   Future<void> sendImageMessage({
     required String chatId,
-    required String imageUrl,
+    String? imageUrl,
+    String? imageBase64,
     required String fileName,
   }) async {
     if (_auth.currentUser == null) return;
@@ -601,6 +680,9 @@ class ChatProvider with ChangeNotifier {
       final now = DateTime.now();
       final messageId = const Uuid().v4();
 
+      // Use either the URL or base64 string
+      final fileData = imageBase64 ?? imageUrl;
+
       final message = MessageModel(
         id: messageId,
         senderId: userId,
@@ -610,7 +692,7 @@ class ChatProvider with ChangeNotifier {
         content: 'Sent an image',
         type: MessageType.image,
         timestamp: now,
-        fileUrl: imageUrl,
+        fileUrl: fileData,
         fileName: fileName,
       );
 
@@ -666,4 +748,3 @@ class ChatProvider with ChangeNotifier {
     return chat.lastMessageSenderId == null;
   }
 }
-

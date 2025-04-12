@@ -5,11 +5,13 @@ import 'package:curio_campus/models/chat_model.dart';
 import 'package:curio_campus/providers/auth_provider.dart';
 import 'package:curio_campus/providers/chat_provider.dart';
 import 'package:curio_campus/screens/chat/chat_screen.dart';
-import 'package:curio_campus/utils/app_theme.dart';
 import 'package:curio_campus/screens/chat/create_group_chat_screen.dart';
 import 'package:curio_campus/providers/project_provider.dart';
 import 'package:curio_campus/models/user_model.dart';
 import 'package:curio_campus/providers/notification_provider.dart';
+import 'package:curio_campus/utils/image_utils.dart';
+
+import '../../utils/app_theme.dart';
 
 class MessagesScreen extends StatefulWidget {
   const MessagesScreen({Key? key}) : super(key: key);
@@ -113,6 +115,8 @@ class _MessagesScreenState extends State<MessagesScreen> {
     final notificationProvider = Provider.of<NotificationProvider>(context);
     final currentUserId = authProvider.firebaseUser?.uid;
     final chats = chatProvider.chats;
+    final theme = Theme.of(context);
+    final isDarkMode = theme.brightness == Brightness.dark;
 
     return Scaffold(
       body: _isLoading
@@ -120,7 +124,14 @@ class _MessagesScreenState extends State<MessagesScreen> {
           : RefreshIndicator(
         onRefresh: _fetchChats,
         child: chats.isEmpty
-            ? const Center(child: Text('No messages yet'))
+            ? Center(
+          child: Text(
+            'No messages yet',
+            style: TextStyle(
+              color: isDarkMode ? AppTheme.darkTextColor : AppTheme.textColor,
+            ),
+          ),
+        )
             : _buildChatList(chats, currentUserId),
       ),
       floatingActionButton: FloatingActionButton(
@@ -140,10 +151,15 @@ class _MessagesScreenState extends State<MessagesScreen> {
   }
 
   Widget _buildChatList(List<ChatModel> chats, String? currentUserId) {
+    final theme = Theme.of(context);
+    final isDarkMode = theme.brightness == Brightness.dark;
+
     return ListView.separated(
       padding: const EdgeInsets.all(16),
       itemCount: chats.length,
-      separatorBuilder: (context, index) => const Divider(),
+      separatorBuilder: (context, index) => Divider(
+        color: isDarkMode ? AppTheme.darkMediumGrayColor : AppTheme.mediumGrayColor,
+      ),
       itemBuilder: (context, index) {
         final chat = chats[index];
         final isCurrentUserLastSender =
@@ -195,6 +211,9 @@ class _MessagesScreenState extends State<MessagesScreen> {
     required bool isCurrentUserLastSender,
     String? profileImageBase64,
   }) {
+    final theme = Theme.of(context);
+    final isDarkMode = theme.brightness == Brightness.dark;
+
     return Dismissible(
       key: Key(chat.id),
       background: Container(
@@ -208,64 +227,107 @@ class _MessagesScreenState extends State<MessagesScreen> {
       ),
       direction: DismissDirection.endToStart,
       onDismissed: (_) => _deleteChat(chat.id),
-      child: ListTile(
-        leading: CircleAvatar(
-          backgroundColor: AppTheme.primaryColor,
-          backgroundImage: chat.type == ChatType.group && chat.groupImageUrl != null
-              ? NetworkImage(chat.groupImageUrl!)
-              : null,
-          child: chat.type == ChatType.group
-              ? (chat.groupImageUrl == null
-              ? const Icon(Icons.group, color: Colors.white)
-              : null)
-              : (profileImageBase64 != null
-              ? ClipOval(
-            child: Image.memory(
-              base64Decode(profileImageBase64),
-              fit: BoxFit.cover,
-              width: 40,
-              height: 40,
+      child: Container(
+        decoration: BoxDecoration(
+          color: isDarkMode ? AppTheme.darkSurfaceColor : Colors.white,
+          borderRadius: BorderRadius.circular(8),
+          boxShadow: [
+            BoxShadow(
+              color: isDarkMode ? Colors.black12 : Colors.grey.withOpacity(0.1),
+              spreadRadius: 1,
+              blurRadius: 3,
+              offset: const Offset(0, 1),
             ),
-          )
-              : Text(
-            displayName.isNotEmpty
-                ? displayName[0].toUpperCase()
-                : '?',
-            style: const TextStyle(color: Colors.white),
-          )),
-        ),
-        title: Text(
-          displayName,
-          style: const TextStyle(fontWeight: FontWeight.bold),
-        ),
-        subtitle: Text(
-          chat.lastMessageContent ?? 'No messages yet',
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-        ),
-        trailing: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          crossAxisAlignment: CrossAxisAlignment.end,
-          children: [
-            Text(
-              _formatTimestamp(chat.lastMessageAt),
-              style: TextStyle(color: Colors.grey[600], fontSize: 12),
-            ),
-            const SizedBox(height: 4),
-            if (!isCurrentUserLastSender && chat.lastMessageContent != null)
-              Container(
-                width: 8,
-                height: 8,
-                decoration: BoxDecoration(
-                  color: AppTheme.primaryColor,
-                  shape: BoxShape.circle,
-                ),
-              ),
           ],
         ),
-        onTap: () => _navigateToChatScreen(chat),
+        margin: const EdgeInsets.symmetric(vertical: 4),
+        child: ListTile(
+          leading: _buildChatAvatar(chat, displayName, profileImageBase64),
+          title: Text(
+            displayName,
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              color: isDarkMode ? AppTheme.darkTextColor : AppTheme.textColor,
+            ),
+          ),
+          subtitle: Text(
+            chat.lastMessageContent ?? 'No messages yet',
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: TextStyle(
+              color: isDarkMode ? AppTheme.darkDarkGrayColor : AppTheme.darkGrayColor,
+            ),
+          ),
+          trailing: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              Text(
+                _formatTimestamp(chat.lastMessageAt),
+                style: TextStyle(
+                  fontSize: 12,
+                  color: isDarkMode ? AppTheme.darkDarkGrayColor : Colors.grey[600],
+                ),
+              ),
+              const SizedBox(height: 4),
+              if (!isCurrentUserLastSender && chat.lastMessageContent != null)
+                Container(
+                  width: 8,
+                  height: 8,
+                  decoration: BoxDecoration(
+                    color: AppTheme.primaryColor,
+                    shape: BoxShape.circle,
+                  ),
+                ),
+            ],
+          ),
+          onTap: () => _navigateToChatScreen(chat),
+        ),
       ),
     );
+  }
+
+// Add this new helper method
+  Widget _buildChatAvatar(ChatModel chat, String displayName, String? profileImageBase64) {
+    if (chat.type == ChatType.group) {
+      // Handle group avatar
+      if (chat.groupImageUrl != null && chat.groupImageUrl!.isNotEmpty) {
+        if (chat.groupImageUrl!.startsWith('http')) {
+          // Network image
+          return CircleAvatar(
+            backgroundColor: AppTheme.primaryColor,
+            backgroundImage: NetworkImage(chat.groupImageUrl!),
+            onBackgroundImageError: (_, __) {},
+            child: null,
+          );
+        } else {
+          // Base64 image
+          return ImageUtils.loadBase64Image(
+            base64String: chat.groupImageUrl,
+            width: 40,
+            height: 40,
+            isCircular: true,
+            placeholder: ImageUtils.getGroupPlaceholder(),
+          );
+        }
+      } else {
+        // Default group icon
+        return ImageUtils.getGroupPlaceholder();
+      }
+    } else {
+      // Handle individual chat avatar
+      if (profileImageBase64 != null && profileImageBase64.isNotEmpty) {
+        return ImageUtils.loadBase64Image(
+          base64String: profileImageBase64,
+          width: 40,
+          height: 40,
+          isCircular: true,
+          placeholder: ImageUtils.getUserPlaceholder(initial: displayName),
+        );
+      } else {
+        return ImageUtils.getUserPlaceholder(initial: displayName);
+      }
+    }
   }
 
   String _formatTimestamp(DateTime timestamp) {

@@ -1,15 +1,18 @@
+import 'dart:convert'; // Add this import for base64 encoding
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:curio_campus/models/message_model.dart';
 import 'package:curio_campus/providers/auth_provider.dart';
 import 'package:curio_campus/providers/chat_provider.dart';
-import 'package:curio_campus/utils/app_theme.dart';
 import 'package:intl/intl.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io'; // Import dart:io
-import 'package:firebase_storage/firebase_storage.dart'; // Import Firebase Storage
 import 'package:curio_campus/models/chat_model.dart';
 import 'package:curio_campus/providers/project_provider.dart';
+import 'package:curio_campus/utils/image_utils.dart';
+
+import '../../utils/app_theme.dart';
+import 'edit_group_chat_screen.dart';
 
 class ChatScreen extends StatefulWidget {
   final String chatId;
@@ -158,8 +161,12 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
   void _showMoreOptions() {
+    final theme = Theme.of(context);
+    final isDarkMode = theme.brightness == Brightness.dark;
+
     showModalBottomSheet(
       context: context,
+      backgroundColor: isDarkMode ? AppTheme.darkSurfaceColor : Colors.white,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
       ),
@@ -176,8 +183,17 @@ class _ChatScreenState extends State<ChatScreen> {
                   final confirm = await showDialog<bool>(
                     context: context,
                     builder: (context) => AlertDialog(
-                      title: const Text('Logout'),
-                      content: const Text('Are you sure you want to logout?'),
+                      backgroundColor: isDarkMode ? AppTheme.darkSurfaceColor : Colors.white,
+                      title: Text('Logout',
+                        style: TextStyle(
+                            color: isDarkMode ? AppTheme.darkTextColor : AppTheme.textColor
+                        ),
+                      ),
+                      content: Text('Are you sure you want to logout?',
+                        style: TextStyle(
+                            color: isDarkMode ? AppTheme.darkTextColor : AppTheme.textColor
+                        ),
+                      ),
                       actions: [
                         TextButton(
                           onPressed: () => Navigator.pop(context, false),
@@ -208,7 +224,12 @@ class _ChatScreenState extends State<ChatScreen> {
 
   Future<void> _pickAndSendImage() async {
     final picker = ImagePicker();
-    final pickedFile = await picker.pickImage(source: ImageSource.gallery);
+    final pickedFile = await picker.pickImage(
+      source: ImageSource.gallery,
+      maxWidth: 800, // Reduced from 1024 to ensure smaller file size
+      maxHeight: 800,
+      imageQuality: 70, // Reduce quality to decrease file size
+    );
 
     if (pickedFile != null) {
       setState(() {
@@ -216,30 +237,42 @@ class _ChatScreenState extends State<ChatScreen> {
       });
 
       try {
-        // Upload image to Firebase Storage
-        final storage = FirebaseStorage.instance;
-        final userId = Provider.of<AuthProvider>(context, listen: false).firebaseUser?.uid;
-        final timestamp = DateTime.now().millisecondsSinceEpoch;
-        final path = 'chat_images/${widget.chatId}/${userId}_$timestamp.jpg';
+        // Read the file as bytes
+        final bytes = await File(pickedFile.path).readAsBytes();
 
-        // Create the storage reference
-        final storageRef = storage.ref().child(path);
+        // Check file size - if too large, compress further
+        if (bytes.length > 500 * 1024) { // If larger than 500KB
+          // Further reduce quality
+          final compressedFile = await picker.pickImage(
+            source: ImageSource.camera,
+            maxWidth: 600,
+            maxHeight: 600,
+            imageQuality: 50,
+          );
 
-        // Upload the file
-        final uploadTask = storageRef.putFile(File(pickedFile.path));
+          if (compressedFile != null) {
+            final compressedBytes = await File(compressedFile.path).readAsBytes();
+            // Convert to base64
+            final base64Image = base64Encode(compressedBytes);
+            final fileName = compressedFile.name;
 
-        // Wait for the upload to complete
-        final snapshot = await uploadTask;
+            await Provider.of<ChatProvider>(context, listen: false).sendImageMessage(
+              chatId: widget.chatId,
+              imageBase64: base64Image,
+              fileName: fileName,
+            );
+          }
+        } else {
+          // Convert to base64
+          final base64Image = base64Encode(bytes);
+          final fileName = pickedFile.name;
 
-        // Get the download URL
-        final imageUrl = await snapshot.ref.getDownloadURL();
-        final fileName = pickedFile.name;
-
-        await Provider.of<ChatProvider>(context, listen: false).sendImageMessage(
-          chatId: widget.chatId,
-          imageUrl: imageUrl,
-          fileName: fileName,
-        );
+          await Provider.of<ChatProvider>(context, listen: false).sendImageMessage(
+            chatId: widget.chatId,
+            imageBase64: base64Image,
+            fileName: fileName,
+          );
+        }
 
         // Scroll to bottom after sending an image
         _scrollToBottom();
@@ -262,11 +295,50 @@ class _ChatScreenState extends State<ChatScreen> {
     }
   }
 
+  // Add this method to your _ChatScreenState class
+  void _navigateToEditGroupChat(ChatModel chat) async {
+    if (chat.type != ChatType.group) return;
+
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => EditGroupChatScreen(
+          chatId: chat.id,
+          chatName: chat.name,
+          groupImageBase64: chat.groupImageUrl,
+          participants: chat.participants,
+          creatorId: chat.creatorId ?? '',
+        ),
+      ),
+    );
+
+    // If the group was updated, refresh the chat details
+    if (result == true) {
+      _fetchMessages();
+    }
+  }
+
+  // Update the build method to add an edit button in the AppBar for group chats
   @override
   Widget build(BuildContext context) {
     final chatProvider = Provider.of<ChatProvider>(context);
     final authProvider = Provider.of<AuthProvider>(context);
     final currentUserId = authProvider.firebaseUser?.uid;
+    final theme = Theme.of(context);
+    final isDarkMode = theme.brightness == Brightness.dark;
+
+    // Get the current chat
+    final currentChat = chatProvider.chats.firstWhere(
+          (chat) => chat.id == widget.chatId,
+      orElse: () => ChatModel(
+        id: widget.chatId,
+        name: widget.chatName,
+        participants: [],
+        type: ChatType.individual,
+        createdAt: DateTime.now(),
+        lastMessageAt: DateTime.now(),
+      ),
+    );
 
     // Use the sender's name if available, otherwise use the chat name
     final displayName = _senderName.isNotEmpty ? _senderName : widget.chatName;
@@ -276,6 +348,14 @@ class _ChatScreenState extends State<ChatScreen> {
         title: Text(
           _senderName.isNotEmpty ? ' ${widget.chatName} ' : widget.chatName,
         ),
+        actions: [
+          // Only show edit button for group chats
+          if (currentChat.type == ChatType.group)
+            IconButton(
+              icon: const Icon(Icons.edit),
+              onPressed: () => _navigateToEditGroupChat(currentChat),
+            ),
+        ],
       ),
 
       body: Column(
@@ -285,7 +365,14 @@ class _ChatScreenState extends State<ChatScreen> {
             child: _isLoading
                 ? const Center(child: CircularProgressIndicator())
                 : chatProvider.messages.isEmpty
-                ? const Center(child: Text('No messages yet'))
+                ? Center(
+              child: Text(
+                'No messages yet',
+                style: TextStyle(
+                  color: isDarkMode ? AppTheme.darkTextColor : AppTheme.textColor,
+                ),
+              ),
+            )
                 : ListView.builder(
               controller: _scrollController,
               reverse: true,
@@ -308,7 +395,7 @@ class _ChatScreenState extends State<ChatScreen> {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: isDarkMode ? AppTheme.darkSurfaceColor : Colors.white,
               boxShadow: [
                 BoxShadow(
                   color: Colors.grey.withOpacity(0.2),
@@ -332,16 +419,22 @@ class _ChatScreenState extends State<ChatScreen> {
                     controller: _messageController,
                     decoration: InputDecoration(
                       hintText: 'Write your message here',
+                      hintStyle: TextStyle(
+                        color: isDarkMode ? AppTheme.darkDarkGrayColor : Colors.grey[600],
+                      ),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(24),
                         borderSide: BorderSide.none,
                       ),
                       filled: true,
-                      fillColor: Colors.grey[100],
+                      fillColor: isDarkMode ? AppTheme.darkInputBackgroundColor : Colors.grey[100],
                       contentPadding: const EdgeInsets.symmetric(
                         horizontal: 16,
                         vertical: 8,
                       ),
+                    ),
+                    style: TextStyle(
+                      color: isDarkMode ? AppTheme.darkInputTextColor : AppTheme.textColor,
                     ),
                     textInputAction: TextInputAction.send,
                     onSubmitted: (_) => _sendMessage(),
@@ -367,6 +460,9 @@ class _ChatScreenState extends State<ChatScreen> {
     required MessageModel message,
     required bool isCurrentUser,
   }) {
+    final theme = Theme.of(context);
+    final isDarkMode = theme.brightness == Brightness.dark;
+
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4),
       child: Row(
@@ -409,7 +505,7 @@ class _ChatScreenState extends State<ChatScreen> {
                       message.senderName, // Use sender name instead of chat name
                       style: TextStyle(
                         fontSize: 12,
-                        color: Colors.grey[600],
+                        color: isDarkMode ? AppTheme.darkDarkGrayColor : Colors.grey[600],
                       ),
                     ),
                   ),
@@ -422,15 +518,20 @@ class _ChatScreenState extends State<ChatScreen> {
                   ),
                   decoration: BoxDecoration(
                     color: isCurrentUser
-                        ? AppTheme.primaryColor
-                        : Colors.grey[200],
+                        ? (isDarkMode ? AppTheme.darkOutgoingMessageBubbleColor : AppTheme.primaryColor)
+                        : (isDarkMode ? AppTheme.darkMessageBubbleColor : Colors.grey[200]),
                     borderRadius: BorderRadius.circular(16),
+                    border: isDarkMode && !isCurrentUser
+                        ? Border.all(color: AppTheme.darkMediumGrayColor, width: 1)
+                        : null,
                   ),
                   child: message.type == MessageType.image
                       ? ClipRRect(
                     borderRadius: BorderRadius.circular(14),
-                    child: Image.network(
-                      message.fileUrl ?? 'https://via.placeholder.com/300',
+                    child: message.fileUrl != null && message.fileUrl!.startsWith('http')
+                    // Handle existing URL-based images
+                        ? Image.network(
+                      message.fileUrl!,
                       width: 200,
                       height: 200,
                       fit: BoxFit.cover,
@@ -450,24 +551,54 @@ class _ChatScreenState extends State<ChatScreen> {
                         );
                       },
                       errorBuilder: (context, error, stackTrace) {
+                        // Local placeholder instead of network image
+                        return ImageUtils.getPlaceholderImage(
+                          width: 200,
+                          height: 200,
+                        );
+                      },
+                    )
+                    // Handle base64 images
+                        : message.fileUrl != null && message.fileUrl!.isNotEmpty
+                        ? Image.memory(
+                      base64Decode(message.fileUrl!),
+                      width: 200,
+                      height: 200,
+                      fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) {
                         return Container(
                           width: 200,
                           height: 200,
-                          color: Colors.grey[300],
-                          child: const Center(
+                          color: isDarkMode ? AppTheme.darkLightGrayColor : Colors.grey[300],
+                          child: Center(
                             child: Icon(
-                              Icons.error_outline,
-                              color: Colors.red,
+                              Icons.broken_image,
+                              color: isDarkMode ? AppTheme.darkDarkGrayColor : Colors.grey,
+                              size: 48,
                             ),
                           ),
                         );
                       },
+                    )
+                        : Container(
+                      width: 200,
+                      height: 200,
+                      color: isDarkMode ? AppTheme.darkLightGrayColor : Colors.grey[300],
+                      child: Center(
+                        child: Icon(
+                          Icons.image,
+                          color: isDarkMode ? AppTheme.darkDarkGrayColor : Colors.grey,
+                          size: 48,
+                        ),
+                      ),
                     ),
                   )
                       : Text(
                     message.content,
                     style: TextStyle(
-                      color: isCurrentUser ? Colors.white : Colors.black87,
+                      color: isCurrentUser
+                          ? Colors.white
+                          : (isDarkMode ? AppTheme.darkMessageTextColor : Colors.black87),
                     ),
                   ),
                 ),
@@ -477,7 +608,7 @@ class _ChatScreenState extends State<ChatScreen> {
                     _formatMessageTime(message.timestamp),
                     style: TextStyle(
                       fontSize: 10,
-                      color: Colors.grey[600],
+                      color: isDarkMode ? AppTheme.darkDarkGrayColor : Colors.grey[600],
                     ),
                   ),
                 ),

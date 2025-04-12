@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:curio_campus/screens/splash_screen.dart';
-import 'package:curio_campus/utils/app_theme.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:provider/provider.dart';
 import 'package:curio_campus/providers/auth_provider.dart';
@@ -10,6 +9,7 @@ import 'package:curio_campus/providers/project_provider.dart';
 import 'package:curio_campus/providers/matchmaking_provider.dart';
 import 'package:curio_campus/providers/emergency_provider.dart';
 import 'package:curio_campus/providers/notification_provider.dart';
+import 'package:curio_campus/providers/theme_provider.dart';
 import 'package:curio_campus/services/notification_service.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'dart:convert';
@@ -66,13 +66,18 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => MatchmakingProvider()),
         ChangeNotifierProvider(create: (_) => EmergencyProvider()),
         ChangeNotifierProvider(create: (_) => NotificationProvider()),
+        ChangeNotifierProvider(create: (_) => ThemeProvider()),
       ],
-      child: MaterialApp(
-        navigatorKey: navigatorKey, // Use the navigator key from utils
-        title: 'CurioCampus',
-        debugShowCheckedModeBanner: false,
-        theme: AppTheme.lightTheme,
-        home: const SplashScreen(),
+      child: Consumer<ThemeProvider>(
+        builder: (context, themeProvider, child) {
+          return MaterialApp(
+            navigatorKey: navigatorKey, // Use the navigator key from utils
+            title: 'CurioCampus',
+            debugShowCheckedModeBanner: false,
+            theme: themeProvider.currentTheme,
+            home: const SplashScreen(),
+          );
+        },
       ),
     );
   }

@@ -10,6 +10,7 @@ class MessageModel {
   final MessageType type;
   final DateTime timestamp;
   final bool isRead;
+  // fileUrl can store either a URL to an image or a base64-encoded string
   final String? fileUrl;
   final String? fileName;
 
@@ -62,4 +63,3 @@ class MessageModel {
     };
   }
 }
-

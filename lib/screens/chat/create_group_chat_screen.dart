@@ -1,3 +1,5 @@
+import 'dart:convert';
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:curio_campus/providers/auth_provider.dart';
@@ -5,6 +7,8 @@ import 'package:curio_campus/providers/chat_provider.dart';
 import 'package:curio_campus/utils/app_theme.dart';
 import 'package:curio_campus/widgets/custom_button.dart';
 import 'package:curio_campus/widgets/custom_text_field.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:curio_campus/utils/image_utils.dart';
 
 import '../../models/user_model.dart';
 
@@ -19,12 +23,57 @@ class _CreateGroupChatScreenState extends State<CreateGroupChatScreen> {
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
   final List<String> _selectedParticipants = [];
+  String? _groupImageBase64;
   bool _isLoading = false;
+  final ImagePicker _picker = ImagePicker();
 
   @override
   void dispose() {
     _nameController.dispose();
     super.dispose();
+  }
+
+  Future<void> _pickImage() async {
+    final pickedFile = await _picker.pickImage(
+      source: ImageSource.gallery,
+      maxWidth: 800,
+      maxHeight: 800,
+      imageQuality: 70,
+    );
+
+    if (pickedFile != null) {
+      try {
+        final bytes = await File(pickedFile.path).readAsBytes();
+
+        // Check file size - if too large, compress further
+        if (bytes.length > 500 * 1024) { // If larger than 500KB
+          final compressedFile = await _picker.pickImage(
+            source: ImageSource.gallery,
+            maxWidth: 600,
+            maxHeight: 600,
+            imageQuality: 50,
+          );
+
+          if (compressedFile != null) {
+            final compressedBytes = await File(compressedFile.path).readAsBytes();
+            setState(() {
+              _groupImageBase64 = base64Encode(compressedBytes);
+            });
+          }
+        } else {
+          setState(() {
+            _groupImageBase64 = base64Encode(bytes);
+          });
+        }
+      } catch (e) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error processing image: ${e.toString()}'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
   }
 
   Future<void> _createGroupChat() async {
@@ -55,6 +104,7 @@ class _CreateGroupChatScreenState extends State<CreateGroupChatScreen> {
       final chatId = await chatProvider.createGroupChat(
         name: _nameController.text.trim(),
         participants: _selectedParticipants,
+        groupImageUrl: _groupImageBase64,
       );
 
       setState(() {
@@ -82,6 +132,9 @@ class _CreateGroupChatScreenState extends State<CreateGroupChatScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDarkMode = theme.brightness == Brightness.dark;
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Create Group Chat'),
@@ -93,6 +146,50 @@ class _CreateGroupChatScreenState extends State<CreateGroupChatScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              // Group image
+              Center(
+                child: GestureDetector(
+                  onTap: _pickImage,
+                  child: Stack(
+                    children: [
+                      _groupImageBase64 != null
+                          ? CircleAvatar(
+                        radius: 50,
+                        backgroundColor: isDarkMode ? AppTheme.darkLightGrayColor : AppTheme.lightGrayColor,
+                        backgroundImage: MemoryImage(base64Decode(_groupImageBase64!)),
+                        onBackgroundImageError: (_, __) {},
+                      )
+                          : CircleAvatar(
+                        radius: 50,
+                        backgroundColor: isDarkMode ? AppTheme.darkLightGrayColor : AppTheme.lightGrayColor,
+                        child: Icon(
+                          Icons.group,
+                          size: 50,
+                          color: isDarkMode ? AppTheme.darkDarkGrayColor : AppTheme.darkGrayColor,
+                        ),
+                      ),
+                      Positioned(
+                        right: 0,
+                        bottom: 0,
+                        child: Container(
+                          padding: const EdgeInsets.all(4),
+                          decoration: BoxDecoration(
+                            color: AppTheme.primaryColor,
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Icon(
+                            Icons.camera_alt,
+                            color: Colors.white,
+                            size: 20,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(height: 24),
+
               // Group name
               const Text(
                 'Group Name',
@@ -154,6 +251,8 @@ class _CreateGroupChatScreenState extends State<CreateGroupChatScreen> {
         }
 
         final users = snapshot.data!;
+        final theme = Theme.of(context);
+        final isDarkMode = theme.brightness == Brightness.dark;
 
         return Column(
           children: [
@@ -163,7 +262,7 @@ class _CreateGroupChatScreenState extends State<CreateGroupChatScreen> {
                 width: double.infinity,
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: AppTheme.lightGrayColor,
+                  color: isDarkMode ? AppTheme.darkLightGrayColor : AppTheme.lightGrayColor,
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Wrap(
@@ -238,21 +337,27 @@ class _CreateGroupChatScreenState extends State<CreateGroupChatScreen> {
                 ),
               ),
             )
-
           ],
         );
       },
     );
   }
 
-
-
   void _showAddParticipantsDialog(List<Map<String, dynamic>> users) {
+    final theme = Theme.of(context);
+    final isDarkMode = theme.brightness == Brightness.dark;
+
     showDialog(
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: const Text('Add Participants'),
+          backgroundColor: isDarkMode ? AppTheme.darkSurfaceColor : Colors.white,
+          title: Text(
+            'Add Participants',
+            style: TextStyle(
+              color: isDarkMode ? AppTheme.darkTextColor : AppTheme.textColor,
+            ),
+          ),
           content: SizedBox(
             width: double.maxFinite,
             child: ListView.builder(
@@ -264,8 +369,18 @@ class _CreateGroupChatScreenState extends State<CreateGroupChatScreen> {
                 final isSelected = _selectedParticipants.contains(userId);
 
                 return CheckboxListTile(
-                  title: Text(user['name'] as String),
-                  subtitle: Text(user['email'] as String),
+                  title: Text(
+                    user['name'] as String,
+                    style: TextStyle(
+                      color: isDarkMode ? AppTheme.darkTextColor : AppTheme.textColor,
+                    ),
+                  ),
+                  subtitle: Text(
+                    user['email'] as String,
+                    style: TextStyle(
+                      color: isDarkMode ? AppTheme.darkDarkGrayColor : AppTheme.darkGrayColor,
+                    ),
+                  ),
                   value: isSelected,
                   activeColor: AppTheme.primaryColor,
                   onChanged: (value) {

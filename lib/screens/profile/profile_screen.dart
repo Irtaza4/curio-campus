@@ -7,7 +7,9 @@ import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 import 'package:curio_campus/providers/auth_provider.dart';
 import 'package:curio_campus/screens/profile/edit_profile_screen.dart';
-import 'package:curio_campus/utils/app_theme.dart';
+import 'package:curio_campus/screens/settings/settings_screen.dart';
+
+import '../../utils/app_theme.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({Key? key}) : super(key: key);
@@ -48,6 +50,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Widget build(BuildContext context) {
     final authProvider = Provider.of<AuthProvider>(context);
     final user = authProvider.userModel;
+    final theme = Theme.of(context);
+    final isDarkMode = theme.brightness == Brightness.dark;
 
     return Scaffold(
       body: user == null
@@ -101,23 +105,20 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 children: [
                   _buildProfileSection(
                     title: 'MY SKILLS',
-                    content: user.majorSkills.isEmpty && user.minorSkills.isEmpty
-                        ? 'No skills added yet'
-                        : [...user.majorSkills, ...user.minorSkills].join(', '),
+                    content: 'No skills added yet',
+                    items: [...user.majorSkills, ...user.minorSkills],
                   ),
                   const SizedBox(height: 16),
                   _buildProfileSection(
                     title: 'MY TEAM',
-                    content: user.teamMembers.isEmpty
-                        ? 'No team members yet'
-                        : user.teamMembers.join(', '),
+                    content: 'No team members yet',
+                    items: user.teamMembers.isNotEmpty ? user.teamMembers : null,
                   ),
                   const SizedBox(height: 16),
                   _buildProfileSection(
                     title: 'MY COMPLETED PROJECTS',
-                    content: user.completedProjects.isEmpty
-                        ? 'No completed projects yet'
-                        : user.completedProjects.join(', '),
+                    content: 'No completed projects yet',
+                    items: user.completedProjects.isNotEmpty ? user.completedProjects : null,
                   ),
                   const SizedBox(height: 24),
                   _buildActionButton(
@@ -125,6 +126,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     label: 'Settings',
                     onTap: () {
                       // Navigate to settings screen
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => const SettingsScreen(),
+                        ),
+                      );
                     },
                   ),
                   const SizedBox(height: 16),
@@ -146,9 +153,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         }
                       },
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.white,
-                        foregroundColor: Colors.red,
-                        side: const BorderSide(color: Colors.red),
+                        backgroundColor: isDarkMode ? AppTheme.darkSurfaceColor : Colors.white,
+                        foregroundColor: AppTheme.errorColor,
+                        side: BorderSide(color: AppTheme.errorColor),
                         padding: const EdgeInsets.symmetric(vertical: 16),
                       ),
                       child: const Text(
@@ -204,15 +211,20 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
+  // Update the _buildProfileSection method to use theme-aware colors
   Widget _buildProfileSection({
     required String title,
     required String content,
+    List<String>? items,
   }) {
+    final theme = Theme.of(context);
+    final isDarkMode = theme.brightness == Brightness.dark;
+
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppTheme.lightGrayColor,
+        color: isDarkMode ? AppTheme.darkLightGrayColor : AppTheme.lightGrayColor,
         borderRadius: BorderRadius.circular(8),
       ),
       child: Column(
@@ -220,30 +232,57 @@ class _ProfileScreenState extends State<ProfileScreen> {
         children: [
           Text(
             title,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 14,
               fontWeight: FontWeight.bold,
-              color: Colors.grey,
+              color: isDarkMode ? AppTheme.darkDarkGrayColor : AppTheme.darkGrayColor,
             ),
           ),
           const SizedBox(height: 8),
-          Text(
-            content,
-            style: const TextStyle(
-              fontSize: 16,
-              color: Colors.black87,
+          if (items != null && items.isNotEmpty)
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: items.map((item) => Padding(
+                padding: const EdgeInsets.only(bottom: 4),
+                child: Row(
+                  children: [
+                    Icon(
+                      title.contains("SKILLS") ? Icons.check_circle :
+                      title.contains("TEAM") ? Icons.person :
+                      Icons.task_alt,
+                      size: 16,
+                      color: AppTheme.primaryColor,
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        item,
+                        style: isDarkMode ? AppTheme.darkBodyStyle : AppTheme.bodyStyle,
+                      ),
+                    ),
+                  ],
+                ),
+              )).toList(),
+            )
+          else
+            Text(
+              content,
+              style: isDarkMode ? AppTheme.darkBodyStyle : AppTheme.bodyStyle,
             ),
-          ),
         ],
       ),
     );
   }
 
+  // Update the _buildActionButton method to use theme-aware colors
   Widget _buildActionButton({
     required IconData icon,
     required String label,
     required VoidCallback onTap,
   }) {
+    final theme = Theme.of(context);
+    final isDarkMode = theme.brightness == Brightness.dark;
+
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(8),
@@ -254,7 +293,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           vertical: 12,
         ),
         decoration: BoxDecoration(
-          color: AppTheme.lightGrayColor,
+          color: isDarkMode ? AppTheme.darkLightGrayColor : AppTheme.lightGrayColor,
           borderRadius: BorderRadius.circular(8),
         ),
         child: Row(
@@ -262,15 +301,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
             Icon(
               icon,
               size: 24,
-              color: Colors.grey[700],
+              color: isDarkMode ? AppTheme.darkDarkGrayColor : AppTheme.darkGrayColor,
             ),
             const SizedBox(width: 16),
             Text(
               label,
-              style: TextStyle(
-                fontSize: 16,
-                color: Colors.grey[700],
-              ),
+              style: isDarkMode ? AppTheme.darkBodyStyle : AppTheme.bodyStyle,
             ),
           ],
         ),

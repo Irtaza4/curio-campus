@@ -8,6 +8,10 @@ import 'package:curio_campus/screens/matchmaking/matchmaking_screen.dart';
 import 'package:curio_campus/screens/profile/profile_screen.dart';
 import 'package:curio_campus/utils/app_theme.dart';
 import 'package:curio_campus/widgets/notification_badge.dart';
+import 'package:curio_campus/screens/project/create_project_screen.dart';
+import 'package:curio_campus/screens/settings/settings_screen.dart';
+import 'package:curio_campus/screens/chat/create_group_chat_screen.dart';
+import 'package:curio_campus/screens/auth/login_screen.dart';
 
 import '../../widgets/notification_drawer.dart';
 import '../chat/message_screen.dart';
@@ -41,8 +45,12 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void _showMoreOptions() {
+    final theme = Theme.of(context);
+    final isDarkMode = theme.brightness == Brightness.dark;
+
     showModalBottomSheet(
       context: context,
+      backgroundColor: isDarkMode ? AppTheme.darkSurfaceColor : Colors.white,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
       ),
@@ -51,6 +59,165 @@ class _HomeScreenState extends State<HomeScreen> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
+              // Show different options based on the current tab
+              if (_currentIndex == 0) ...[
+                // Messages tab options
+                ListTile(
+                  leading: Icon(
+                    Icons.group_add,
+                    color: AppTheme.primaryColor,
+                  ),
+                  title: Text(
+                    'Create Group Chat',
+                    style: TextStyle(
+                      color: isDarkMode ? AppTheme.darkTextColor : AppTheme.textColor,
+                    ),
+                  ),
+                  onTap: () {
+                    Navigator.pop(context);
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => const CreateGroupChatScreen(),
+                      ),
+                    );
+                  },
+                ),
+
+              ] else if (_currentIndex == 1) ...[
+                // Projects tab options
+                ListTile(
+                  leading: Icon(
+                    Icons.add_circle_outline,
+                    color: AppTheme.primaryColor,
+                  ),
+                  title: Text(
+                    'Create New Project',
+                    style: TextStyle(
+                      color: isDarkMode ? AppTheme.darkTextColor : AppTheme.textColor,
+                    ),
+                  ),
+                  onTap: () {
+                    Navigator.pop(context);
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => const CreateProjectScreen(),
+                      ),
+                    );
+                  },
+                ),
+                ListTile(
+                  leading: Icon(
+                    Icons.people_outline,
+                    color: AppTheme.primaryColor,
+                  ),
+                  title: Text(
+                    'Find Team Members',
+                    style: TextStyle(
+                      color: isDarkMode ? AppTheme.darkTextColor : AppTheme.textColor,
+                    ),
+                  ),
+                  onTap: () {
+                    Navigator.pop(context);
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => const MatchmakingScreen(),
+                      ),
+                    );
+                  },
+                ),
+
+              ] else if (_currentIndex == 2) ...[
+                // Emergency tab options
+                ListTile(
+                  leading: Icon(
+                    Icons.add_alert,
+                    color: AppTheme.primaryColor,
+                  ),
+                  title: Text(
+                    'Create Emergency Request',
+                    style: TextStyle(
+                      color: isDarkMode ? AppTheme.darkTextColor : AppTheme.textColor,
+                    ),
+                  ),
+                  onTap: () {
+                    Navigator.pop(context);
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => const CreateEmergencyRequestScreen(),
+                      ),
+                    );
+                  },
+                ),
+
+              ] else if (_currentIndex == 3) ...[
+                // Profile tab options
+                ListTile(
+                  leading: Icon(
+                    Icons.edit,
+                    color: AppTheme.primaryColor,
+                  ),
+                  title: Text(
+                    'Edit Profile',
+                    style: TextStyle(
+                      color: isDarkMode ? AppTheme.darkTextColor : AppTheme.textColor,
+                    ),
+                  ),
+                  onTap: () {
+                    Navigator.pop(context);
+                    Navigator.pushNamed(context, '/edit-profile');
+                  },
+                ),
+
+              ],
+
+              // Common options for all tabs
+              Divider(
+                color: isDarkMode ? AppTheme.darkMediumGrayColor : AppTheme.mediumGrayColor,
+              ),
+
+              ListTile(
+                leading: Icon(
+                  Icons.notifications_outlined,
+                  color: AppTheme.primaryColor,
+                ),
+                title: Text(
+                  'Notifications',
+                  style: TextStyle(
+                    color: isDarkMode ? AppTheme.darkTextColor : AppTheme.textColor,
+                  ),
+                ),
+                onTap: () {
+                  Navigator.pop(context);
+                  _showNotifications();
+                },
+              ),
+
+              ListTile(
+                leading: Icon(
+                  Icons.settings,
+                  color: AppTheme.primaryColor,
+                ),
+                title: Text(
+                  'Settings',
+                  style: TextStyle(
+                    color: isDarkMode ? AppTheme.darkTextColor : AppTheme.textColor,
+                  ),
+                ),
+                onTap: () {
+                  Navigator.pop(context);
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => const SettingsScreen(),
+                    ),
+                  );
+                },
+              ),
+
               ListTile(
                 leading: const Icon(Icons.logout, color: Colors.red),
                 title: const Text('Logout', style: TextStyle(color: Colors.red)),
@@ -59,8 +226,17 @@ class _HomeScreenState extends State<HomeScreen> {
                   final confirm = await showDialog<bool>(
                     context: context,
                     builder: (context) => AlertDialog(
-                      title: const Text('Logout'),
-                      content: const Text('Are you sure you want to logout?'),
+                      backgroundColor: isDarkMode ? AppTheme.darkSurfaceColor : Colors.white,
+                      title: Text('Logout',
+                        style: TextStyle(
+                            color: isDarkMode ? AppTheme.darkTextColor : AppTheme.textColor
+                        ),
+                      ),
+                      content: Text('Are you sure you want to logout?',
+                        style: TextStyle(
+                            color: isDarkMode ? AppTheme.darkTextColor : AppTheme.textColor
+                        ),
+                      ),
                       actions: [
                         TextButton(
                           onPressed: () => Navigator.pop(context, false),
@@ -77,7 +253,10 @@ class _HomeScreenState extends State<HomeScreen> {
                   if (confirm == true && mounted) {
                     await Provider.of<AuthProvider>(context, listen: false).logout();
                     if (mounted) {
-                      Navigator.of(context).pushReplacementNamed('/login');
+                      Navigator.of(context).pushAndRemoveUntil(
+                        MaterialPageRoute(builder: (_) => const LoginScreen()),
+                            (route) => false,
+                      );
                     }
                   }
                 },
@@ -105,9 +284,13 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void _showNotifications() {
+    final theme = Theme.of(context);
+    final isDarkMode = theme.brightness == Brightness.dark;
+
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
+      backgroundColor: isDarkMode ? AppTheme.darkSurfaceColor : Colors.white,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
       ),
@@ -119,17 +302,35 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
+  void _navigateToCreateProject() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => const CreateProjectScreen(),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final authProvider = Provider.of<AuthProvider>(context);
     final notificationProvider = Provider.of<NotificationProvider>(context);
     final unreadCount = notificationProvider.unreadCount;
+    final theme = Theme.of(context);
+    final isDarkMode = theme.brightness == Brightness.dark;
 
     return Scaffold(
       appBar: AppBar(
         title: Text(_getScreenTitle()),
         automaticallyImplyLeading: false, // No back button
         actions: [
+          // Add button for Projects screen
+          if (_currentIndex == 1)
+            IconButton(
+              icon: const Icon(Icons.add),
+              onPressed: _navigateToCreateProject,
+              tooltip: 'Create New Project',
+            ),
           NotificationBadge(
             count: unreadCount,
             child: IconButton(
@@ -138,6 +339,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 showModalBottomSheet(
                   context: context,
                   isScrollControlled: true,
+                  backgroundColor: isDarkMode ? AppTheme.darkSurfaceColor : Colors.white,
                   shape: const RoundedRectangleBorder(
                     borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
                   ),
@@ -164,7 +366,8 @@ class _HomeScreenState extends State<HomeScreen> {
         },
         type: BottomNavigationBarType.fixed,
         selectedItemColor: AppTheme.primaryColor,
-        unselectedItemColor: Colors.grey,
+        unselectedItemColor: isDarkMode ? AppTheme.darkDarkGrayColor : Colors.grey,
+        backgroundColor: isDarkMode ? AppTheme.darkSurfaceColor : Colors.white,
         items: const [
           BottomNavigationBarItem(
             icon: Icon(Icons.chat_bubble_outline),
