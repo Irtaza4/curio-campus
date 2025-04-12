@@ -286,7 +286,7 @@ class _EmergencyScreenState extends State<EmergencyScreen> with SingleTickerProv
                         style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
-                          color: isOwnRequest ? AppTheme.primaryColor : Colors.black,
+                          color: isOwnRequest ? AppTheme.primaryColor :AppTheme.primaryColor ,
                         ),
                       ),
                       isOwnRequest && !request.isResolved
