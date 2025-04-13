@@ -147,82 +147,97 @@ class _CreateProjectScreenState extends State<CreateProjectScreen> {
       return;
     }
 
+    // Create a stateful list to track selections within the dialog
     final List<String> tempSelectedMembers = List.from(_selectedTeamMembers);
     final theme = Theme.of(context);
     final isDarkMode = theme.brightness == Brightness.dark;
 
     await showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: isDarkMode ? AppTheme.darkSurfaceColor : Colors.white,
-        title: Text(
-          'Add Team Members',
-          style: TextStyle(
-            color: isDarkMode ? AppTheme.darkTextColor : AppTheme.textColor,
-          ),
-        ),
-        content: SizedBox(
-          width: double.maxFinite,
-          child: ListView.builder(
-            shrinkWrap: true,
-            itemCount: _chatContacts.length,
-            itemBuilder: (context, index) {
-              final contact = _chatContacts[index];
-              final isSelected = tempSelectedMembers.contains(contact.id);
-
-              return CheckboxListTile(
+      builder: (BuildContext dialogContext) {
+        return StatefulBuilder(
+            builder: (BuildContext context, StateSetter setDialogState) {
+              return AlertDialog(
+                backgroundColor: isDarkMode ? AppTheme.darkSurfaceColor : Colors.white,
                 title: Text(
-                  contact.name,
+                  'Add Team Members',
                   style: TextStyle(
                     color: isDarkMode ? AppTheme.darkTextColor : AppTheme.textColor,
                   ),
                 ),
-                subtitle: Text(
-                  contact.email,
-                  style: TextStyle(
-                    color: isDarkMode ? AppTheme.darkDarkGrayColor : AppTheme.darkGrayColor,
+                content: SizedBox(
+                  width: double.maxFinite,
+                  child: ListView.builder(
+                    shrinkWrap: true,
+                    itemCount: _chatContacts.length,
+                    itemBuilder: (context, index) {
+                      final contact = _chatContacts[index];
+                      final isSelected = tempSelectedMembers.contains(contact.id);
+
+                      return CheckboxListTile(
+                        title: Text(
+                          contact.name,
+                          style: TextStyle(
+                            color: isDarkMode ? AppTheme.darkTextColor : AppTheme.textColor,
+                          ),
+                        ),
+                        subtitle: Text(
+                          contact.email,
+                          style: TextStyle(
+                            color: isDarkMode ? AppTheme.darkDarkGrayColor : AppTheme.darkGrayColor,
+                          ),
+                        ),
+                        value: isSelected,
+                        activeColor: AppTheme.primaryColor,
+                        onChanged: (value) {
+                          setDialogState(() {
+                            if (value == true) {
+                              tempSelectedMembers.add(contact.id);
+                            } else {
+                              tempSelectedMembers.remove(contact.id);
+                            }
+                          });
+                        },
+                        secondary: CircleAvatar(
+                          backgroundColor: AppTheme.primaryColor,
+                          child: Text(
+                            contact.name.isNotEmpty ? contact.name[0].toUpperCase() : '?',
+                            style: const TextStyle(color: Colors.white),
+                          ),
+                        ),
+                      );
+                    },
                   ),
                 ),
-                value: isSelected,
-                activeColor: AppTheme.primaryColor,
-                onChanged: (value) {
-                  if (value == true) {
-                    tempSelectedMembers.add(contact.id);
-                  } else {
-                    tempSelectedMembers.remove(contact.id);
-                  }
-                  setState(() {});
-                },
+                actions: [
+                  TextButton(
+                    onPressed: () => Navigator.pop(context),
+                    child: Text(
+                      'Cancel',
+                      style: TextStyle(
+                        color: AppTheme.primaryColor,
+                      ),
+                    ),
+                  ),
+                  TextButton(
+                    onPressed: () {
+                      setState(() {
+                        _selectedTeamMembers = tempSelectedMembers;
+                      });
+                      Navigator.pop(context);
+                    },
+                    child: Text(
+                      'Done',
+                      style: TextStyle(
+                        color: AppTheme.primaryColor,
+                      ),
+                    ),
+                  ),
+                ],
               );
-            },
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text(
-              'Cancel',
-              style: TextStyle(
-                color: AppTheme.primaryColor,
-              ),
-            ),
-          ),
-          TextButton(
-            onPressed: () {
-              setState(() {
-                _selectedTeamMembers = tempSelectedMembers;
-              });
-              Navigator.pop(context);
-            },
-            child: Text(
-              'Done',
-              style: TextStyle(
-                color: AppTheme.primaryColor,
-              ),
-            ),
-          ),
-        ],
-      ),
+            }
+        );
+      },
     );
   }
 

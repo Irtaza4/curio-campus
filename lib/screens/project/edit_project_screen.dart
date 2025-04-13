@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:curio_campus/models/project_model.dart';
@@ -38,7 +39,13 @@ class _EditProjectScreenState extends State<EditProjectScreen> {
     _descriptionController.text = widget.project.description;
     _deadline = widget.project.deadline;
     _selectedTeamMembers = List.from(widget.project.teamMembers);
-    _fetchChatContacts();
+
+    // Schedule the fetch operation after the build is complete
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        _fetchChatContacts();
+      }
+    });
   }
 
   @override
@@ -49,14 +56,16 @@ class _EditProjectScreenState extends State<EditProjectScreen> {
   }
 
   Future<void> _fetchChatContacts() async {
+    if (!mounted) return;
+
     setState(() {
       _isLoadingContacts = true;
     });
 
     try {
       // Fetch chats to get contacts
-      await Provider.of<ChatProvider>(context, listen: false).fetchChats();
       final chatProvider = Provider.of<ChatProvider>(context, listen: false);
+      await chatProvider.fetchChats();
 
       // Get unique user IDs from chats
       final Set<String> contactIds = {};
@@ -77,23 +86,25 @@ class _EditProjectScreenState extends State<EditProjectScreen> {
         }
       }
 
+      if (!mounted) return;
+
       setState(() {
         _chatContacts = contacts;
         _isLoadingContacts = false;
       });
     } catch (e) {
+      if (!mounted) return;
+
       setState(() {
         _isLoadingContacts = false;
       });
 
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error fetching contacts: ${e.toString()}'),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error fetching contacts: ${e.toString()}'),
+          backgroundColor: Colors.red,
+        ),
+      );
     }
   }
 
@@ -302,16 +313,27 @@ class _EditProjectScreenState extends State<EditProjectScreen> {
 
                   return ListTile(
                     leading: CircleAvatar(
-                      backgroundImage: contact.profileImageBase64 != null
-                          ? NetworkImage(contact.profileImageBase64!)
-                          : null,
                       backgroundColor: AppTheme.primaryColor,
-                      child: contact.profileImageBase64 == null
-                          ? Text(
-                        contact.name[0].toUpperCase(),
-                        style: const TextStyle(color: Colors.white),
+                      child: contact.profileImageBase64 != null && contact.profileImageBase64!.isNotEmpty
+                          ? ClipOval(
+                        child: Image.memory(
+                          base64Decode(contact.profileImageBase64!),
+                          fit: BoxFit.cover,
+                          width: 40,
+                          height: 40,
+                          errorBuilder: (context, error, stackTrace) {
+                            return Text(
+                              contact.name.isNotEmpty ? contact.name[0].toUpperCase() : '?',
+                              style: const TextStyle(color: Colors.white),
+                            );
+                          },
+                        ),
                       )
-                          : null,
+
+                          : Text(
+                        contact.name.isNotEmpty ? contact.name[0].toUpperCase() : '?',
+                        style: const TextStyle(color: Colors.white),
+                      ),
                     ),
                     title: Text(contact.name),
                     subtitle: Text(
@@ -346,4 +368,3 @@ class _EditProjectScreenState extends State<EditProjectScreen> {
     );
   }
 }
-
