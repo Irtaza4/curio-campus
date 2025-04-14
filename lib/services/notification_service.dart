@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
@@ -13,11 +15,14 @@ import 'package:curio_campus/screens/chat/chat_screen.dart';
 import 'package:curio_campus/screens/emergency/emergency_request_detail_screen.dart';
 import 'package:curio_campus/screens/project/project_detail_screen.dart';
 import 'package:curio_campus/providers/notification_provider.dart';
-import 'package:curio_campus/utils/navigator_key.dart'; // Import the navigator key
+import 'package:curio_campus/utils/navigator_key.dart';
+
+import 'call_service.dart' as call_service;
 
 class NotificationService {
   static final NotificationService _instance = NotificationService._internal();
   factory NotificationService() => _instance;
+  Future<dynamic> get callService async => callService;
   NotificationService._internal();
 
   final FirebaseMessaging _firebaseMessaging = FirebaseMessaging.instance;
@@ -839,3 +844,53 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
     platformChannelSpecifics,
   );
 }
+// Add this method to your NotificationService class
+
+Future<void> setupBackgroundNotifications() async {
+  // This method sets up background notification handling
+  debugPrint('Setting up background notifications');
+
+  // Request permission for critical alerts on iOS
+  if (Platform.isIOS) {
+    await FirebaseMessaging.instance.requestPermission(
+      alert: true,
+      badge: true,
+      sound: true,
+      criticalAlert: true,
+      provisional: false,
+    );
+  }
+
+  // Set up background message handler
+  FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
+
+  // Handle notification click when app is in background
+  FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
+    debugPrint('App opened from background state via notification: ${message.data}');
+    // Handle the notification click based on the data
+    handleNotificationClick(message.data);
+  });
+}
+
+// Helper method to handle notification clicks
+void handleNotificationClick(Map<String, dynamic> data) {
+  if (data['type'] == 'call') {
+    final callId = data['callId'];
+    final callerId = data['callerId'];
+    final callerName = data['callerName'];
+    final isVideoCall = data['isVideoCall'] == 'true';
+    final callerProfileImage = data['callerProfileImage'];
+
+    if (callId != null && callerId != null) {
+      call_service.CallService().handleIncomingCallFromNotification(
+        callId: callId,
+        callerId: callerId,
+        callerName: callerName ?? '',
+        isVideoCall: isVideoCall,
+        callerProfileImage: callerProfileImage,
+      );
+    }
+  }
+}
+
+

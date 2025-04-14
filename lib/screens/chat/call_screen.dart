@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:convert';
-import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:curio_campus/utils/app_theme.dart';
 import 'package:provider/provider.dart';
@@ -12,9 +11,6 @@ import 'package:curio_campus/utils/image_utils.dart';
 import 'package:path_provider/path_provider.dart';
 import 'dart:io';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-import 'package:connectivity_plus/connectivity_plus.dart';
-
-import '../../services/call_service.dart';
 
 enum CallType { voice, video }
 enum CallState { ringing, connecting, connected, ended, failed, busy, noAnswer, networkError }
@@ -27,7 +23,7 @@ class CallScreen extends StatefulWidget {
   final String? profileImageBase64;
   final bool autoConnect;
   final bool isOutgoing; // Whether this is an outgoing call or incoming call
-  final String? callId;
+
   const CallScreen({
     Key? key,
     required this.userId,
@@ -35,8 +31,7 @@ class CallScreen extends StatefulWidget {
     required this.callType,
     this.profileImageBase64,
     this.autoConnect = false,
-    this.isOutgoing = true,
-    this.callId,
+    this.isOutgoing = true, // Default to outgoing call
   }) : super(key: key);
 
   @override
@@ -65,9 +60,6 @@ class _CallScreenState extends State<CallScreen> with WidgetsBindingObserver {
   Timer? _networkCheckTimer;
   int _ringCount = 0;
   final FlutterLocalNotificationsPlugin _flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
-  final CallService _callService = CallService();
-  String? _callId;
-  StreamSubscription? _connectivitySubscription;
 
   @override
   void initState() {
@@ -75,10 +67,7 @@ class _CallScreenState extends State<CallScreen> with WidgetsBindingObserver {
     WidgetsBinding.instance.addObserver(this);
     _initializeNotifications();
     _checkPermissions();
-    _startRealNetworkCheck();
-    _callId = widget.callId;
-
-    debugPrint('CallScreen initialized with callId: ${widget.callId}, isOutgoing: ${widget.isOutgoing}');
+    _startNetworkCheck();
   }
 
   Future<void> _initializeNotifications() async {
@@ -98,43 +87,42 @@ class _CallScreenState extends State<CallScreen> with WidgetsBindingObserver {
     );
   }
 
-  void _startRealNetworkCheck() {
-    // Check connectivity using connectivity_plus package
-    _connectivitySubscription = Connectivity().onConnectivityChanged.listen((result) {
-      setState(() {
-        _networkStatus = result == ConnectivityResult.none
-            ? NetworkStatus.offline
-            : NetworkStatus.online;
-      });
-
-      debugPrint('Network status changed to: $_networkStatus');
-
-      // If we're in ringing state and network goes offline, update UI
-      if (_callState == CallState.ringing && _networkStatus == NetworkStatus.offline && widget.isOutgoing) {
-        setState(() {
-          _callState = CallState.networkError;
-        });
-
-        // Show network error message
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Network error. Please check your connection.'),
-            backgroundColor: Colors.red,
-            duration: Duration(seconds: 3),
-          ),
-        );
-      }
+  void _startNetworkCheck() {
+    // Simulate network check every 2 seconds
+    _networkCheckTimer = Timer.periodic(const Duration(seconds: 2), (timer) {
+      _checkNetworkStatus();
     });
 
     // Initial check
-    Connectivity().checkConnectivity().then((result) {
-      setState(() {
-        _networkStatus = result == ConnectivityResult.none
-            ? NetworkStatus.offline
-            : NetworkStatus.online;
-      });
-      debugPrint('Initial network status: $_networkStatus');
+    _checkNetworkStatus();
+  }
+
+  void _checkNetworkStatus() {
+    // In a real app, you would check actual network connectivity
+    // For this demo, we'll simulate network status
+
+    // Simulate 90% chance of being online
+    final isOnline = DateTime.now().millisecondsSinceEpoch % 10 < 9;
+
+    setState(() {
+      _networkStatus = isOnline ? NetworkStatus.online : NetworkStatus.offline;
     });
+
+    // If we're in ringing state and network goes offline, update UI
+    if (_callState == CallState.ringing && _networkStatus == NetworkStatus.offline) {
+      setState(() {
+        _callState = CallState.networkError;
+      });
+
+      // Show network error message
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Network error. Please check your connection.'),
+          backgroundColor: Colors.red,
+          duration: Duration(seconds: 3),
+        ),
+      );
+    }
   }
 
   @override
@@ -229,13 +217,8 @@ class _CallScreenState extends State<CallScreen> with WidgetsBindingObserver {
     _ringTimer?.cancel();
     _recordingTimer?.cancel();
     _networkCheckTimer?.cancel();
-    _connectivitySubscription?.cancel();
     _stopScreenRecording();
     _cancelCallNotification();
-    // End call if it's still active
-    if (_callId != null && (_callState == CallState.ringing || _callState == CallState.connected)) {
-      _callService.endCall(_callId!);
-    }
     super.dispose();
   }
 
@@ -253,60 +236,92 @@ class _CallScreenState extends State<CallScreen> with WidgetsBindingObserver {
     _startCall();
   }
 
-  void _startCall() async {
+  void _startCall() {
     // If this is an incoming call, show the incoming call UI
     if (!widget.isOutgoing) {
-      debugPrint('Handling incoming call UI');
       setState(() {
         _callState = CallState.ringing;
       });
 
       // Play ringtone here in a real app
-      _simulateRinging();
+
       return;
     }
 
-    try {
-      debugPrint('Making outgoing call to ${widget.userId}');
-      final callId = await _callService.makeCall(
-        receiverId: widget.userId,
-        receiverName: widget.userName,
-        receiverProfileImage: widget.profileImageBase64,
-        isVideoCall: widget.callType == CallType.video,
-        context: context,
-      );
+    // For outgoing calls, show ringing state
+    setState(() {
+      _callState = CallState.ringing;
+    });
 
-      // Save the call ID
-      _callId = callId;
-      debugPrint('Call ID generated: $callId');
+    // Simulate ringing for 30 seconds before showing "No answer" if not answered
+    _ringTimer = Timer(const Duration(seconds: 30), () {
+      if (_callState == CallState.ringing && !_callAccepted && mounted) {
+        setState(() {
+          _callState = CallState.noAnswer;
+        });
 
-      // Show ringing state
-      setState(() {
-        _callState = CallState.ringing;
-      });
+        // Show missed call message
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('No answer'),
+            duration: Duration(seconds: 2),
+          ),
+        );
 
-      // Simulate ringing sound and vibration
-      _simulateRinging();
-
-      // If autoConnect is true, automatically accept the call after 3 seconds
-      if (widget.autoConnect) {
-        Future.delayed(const Duration(seconds: 3), () {
-          if (mounted && _callState == CallState.ringing) {
-            _acceptCall();
+        // Close call screen after 2 seconds
+        Future.delayed(const Duration(seconds: 2), () {
+          if (mounted) {
+            Navigator.pop(context);
           }
         });
       }
-    } catch (e) {
-      debugPrint('Failed to initiate call: $e');
-      // Show error
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Failed to initiate call: $e'),
-          backgroundColor: Colors.red,
-        ),
-      );
-      Navigator.pop(context);
+    });
+
+    // Simulate ringing sound and vibration
+    _simulateRinging();
+
+    // If autoConnect is true, automatically accept the call after 3 seconds
+    if (widget.autoConnect) {
+      Future.delayed(const Duration(seconds: 3), () {
+        if (mounted && _callState == CallState.ringing) {
+          _acceptCall();
+        }
+      });
     }
+
+    // Simulate random network status changes during ringing
+    _simulateNetworkChanges();
+  }
+
+  void _simulateNetworkChanges() {
+    // Randomly simulate network issues during call setup
+    Future.delayed(Duration(seconds: 2 + (DateTime.now().millisecondsSinceEpoch % 5)), () {
+      if (mounted && _callState == CallState.ringing) {
+        // 20% chance of network error
+        if (DateTime.now().millisecondsSinceEpoch % 5 == 0) {
+          setState(() {
+            _networkStatus = NetworkStatus.offline;
+          });
+
+          // Show connecting message
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Poor connection...'),
+              duration: Duration(seconds: 2),
+            ),
+          );
+
+          // Restore connection after 2 seconds
+          Future.delayed(const Duration(seconds: 2), () {
+            if (mounted) {
+              setState(() {
+                _networkStatus = NetworkStatus.online;
+              });
+            }
+          });
+        }
+      }
+    });
   }
 
   void _simulateRinging() {
@@ -314,7 +329,7 @@ class _CallScreenState extends State<CallScreen> with WidgetsBindingObserver {
     // In a real app, you would play an actual ringtone
 
     // Update ring count every second to show "Ringing..." animation
-    _ringTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+    Timer.periodic(const Duration(seconds: 1), (timer) {
       if (mounted && _callState == CallState.ringing) {
         setState(() {
           _ringCount++;
@@ -326,14 +341,8 @@ class _CallScreenState extends State<CallScreen> with WidgetsBindingObserver {
   }
 
   void _acceptCall() {
-    debugPrint('Accepting call with ID: $_callId');
     _callAccepted = true;
     _ringTimer?.cancel();
-
-    // If this is an incoming call, notify the call service
-    if (!widget.isOutgoing && _callId != null) {
-      _callService.acceptCall(_callId!);
-    }
 
     setState(() {
       _callState = CallState.connecting;
@@ -359,6 +368,29 @@ class _CallScreenState extends State<CallScreen> with WidgetsBindingObserver {
     });
   }
 
+  void _handleCallError(String message) {
+    if (mounted) {
+      setState(() {
+        _callState = CallState.failed;
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(message),
+          backgroundColor: Colors.red,
+          duration: const Duration(seconds: 5),
+        ),
+      );
+
+      // Close call screen after error
+      Future.delayed(const Duration(seconds: 2), () {
+        if (mounted) {
+          Navigator.pop(context);
+        }
+      });
+    }
+  }
+
   void _endCall() {
     setState(() {
       _callState = CallState.ended;
@@ -367,30 +399,12 @@ class _CallScreenState extends State<CallScreen> with WidgetsBindingObserver {
     _callTimer?.cancel();
     _stopScreenRecording();
 
-    // If we have a call ID, end the call through the service
-    if (_callId != null) {
-      _callService.endCall(_callId!);
-    }
-
+    // Close call screen after a short delay
     Future.delayed(const Duration(milliseconds: 500), () {
       if (mounted) {
         Navigator.pop(context);
       }
     });
-  }
-
-  void _rejectCall() {
-    setState(() {
-      _callState = CallState.ended;
-    });
-
-    // If this is an incoming call, notify the call service
-    if (!widget.isOutgoing && _callId != null) {
-      _callService.rejectCall(_callId!);
-    }
-
-    // Close call screen
-    Navigator.pop(context);
   }
 
   void _toggleMute() {
@@ -827,7 +841,7 @@ class _CallScreenState extends State<CallScreen> with WidgetsBindingObserver {
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
                               ElevatedButton(
-                                onPressed: _rejectCall,
+                                onPressed: _endCall,
                                 style: ElevatedButton.styleFrom(
                                   backgroundColor: Colors.red,
                                   padding: const EdgeInsets.all(16),

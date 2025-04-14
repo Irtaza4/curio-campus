@@ -12,7 +12,6 @@ import 'package:curio_campus/providers/project_provider.dart';
 import 'package:curio_campus/utils/image_utils.dart';
 import 'package:curio_campus/screens/chat/call_screen.dart';
 import 'package:curio_campus/screens/chat/image_viewer_screen.dart';
-import 'package:curio_campus/services/call_service.dart';
 
 import '../../utils/app_theme.dart';
 import '../../widgets/audio_player.dart';
@@ -43,13 +42,10 @@ class _ChatScreenState extends State<ChatScreen> {
   String? _otherUserProfileImage;
   bool _isDeleting = false;
   Map<String, bool> _deletingMessages = {};
-  final CallService _callService = CallService();
 
   @override
   void initState() {
     super.initState();
-    // Initialize call service
-    _callService.initialize();
     // Use Future.microtask to schedule the fetch after the build is complete
     Future.microtask(() => _fetchMessages());
   }
@@ -176,42 +172,22 @@ class _ChatScreenState extends State<ChatScreen> {
     _scrollToBottom();
   }
 
-  void _initiateCall(bool isVideoCall) async {
+  void _initiateCall(bool isVideoCall) {
     if (_otherUserId == null) return;
 
-    try {
-      // Make call through call service
-      final callId = await _callService.makeCall(
-        receiverId: _otherUserId!,
-        receiverName: _senderName.isNotEmpty ? _senderName : widget.chatName,
-        receiverProfileImage: _otherUserProfileImage,
-        isVideoCall: isVideoCall,
-        context: context,
-      );
-
-      // Navigate to call screen
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (_) => CallScreen(
-            userId: _otherUserId!,
-            userName: _senderName.isNotEmpty ? _senderName : widget.chatName,
-            callType: isVideoCall ? CallType.video : CallType.voice,
-            profileImageBase64: _otherUserProfileImage,
-            autoConnect: false,
-            isOutgoing: true,
-            callId: callId,
-          ),
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => CallScreen(
+          userId: _otherUserId!,
+          userName: _senderName.isNotEmpty ? _senderName : widget.chatName,
+          callType: isVideoCall ? CallType.video : CallType.voice,
+          profileImageBase64: _otherUserProfileImage,
+          autoConnect: false, // Set to false to prevent auto-connection
+          isOutgoing: true, // This is an outgoing call
         ),
-      );
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Failed to initiate call: $e'),
-          backgroundColor: Colors.red,
-        ),
-      );
-    }
+      ),
+    );
   }
 
   void _showMoreOptions() {
