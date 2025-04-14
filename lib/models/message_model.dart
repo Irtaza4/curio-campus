@@ -1,4 +1,4 @@
-enum MessageType { text, image, file, system }
+enum MessageType { text, image, file, system, audio, video }
 
 class MessageModel {
   final String id;
@@ -13,6 +13,7 @@ class MessageModel {
   // fileUrl can store either a URL to an image or a base64-encoded string
   final String? fileUrl;
   final String? fileName;
+  final int? duration; // For audio/video duration in seconds
 
   MessageModel({
     required this.id,
@@ -26,6 +27,7 @@ class MessageModel {
     this.isRead = false,
     this.fileUrl,
     this.fileName,
+    this.duration,
   });
 
   factory MessageModel.fromJson(Map<String, dynamic> json) {
@@ -44,6 +46,7 @@ class MessageModel {
       isRead: json['isRead'] as bool? ?? false,
       fileUrl: json['fileUrl'] as String?,
       fileName: json['fileName'] as String?,
+      duration: json['duration'] as int?,
     );
   }
 
@@ -60,6 +63,7 @@ class MessageModel {
       'isRead': isRead,
       'fileUrl': fileUrl,
       'fileName': fileName,
+      'duration': duration,
     };
   }
 }

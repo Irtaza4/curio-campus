@@ -31,6 +31,8 @@ class NotificationService {
       alert: true,
       badge: true,
       sound: true,
+      provisional: false,
+      criticalAlert: true,
     );
 
     debugPrint('User granted permission: ${settings.authorizationStatus}');
@@ -44,6 +46,9 @@ class NotificationService {
       requestAlertPermission: true,
       requestBadgePermission: true,
       requestSoundPermission: true,
+      defaultPresentAlert: true,
+      defaultPresentBadge: true,
+      defaultPresentSound: true,
     );
 
     const InitializationSettings initializationSettings = InitializationSettings(
@@ -58,6 +63,9 @@ class NotificationService {
         _handleNotificationClick(response.payload);
       },
     );
+
+    // Create notification channels for Android
+    await _createNotificationChannels();
 
     // Get FCM token
     String? token = await _firebaseMessaging.getToken();
@@ -78,22 +86,17 @@ class NotificationService {
     // Handle notification clicks when app is in background
     FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
       debugPrint('A notification was clicked when the app was in the background!');
-      if (navigatorKey.currentContext != null && message.data['type'] != null) {
-        final notificationProvider = Provider.of<NotificationProvider>(
-          navigatorKey.currentContext!,
-          listen: false,
-        );
-
-        // Add notification with named parameters
-        notificationProvider.addNotification(
-          title: message.notification?.title ?? 'New Notification',
-          message: message.notification?.body ?? '',
-          type: _parseNotificationType(message.data['type'] as String? ?? 'system'),
-          relatedId: message.data['relatedId'] as String?,
-          additionalData: message.data,
-        );
-      }
+      _handleNotificationTap(message);
     });
+
+    // Set up background message handler
+    FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
+
+    // Handle when user taps on notification from terminated state
+    final initialMessage = await FirebaseMessaging.instance.getInitialMessage();
+    if (initialMessage != null) {
+      _handleNotificationTap(initialMessage);
+    }
 
     // Get FCM token and save it
     await _updateFCMToken();
@@ -785,6 +788,23 @@ class NotificationService {
   Future<void> unsubscribeFromTopic(String topic) async {
     await _firebaseMessaging.unsubscribeFromTopic(topic);
   }
+
+  Future<void> registerForBackgroundNotifications() async {
+    // Request background notification permissions on iOS
+    await FirebaseMessaging.instance.setForegroundNotificationPresentationOptions(
+      alert: true,
+      badge: true,
+      sound: true,
+    );
+
+    // Enable background notifications
+    await FirebaseMessaging.instance.setAutoInitEnabled(true);
+
+    // Update FCM token
+    await _updateFCMToken();
+
+    debugPrint('Registered for background notifications');
+  }
 }
 
 // Improve the _firebaseMessagingBackgroundHandler function at the bottom of the file
@@ -796,5 +816,26 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
 
   debugPrint('Background message received: ${message.notification?.title}');
 
-  // No need to show a notification as FCM will handle it automatically in the background
+  // Create a local notification to ensure it's displayed
+  final flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
+
+  const AndroidNotificationDetails androidPlatformChannelSpecifics =
+  AndroidNotificationDetails(
+    'high_importance_channel',
+    'High Importance Notifications',
+    channelDescription: 'This channel is used for important notifications.',
+    importance: Importance.max,
+    priority: Priority.high,
+    showWhen: true,
+  );
+
+  const NotificationDetails platformChannelSpecifics =
+  NotificationDetails(android: androidPlatformChannelSpecifics);
+
+  await flutterLocalNotificationsPlugin.show(
+    message.hashCode,
+    message.notification?.title ?? 'New Notification',
+    message.notification?.body ?? '',
+    platformChannelSpecifics,
+  );
 }

@@ -197,6 +197,25 @@ class ProjectProvider with ChangeNotifier {
       return null;
     }
   }
+  Future<List<UserModel>> fetchUsers(List<String> userIds) async {
+    try {
+      List<UserModel> users = [];
+
+      // Fetch each user by ID
+      for (String userId in userIds) {
+        final user = await fetchUserById(userId);
+        if (user != null) {
+          users.add(user);
+        }
+      }
+
+      return users;
+    } catch (e) {
+      _errorMessage = e.toString();
+      notifyListeners();
+      return [];
+    }
+  }
 
   Future<void> fetchProjectDetails(String projectId) async {
     _isLoading = true;

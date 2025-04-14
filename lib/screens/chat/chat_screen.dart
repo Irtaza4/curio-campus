@@ -1,4 +1,4 @@
-import 'dart:convert'; // Add this import for base64 encoding
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:curio_campus/models/message_model.dart';
@@ -6,12 +6,17 @@ import 'package:curio_campus/providers/auth_provider.dart';
 import 'package:curio_campus/providers/chat_provider.dart';
 import 'package:intl/intl.dart';
 import 'package:image_picker/image_picker.dart';
-import 'dart:io'; // Import dart:io
+import 'dart:io';
 import 'package:curio_campus/models/chat_model.dart';
 import 'package:curio_campus/providers/project_provider.dart';
 import 'package:curio_campus/utils/image_utils.dart';
+import 'package:curio_campus/screens/chat/call_screen.dart';
+import 'package:curio_campus/screens/chat/image_viewer_screen.dart';
+import 'package:curio_campus/services/call_service.dart';
 
 import '../../utils/app_theme.dart';
+import '../../widgets/audio_player.dart';
+import '../../widgets/voice_recorder.dart';
 import 'edit_group_chat_screen.dart';
 
 class ChatScreen extends StatefulWidget {
@@ -32,11 +37,19 @@ class _ChatScreenState extends State<ChatScreen> {
   final TextEditingController _messageController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
   bool _isLoading = false;
-  String _senderName = ""; // Store the sender's name
+  String _senderName = "";
+  bool _isRecording = false;
+  String? _otherUserId;
+  String? _otherUserProfileImage;
+  bool _isDeleting = false;
+  Map<String, bool> _deletingMessages = {};
+  final CallService _callService = CallService();
 
   @override
   void initState() {
     super.initState();
+    // Initialize call service
+    _callService.initialize();
     // Use Future.microtask to schedule the fetch after the build is complete
     Future.microtask(() => _fetchMessages());
   }
@@ -61,52 +74,55 @@ class _ChatScreenState extends State<ChatScreen> {
 
       // Get the sender's name from the first message
       final messages = Provider.of<ChatProvider>(context, listen: false).messages;
-      if (messages.isNotEmpty) {
-        final currentUserId = Provider.of<AuthProvider>(context, listen: false).firebaseUser?.uid;
+      final currentUserId = Provider.of<AuthProvider>(context, listen: false).firebaseUser?.uid;
 
+      if (messages.isNotEmpty) {
         // Find the first message from the other person
         for (var message in messages) {
           if (message.senderId != currentUserId) {
             setState(() {
               _senderName = message.senderName;
+              _otherUserId = message.senderId;
             });
             break;
           }
         }
+      }
 
-        // If we couldn't find a message from the other person, use the chat name
-        if (_senderName.isEmpty) {
-          // Try to get the other participant's name from the chat
-          final chatProvider = Provider.of<ChatProvider>(context, listen: false);
-          final chat = chatProvider.chats.firstWhere(
-                (c) => c.id == widget.chatId,
-            orElse: () => ChatModel(
-              id: widget.chatId,
-              name: widget.chatName,
-              participants: [],
-              type: ChatType.individual,
-              createdAt: DateTime.now(),
-              lastMessageAt: DateTime.now(),
-            ),
+      // If we couldn't find a message from the other person, use the chat name
+      if (_senderName.isEmpty) {
+        // Try to get the other participant's name from the chat
+        final chatProvider = Provider.of<ChatProvider>(context, listen: false);
+        final chat = chatProvider.chats.firstWhere(
+              (c) => c.id == widget.chatId,
+          orElse: () => ChatModel(
+            id: widget.chatId,
+            name: widget.chatName,
+            participants: [],
+            type: ChatType.individual,
+            createdAt: DateTime.now(),
+            lastMessageAt: DateTime.now(),
+          ),
+        );
+
+        if (chat.type == ChatType.individual && currentUserId != null) {
+          // Get the other participant's ID
+          final otherParticipantId = chat.participants.firstWhere(
+                (id) => id != currentUserId,
+            orElse: () => '',
           );
 
-          if (chat.type == ChatType.individual && currentUserId != null) {
-            // Get the other participant's ID
-            final otherParticipantId = chat.participants.firstWhere(
-                  (id) => id != currentUserId,
-              orElse: () => '',
-            );
+          if (otherParticipantId.isNotEmpty) {
+            // Fetch the user's name
+            final user = await Provider.of<ProjectProvider>(context, listen: false)
+                .fetchUserById(otherParticipantId);
 
-            if (otherParticipantId.isNotEmpty) {
-              // Fetch the user's name
-              final user = await Provider.of<ProjectProvider>(context, listen: false)
-                  .fetchUserById(otherParticipantId);
-
-              if (user != null && mounted) {
-                setState(() {
-                  _senderName = user.name;
-                });
-              }
+            if (user != null && mounted) {
+              setState(() {
+                _senderName = user.name;
+                _otherUserId = otherParticipantId;
+                _otherUserProfileImage = user.profileImageBase64;
+              });
             }
           }
         }
@@ -160,6 +176,44 @@ class _ChatScreenState extends State<ChatScreen> {
     _scrollToBottom();
   }
 
+  void _initiateCall(bool isVideoCall) async {
+    if (_otherUserId == null) return;
+
+    try {
+      // Make call through call service
+      final callId = await _callService.makeCall(
+        receiverId: _otherUserId!,
+        receiverName: _senderName.isNotEmpty ? _senderName : widget.chatName,
+        receiverProfileImage: _otherUserProfileImage,
+        isVideoCall: isVideoCall,
+        context: context,
+      );
+
+      // Navigate to call screen
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => CallScreen(
+            userId: _otherUserId!,
+            userName: _senderName.isNotEmpty ? _senderName : widget.chatName,
+            callType: isVideoCall ? CallType.video : CallType.voice,
+            profileImageBase64: _otherUserProfileImage,
+            autoConnect: false,
+            isOutgoing: true,
+            callId: callId,
+          ),
+        ),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Failed to initiate call: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
+
   void _showMoreOptions() {
     final theme = Theme.of(context);
     final isDarkMode = theme.brightness == Brightness.dark;
@@ -175,6 +229,31 @@ class _ChatScreenState extends State<ChatScreen> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
+              ListTile(
+                leading: Icon(Icons.call, color: AppTheme.primaryColor),
+                title: Text('Voice Call',
+                  style: TextStyle(
+                    color: isDarkMode ? AppTheme.darkTextColor : AppTheme.textColor,
+                  ),
+                ),
+                onTap: () {
+                  Navigator.pop(context);
+                  _initiateCall(false);
+                },
+              ),
+              ListTile(
+                leading: Icon(Icons.videocam, color: AppTheme.primaryColor),
+                title: Text('Video Call',
+                  style: TextStyle(
+                    color: isDarkMode ? AppTheme.darkTextColor : AppTheme.textColor,
+                  ),
+                ),
+                onTap: () {
+                  Navigator.pop(context);
+                  _initiateCall(true);
+                },
+              ),
+              const Divider(),
               ListTile(
                 leading: const Icon(Icons.logout, color: Colors.red),
                 title: const Text('Logout', style: TextStyle(color: Colors.red)),
@@ -295,6 +374,98 @@ class _ChatScreenState extends State<ChatScreen> {
     }
   }
 
+  void _toggleVoiceRecording() {
+    setState(() {
+      _isRecording = !_isRecording;
+    });
+  }
+
+  void _handleVoiceRecordingComplete(String audioBase64, int duration) {
+    setState(() {
+      _isRecording = false;
+    });
+
+    // Send the voice message
+    Provider.of<ChatProvider>(context, listen: false).sendVoiceMessage(
+      chatId: widget.chatId,
+      audioBase64: audioBase64,
+      duration: duration,
+      context: context,
+    );
+
+    // Scroll to bottom after sending a voice message
+    _scrollToBottom();
+  }
+
+  void _handleVoiceRecordingCancel() {
+    setState(() {
+      _isRecording = false;
+    });
+  }
+
+  Future<void> _deleteMessage(String messageId) async {
+    // Check if this message is already being deleted
+    if (_deletingMessages[messageId] == true) return;
+
+    // Mark this message as being deleted
+    setState(() {
+      _deletingMessages[messageId] = true;
+    });
+
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Delete Message'),
+        content: const Text('Are you sure you want to delete this message?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Delete', style: TextStyle(color: Colors.red)),
+          ),
+        ],
+      ),
+    );
+
+    if (confirm == true) {
+      try {
+        await Provider.of<ChatProvider>(context, listen: false)
+            .deleteMessage(widget.chatId, messageId);
+
+        // Refresh the messages list to ensure UI is updated
+        await _fetchMessages();
+
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Message deleted'),
+              duration: Duration(seconds: 2),
+            ),
+          );
+        }
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Failed to delete message: $e'),
+              backgroundColor: Colors.red,
+              duration: const Duration(seconds: 3),
+            ),
+          );
+        }
+      }
+    }
+
+    if (mounted) {
+      setState(() {
+        _deletingMessages.remove(messageId);
+      });
+    }
+  }
+
   // Add this method to your _ChatScreenState class
   void _navigateToEditGroupChat(ChatModel chat) async {
     if (chat.type != ChatType.group) return;
@@ -346,15 +517,32 @@ class _ChatScreenState extends State<ChatScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          _senderName.isNotEmpty ? ' ${widget.chatName} ' : widget.chatName,
+          _senderName.isNotEmpty ? _senderName : widget.chatName,
         ),
         actions: [
+          // Call button
+          if (currentChat.type == ChatType.individual)
+            IconButton(
+              icon: const Icon(Icons.call),
+              onPressed: () => _initiateCall(false),
+            ),
+          // Video call button
+          if (currentChat.type == ChatType.individual)
+            IconButton(
+              icon: const Icon(Icons.videocam),
+              onPressed: () => _initiateCall(true),
+            ),
           // Only show edit button for group chats
           if (currentChat.type == ChatType.group)
             IconButton(
               icon: const Icon(Icons.edit),
               onPressed: () => _navigateToEditGroupChat(currentChat),
             ),
+          // More options
+          IconButton(
+            icon: const Icon(Icons.more_vert),
+            onPressed: _showMoreOptions,
+          ),
         ],
       ),
 
@@ -391,66 +579,84 @@ class _ChatScreenState extends State<ChatScreen> {
             ),
           ),
 
+          // Voice recorder (when active)
+          if (_isRecording)
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              child: VoiceRecorder(
+                onStop: _handleVoiceRecordingComplete,
+                onCancel: _handleVoiceRecordingCancel,
+              ),
+            ),
+
           // Message input
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-            decoration: BoxDecoration(
-              color: isDarkMode ? AppTheme.darkSurfaceColor : Colors.white,
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.grey.withOpacity(0.2),
-                  spreadRadius: 1,
-                  blurRadius: 3,
-                  offset: const Offset(0, -1),
-                ),
-              ],
-            ),
-            child: Row(
-              children: [
-                IconButton(
-                  icon: Icon(
-                    Icons.image,
-                    color: AppTheme.primaryColor,
+          if (!_isRecording)
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+              decoration: BoxDecoration(
+                color: isDarkMode ? AppTheme.darkSurfaceColor : Colors.white,
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.grey.withOpacity(0.2),
+                    spreadRadius: 1,
+                    blurRadius: 3,
+                    offset: const Offset(0, -1),
                   ),
-                  onPressed: _pickAndSendImage,
-                ),
-                Expanded(
-                  child: TextField(
-                    controller: _messageController,
-                    decoration: InputDecoration(
-                      hintText: 'Write your message here',
-                      hintStyle: TextStyle(
-                        color: isDarkMode ? AppTheme.darkDarkGrayColor : Colors.grey[600],
-                      ),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(24),
-                        borderSide: BorderSide.none,
-                      ),
-                      filled: true,
-                      fillColor: isDarkMode ? AppTheme.darkInputBackgroundColor : Colors.grey[100],
-                      contentPadding: const EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 8,
-                      ),
+                ],
+              ),
+              child: Row(
+                children: [
+                  IconButton(
+                    icon: Icon(
+                      Icons.image,
+                      color: AppTheme.primaryColor,
                     ),
-                    style: TextStyle(
-                      color: isDarkMode ? AppTheme.darkInputTextColor : AppTheme.textColor,
+                    onPressed: _pickAndSendImage,
+                  ),
+                  IconButton(
+                    icon: Icon(
+                      Icons.mic,
+                      color: AppTheme.primaryColor,
                     ),
-                    textInputAction: TextInputAction.send,
-                    onSubmitted: (_) => _sendMessage(),
+                    onPressed: _toggleVoiceRecording,
                   ),
-                ),
-                const SizedBox(width: 8),
-                IconButton(
-                  icon: Icon(
-                    Icons.send,
-                    color: AppTheme.primaryColor,
+                  Expanded(
+                    child: TextField(
+                      controller: _messageController,
+                      decoration: InputDecoration(
+                        hintText: 'Write your message here',
+                        hintStyle: TextStyle(
+                          color: isDarkMode ? AppTheme.darkDarkGrayColor : Colors.grey[600],
+                        ),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(24),
+                          borderSide: BorderSide.none,
+                        ),
+                        filled: true,
+                        fillColor: isDarkMode ? AppTheme.darkInputBackgroundColor : Colors.grey[100],
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 8,
+                        ),
+                      ),
+                      style: TextStyle(
+                        color: isDarkMode ? AppTheme.darkInputTextColor : AppTheme.textColor,
+                      ),
+                      textInputAction: TextInputAction.send,
+                      onSubmitted: (_) => _sendMessage(),
+                    ),
                   ),
-                  onPressed: _sendMessage,
-                ),
-              ],
+                  const SizedBox(width: 8),
+                  IconButton(
+                    icon: Icon(
+                      Icons.send,
+                      color: AppTheme.primaryColor,
+                    ),
+                    onPressed: _sendMessage,
+                  ),
+                ],
+              ),
             ),
-          ),
         ],
       ),
     );
@@ -462,6 +668,7 @@ class _ChatScreenState extends State<ChatScreen> {
   }) {
     final theme = Theme.of(context);
     final isDarkMode = theme.brightness == Brightness.dark;
+    final isBeingDeleted = _deletingMessages[message.id] == true;
 
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4),
@@ -474,22 +681,12 @@ class _ChatScreenState extends State<ChatScreen> {
             CircleAvatar(
               radius: 16,
               backgroundColor: AppTheme.primaryColor,
-              backgroundImage: message.senderAvatar != null
-                  ? NetworkImage(message.senderAvatar!)
-                  : null,
-              onBackgroundImageError: message.senderAvatar != null
-                  ? (exception, stackTrace) {
-                // Handle image loading error silently
-              }
-                  : null,
-              child: message.senderAvatar == null
-                  ? Text(
+              child: Text(
                 message.senderName.isNotEmpty
                     ? message.senderName[0].toUpperCase()
                     : '?',
                 style: const TextStyle(color: Colors.white),
-              )
-                  : null,
+              ),
             ),
             const SizedBox(width: 8),
           ],
@@ -509,97 +706,52 @@ class _ChatScreenState extends State<ChatScreen> {
                       ),
                     ),
                   ),
-                Container(
-                  padding: message.type == MessageType.image
-                      ? const EdgeInsets.all(2)
-                      : const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 10,
-                  ),
-                  decoration: BoxDecoration(
-                    color: isCurrentUser
-                        ? (isDarkMode ? AppTheme.darkOutgoingMessageBubbleColor : AppTheme.primaryColor)
-                        : (isDarkMode ? AppTheme.darkMessageBubbleColor : Colors.grey[200]),
-                    borderRadius: BorderRadius.circular(16),
-                    border: isDarkMode && !isCurrentUser
-                        ? Border.all(color: AppTheme.darkMediumGrayColor, width: 1)
-                        : null,
-                  ),
-                  child: message.type == MessageType.image
-                      ? ClipRRect(
-                    borderRadius: BorderRadius.circular(14),
-                    child: message.fileUrl != null && message.fileUrl!.startsWith('http')
-                    // Handle existing URL-based images
-                        ? Image.network(
-                      message.fileUrl!,
-                      width: 200,
-                      height: 200,
-                      fit: BoxFit.cover,
-                      loadingBuilder: (context, child, loadingProgress) {
-                        if (loadingProgress == null) return child;
-                        return SizedBox(
-                          width: 200,
-                          height: 200,
-                          child: Center(
-                            child: CircularProgressIndicator(
-                              value: loadingProgress.expectedTotalBytes != null
-                                  ? loadingProgress.cumulativeBytesLoaded /
-                                  loadingProgress.expectedTotalBytes!
-                                  : null,
-                            ),
-                          ),
-                        );
-                      },
-                      errorBuilder: (context, error, stackTrace) {
-                        // Local placeholder instead of network image
-                        return ImageUtils.getPlaceholderImage(
-                          width: 200,
-                          height: 200,
-                        );
-                      },
-                    )
-                    // Handle base64 images
-                        : message.fileUrl != null && message.fileUrl!.isNotEmpty
-                        ? Image.memory(
-                      base64Decode(message.fileUrl!),
-                      width: 200,
-                      height: 200,
-                      fit: BoxFit.cover,
-                      errorBuilder: (context, error, stackTrace) {
-                        return Container(
-                          width: 200,
-                          height: 200,
-                          color: isDarkMode ? AppTheme.darkLightGrayColor : Colors.grey[300],
-                          child: Center(
-                            child: Icon(
-                              Icons.broken_image,
-                              color: isDarkMode ? AppTheme.darkDarkGrayColor : Colors.grey,
-                              size: 48,
-                            ),
-                          ),
-                        );
-                      },
-                    )
-                        : Container(
-                      width: 200,
-                      height: 200,
-                      color: isDarkMode ? AppTheme.darkLightGrayColor : Colors.grey[300],
-                      child: Center(
-                        child: Icon(
-                          Icons.image,
-                          color: isDarkMode ? AppTheme.darkDarkGrayColor : Colors.grey,
-                          size: 48,
-                        ),
-                      ),
+                GestureDetector(
+                  onLongPress: isCurrentUser && !isBeingDeleted ? () => _deleteMessage(message.id) : null,
+                  child: Container(
+                    padding: message.type == MessageType.image
+                        ? const EdgeInsets.all(2)
+                        : const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 10,
                     ),
-                  )
-                      : Text(
-                    message.content,
-                    style: TextStyle(
+                    decoration: BoxDecoration(
                       color: isCurrentUser
-                          ? Colors.white
-                          : (isDarkMode ? AppTheme.darkMessageTextColor : Colors.black87),
+                          ? (isDarkMode ? AppTheme.darkOutgoingMessageBubbleColor : AppTheme.primaryColor)
+                          : (isDarkMode ? AppTheme.darkMessageBubbleColor : Colors.grey[200]),
+                      borderRadius: BorderRadius.circular(16),
+                      border: isDarkMode && !isCurrentUser
+                          ? Border.all(color: AppTheme.darkMediumGrayColor, width: 1)
+                          : null,
                     ),
+                    child: isBeingDeleted
+                        ? SizedBox(
+                      width: 100,
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          SizedBox(
+                            width: 16,
+                            height: 16,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              valueColor: AlwaysStoppedAnimation<Color>(
+                                isCurrentUser ? Colors.white : AppTheme.primaryColor,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Text(
+                            'Deleting...',
+                            style: TextStyle(
+                              color: isCurrentUser ? Colors.white : Colors.grey[600],
+                              fontSize: 12,
+                            ),
+                          ),
+                        ],
+                      ),
+                    )
+                        : _buildMessageContent(message, isCurrentUser, isDarkMode),
                   ),
                 ),
                 Padding(
@@ -619,6 +771,165 @@ class _ChatScreenState extends State<ChatScreen> {
         ],
       ),
     );
+  }
+
+  Widget _buildMessageContent(MessageModel message, bool isCurrentUser, bool isDarkMode) {
+    switch (message.type) {
+      case MessageType.image:
+        return ClipRRect(
+          borderRadius: BorderRadius.circular(14),
+          child: GestureDetector(
+            onTap: () {
+              // Open image viewer when tapped
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => ImageViewerScreen(
+                    imageUrl: message.fileUrl != null && message.fileUrl!.startsWith('http')
+                        ? message.fileUrl
+                        : null,
+                    imageBase64: message.fileUrl != null && !message.fileUrl!.startsWith('http')
+                        ? message.fileUrl
+                        : null,
+                    title: 'Image from ${message.senderName}',
+                  ),
+                ),
+              );
+            },
+            child: _buildImageContent(message.fileUrl),
+          ),
+        );
+      case MessageType.audio:
+        return AudioMessagePlayer(
+          audioBase64: message.fileUrl ?? '',
+          duration: message.duration,
+        );
+      case MessageType.video:
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Icon(
+              Icons.video_library,
+              color: isCurrentUser ? Colors.white70 : Colors.black54,
+              size: 24,
+            ),
+            const SizedBox(height: 4),
+            Text(
+              'Video message',
+              style: TextStyle(
+                color: isCurrentUser
+                    ? Colors.white
+                    : (isDarkMode ? AppTheme.darkMessageTextColor : Colors.black87),
+              ),
+            ),
+          ],
+        );
+      case MessageType.file:
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Icon(
+              Icons.insert_drive_file,
+              color: isCurrentUser ? Colors.white70 : Colors.black54,
+              size: 24,
+            ),
+            const SizedBox(height: 4),
+            Text(
+              message.fileName ?? 'File',
+              style: TextStyle(
+                color: isCurrentUser
+                    ? Colors.white
+                    : (isDarkMode ? AppTheme.darkMessageTextColor : Colors.black87),
+              ),
+            ),
+          ],
+        );
+      case MessageType.system:
+        return Text(
+          message.content,
+          style: TextStyle(
+            color: isCurrentUser
+                ? Colors.white70
+                : (isDarkMode ? AppTheme.darkMessageTextColor.withOpacity(0.7) : Colors.black54),
+            fontStyle: FontStyle.italic,
+          ),
+          textAlign: TextAlign.center,
+        );
+      default:
+        return Text(
+          message.content,
+          style: TextStyle(
+            color: isCurrentUser
+                ? Colors.white
+                : (isDarkMode ? AppTheme.darkMessageTextColor : Colors.black87),
+          ),
+        );
+    }
+  }
+
+  Widget _buildImageContent(String? imageData) {
+    if (imageData == null || imageData.isEmpty) {
+      return Container(
+        width: 200,
+        height: 200,
+        color: Colors.grey[300],
+        child: const Icon(
+          Icons.broken_image,
+          color: Colors.grey,
+          size: 50,
+        ),
+      );
+    }
+
+    try {
+      // Try to decode the base64 string using our improved utility
+      final bytes = ImageUtils.safelyDecodeBase64(imageData);
+
+      if (bytes == null) {
+        return Container(
+          width: 200,
+          height: 200,
+          color: Colors.grey[300],
+          child: const Icon(
+            Icons.broken_image,
+            color: Colors.grey,
+            size: 50,
+          ),
+        );
+      }
+
+      return Image.memory(
+        bytes,
+        width: 200,
+        height: 200,
+        fit: BoxFit.cover,
+        errorBuilder: (context, error, stackTrace) {
+          debugPrint('Error rendering image: $error');
+          return Container(
+            width: 200,
+            height: 200,
+            color: Colors.grey[300],
+            child: const Icon(
+              Icons.broken_image,
+              color: Colors.grey,
+              size: 50,
+            ),
+          );
+        },
+      );
+    } catch (e) {
+      debugPrint('Error decoding image: $e');
+      return Container(
+        width: 200,
+        height: 200,
+        color: Colors.grey[300],
+        child: const Icon(
+          Icons.broken_image,
+          color: Colors.grey,
+          size: 50,
+        ),
+      );
+    }
   }
 
   String _formatMessageTime(DateTime timestamp) {

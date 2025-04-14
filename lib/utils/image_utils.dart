@@ -1,30 +1,59 @@
 import 'dart:convert';
 import 'dart:typed_data';
+import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 class ImageUtils {
-  // Safely decode base64 string
+  // Safely decode base64 string with proper padding and format handling
   static Uint8List? safelyDecodeBase64(String? base64String) {
-    if (base64String == null || base64String.isEmpty) {
+    if (base64String == null || base64String.trim().isEmpty) {
       return null;
     }
 
     try {
-      // Remove any potential data URL prefix
-      String sanitizedString = base64String;
-      if (base64String.contains(',')) {
-        sanitizedString = base64String.split(',').last;
+      String sanitized = base64String
+          .replaceAll('\n', '')
+          .replaceAll('\r', '')
+          .replaceAll(' ', '')
+          .replaceAll(RegExp(r'data:image/[^;]+;base64,'), '');
+
+      while (sanitized.length % 4 != 0) {
+        sanitized += '=';
       }
 
-      // Try to decode
-      return base64Decode(sanitizedString);
+      final decoded = base64Decode(sanitized);
+
+      // Optional: Basic validation of image signature
+      if (!_isLikelyImage(decoded)) {
+        debugPrint('Decoded bytes are not likely a valid image');
+        return null;
+      }
+
+      return decoded;
     } catch (e) {
-      debugPrint('Error decoding base64 image: $e');
+      debugPrint('Base64 decode error: $e');
       return null;
     }
   }
 
-  // Get a placeholder for group avatars
+  static bool _isLikelyImage(Uint8List data) {
+    if (data.length < 4) return false;
+
+    // JPEG check (starts with 0xFFD8)
+    if (data[0] == 0xFF && data[1] == 0xD8) return true;
+
+    // PNG check (starts with 0x89504E47)
+    if (data[0] == 0x89 && data[1] == 0x50 && data[2] == 0x4E && data[3] == 0x47) return true;
+
+    return false;
+  }
+
+  static bool isValidBase64(String? base64String) {
+    return base64String != null && base64String.trim().length > 20;
+  }
+
   static Widget getGroupPlaceholder({
     double size = 40,
     Color backgroundColor = Colors.teal,
@@ -41,7 +70,6 @@ class ImageUtils {
     );
   }
 
-  // Get a placeholder for user avatars
   static Widget getUserPlaceholder({
     double size = 40,
     Color backgroundColor = Colors.teal,
@@ -62,7 +90,6 @@ class ImageUtils {
     );
   }
 
-  // Safely load a base64 image with fallback
   static Widget loadBase64Image({
     required String? base64String,
     required double width,
@@ -70,36 +97,58 @@ class ImageUtils {
     BoxFit fit = BoxFit.cover,
     Widget? placeholder,
     bool isCircular = false,
+    VoidCallback? onTap,
   }) {
-    if (base64String == null || base64String.isEmpty) {
-      return placeholder ?? Container(width: width, height: height);
+    Widget defaultPlaceholder = placeholder ??
+        Container(
+          width: width,
+          height: height,
+          color: Colors.grey[300],
+          child: Icon(
+            Icons.image,
+            color: Colors.grey[600],
+            size: width / 2,
+          ),
+        );
+
+    if (!isValidBase64(base64String)) {
+      return isCircular
+          ? ClipOval(child: SizedBox(width: width, height: height, child: defaultPlaceholder))
+          : defaultPlaceholder;
     }
 
     try {
       final imageData = safelyDecodeBase64(base64String);
-
-      if (imageData == null) {
-        return placeholder ?? Container(width: width, height: height);
+      if (imageData == null || imageData.isEmpty) {
+        return isCircular
+            ? ClipOval(child: SizedBox(width: width, height: height, child: defaultPlaceholder))
+            : defaultPlaceholder;
       }
 
-      final imageWidget = Image.memory(
+      Widget imageWidget = Image.memory(
         imageData,
         width: width,
         height: height,
         fit: fit,
         errorBuilder: (context, error, stackTrace) {
-          return placeholder ?? Container(width: width, height: height);
+          debugPrint('Image.memory failed: $error');
+          return defaultPlaceholder;
         },
       );
 
-      if (isCircular) {
-        return ClipOval(child: imageWidget);
+      if (onTap != null) {
+        imageWidget = GestureDetector(
+          onTap: onTap,
+          child: imageWidget,
+        );
       }
 
-      return imageWidget;
+      return isCircular ? ClipOval(child: imageWidget) : imageWidget;
     } catch (e) {
-      debugPrint('Error loading base64 image: $e');
-      return placeholder ?? Container(width: width, height: height);
+      debugPrint('Error displaying base64 image: $e');
+      return isCircular
+          ? ClipOval(child: SizedBox(width: width, height: height, child: defaultPlaceholder))
+          : defaultPlaceholder;
     }
   }
 
@@ -122,5 +171,31 @@ class ImageUtils {
         ),
       ),
     );
+  }
+
+  static Future<String?> saveImageToDevice(String? base64String, String fileName) async {
+    try {
+      if (!isValidBase64(base64String)) return null;
+
+      final status = await Permission.storage.request();
+      if (!status.isGranted) return null;
+
+      final imageData = safelyDecodeBase64(base64String);
+      if (imageData == null) return null;
+
+      final directory = await getExternalStorageDirectory();
+      if (directory == null) return null;
+
+      final timestamp = DateTime.now().millisecondsSinceEpoch;
+      final path = '${directory.path}/$fileName-$timestamp.jpg';
+
+      final file = File(path);
+      await file.writeAsBytes(imageData);
+
+      return path;
+    } catch (e) {
+      debugPrint('Error saving image: $e');
+      return null;
+    }
   }
 }
