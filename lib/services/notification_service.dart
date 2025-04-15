@@ -18,6 +18,7 @@ import 'package:curio_campus/screens/project/project_detail_screen.dart';
 import 'package:curio_campus/providers/notification_provider.dart';
 import 'package:curio_campus/utils/navigator_key.dart';
 import 'package:curio_campus/services/call_service.dart';
+import 'dart:async';
 
 class NotificationService {
   static final NotificationService _instance = NotificationService._internal();
@@ -28,8 +29,17 @@ class NotificationService {
   final FlutterLocalNotificationsPlugin _flutterLocalNotificationsPlugin =
   FlutterLocalNotificationsPlugin();
 
+  // Track if we've already initialized
+  bool _isInitialized = false;
+
   // Initialize notification channels and request permissions
   Future<void> initialize() async {
+    // Prevent duplicate initialization
+    if (_isInitialized) {
+      debugPrint('NotificationService already initialized');
+      return;
+    }
+
     // Request permission for iOS
     NotificationSettings settings = await _firebaseMessaging.requestPermission(
       alert: true,
@@ -104,6 +114,18 @@ class NotificationService {
 
     // Get FCM token and save it
     await _updateFCMToken();
+
+    // Start periodic updates
+    await startPeriodicUpdates();
+
+    _isInitialized = true;
+  }
+
+  // Add a public method to update FCM token that can be called from main.dart
+  // Add this method after the initialize() method
+
+  Future<void> updateFCMToken() async {
+    return _updateFCMToken();
   }
 
   // Add this method after the initialize() method:
@@ -197,7 +219,8 @@ class NotificationService {
       'Call Notifications',
       description: 'Notifications for incoming calls',
       importance: Importance.max,
-      sound: const RawResourceAndroidNotificationSound('ringtone'),
+      // Use default sound instead of custom ringtone
+      // sound: const RawResourceAndroidNotificationSound('ringtone'),
       playSound: true,
       enableVibration: true,
       vibrationPattern: vibrationPattern,
@@ -216,34 +239,79 @@ class NotificationService {
 
   // Update FCM token and save to Firestore
   Future<void> _updateFCMToken() async {
-    final token = await _firebaseMessaging.getToken();
-    if (token != null) {
-      debugPrint('FCM Token: $token');
+    try {
+      final token = await _firebaseMessaging.getToken();
+      if (token != null) {
+        debugPrint('FCM Token: $token');
 
-      // Save token to shared preferences
-      final prefs = await SharedPreferences.getInstance();
-      prefs.setString('fcm_token', token);
+        // Save token to shared preferences
+        final prefs = await SharedPreferences.getInstance();
+        final oldToken = prefs.getString('fcm_token');
 
-      // Save token to Firestore if user is logged in
-      final userId = prefs.getString(Constants.userIdKey);
-      if (userId != null) {
-        await _saveTokenToFirestore(userId, token);
+        // Only update if token has changed
+        if (oldToken != token) {
+          prefs.setString('fcm_token', token);
+
+          // Save token to Firestore if user is logged in
+          final userId = prefs.getString(Constants.userIdKey);
+          if (userId != null) {
+            await _saveTokenToFirestore(userId, token);
+          }
+        }
+      } else {
+        debugPrint('Failed to get FCM token');
+
+        // Request permission again if token is null
+        await _firebaseMessaging.requestPermission(
+          alert: true,
+          badge: true,
+          sound: true,
+          provisional: false,
+          criticalAlert: true,
+        );
       }
+    } catch (e) {
+      debugPrint('Error updating FCM token: $e');
     }
   }
 
   // Save FCM token to Firestore
   Future<void> _saveTokenToFirestore(String userId, String token) async {
     try {
-      await FirebaseFirestore.instance
+      // First check if the user document exists
+      final userDoc = await FirebaseFirestore.instance
           .collection(Constants.usersCollection)
           .doc(userId)
-          .update({
-        'fcmToken': token,
-        'lastTokenUpdate': DateTime.now().toIso8601String(),
-      });
+          .get();
+
+      if (userDoc.exists) {
+        // Update existing document
+        await FirebaseFirestore.instance
+            .collection(Constants.usersCollection)
+            .doc(userId)
+            .update({
+          'fcmToken': token,
+          'lastTokenUpdate': DateTime.now().toIso8601String(),
+          'lastSeen': FieldValue.serverTimestamp(),
+        });
+
+        debugPrint('FCM token updated in Firestore for user $userId');
+      } else {
+        // Create new document if it doesn't exist
+        await FirebaseFirestore.instance
+            .collection(Constants.usersCollection)
+            .doc(userId)
+            .set({
+          'fcmToken': token,
+          'lastTokenUpdate': DateTime.now().toIso8601String(),
+          'lastSeen': FieldValue.serverTimestamp(),
+          'userId': userId,
+        }, SetOptions(merge: true));
+
+        debugPrint('New user document created with FCM token for user $userId');
+      }
     } catch (e) {
-      debugPrint('Error saving FCM token: $e');
+      debugPrint('Error saving FCM token to Firestore: $e');
     }
   }
 
@@ -398,7 +466,6 @@ class NotificationService {
       case 'chat':
         return Colors.green;
       case 'call':
-
         return Colors.purple;
       default:
         return Colors.teal;
@@ -511,7 +578,42 @@ class NotificationService {
     debugPrint('Local notification payload: $payload');
 
     try {
-      // Try to parse the payload as a map
+      // Check if this is a call payload with the format "call:callId"
+      if (payload.startsWith('call:')) {
+        final callId = payload.substring(5); // Extract callId after "call:"
+        debugPrint('Extracted call ID: $callId');
+
+        // Get call details from Firestore
+        FirebaseFirestore.instance
+            .collection('calls')
+            .doc(callId)
+            .get()
+            .then((snapshot) {
+          if (snapshot.exists) {
+            final data = snapshot.data() as Map<String, dynamic>;
+            final callerId = data['callerId'] as String?;
+            final callerName = data['callerName'] as String?;
+            final isVideoCall = data['callType'] == 'video';
+            final callerImage = data['callerImage'] as String?;
+
+            if (callerId != null) {
+              final callService = CallService();
+              callService.handleIncomingCallFromNotification(
+                callId: callId,
+                callerId: callerId,
+                callerName: callerName ?? 'Unknown',
+                isVideoCall: isVideoCall,
+                callerProfileImage: callerImage,
+              );
+            }
+          }
+        }).catchError((e) {
+          debugPrint('Error fetching call details: $e');
+        });
+        return;
+      }
+
+      // Try to parse the payload as a map for other notification types
       final payloadMap = Map<String, dynamic>.from(
           json.decode(payload.replaceAll('{', '{"').replaceAll(': ', '": "').replaceAll(', ', '", "').replaceAll('}', '"}'))
       );
@@ -519,24 +621,7 @@ class NotificationService {
       // Handle based on notification type
       final type = payloadMap['type'];
 
-      if (type == 'call') {
-        final callId = payloadMap['callId'];
-        final callerId = payloadMap['callerId'];
-        final callerName = payloadMap['callerName'];
-        final isVideoCall = payloadMap['callType'] == 'video';
-        final callerImage = payloadMap['callerImage'];
-
-        if (callId != null && callerId != null) {
-          final callService = CallService();
-          callService.handleIncomingCallFromNotification(
-            callId: callId,
-            callerId: callerId,
-            callerName: callerName ?? 'Unknown',
-            isVideoCall: isVideoCall,
-            callerProfileImage: callerImage,
-          );
-        }
-      } else if (type == 'chat' && payloadMap['chatId'] != null) {
+      if (type == 'chat' && payloadMap['chatId'] != null) {
         if (navigatorKey.currentContext != null) {
           Navigator.push(
             navigatorKey.currentContext!,
@@ -944,6 +1029,36 @@ class NotificationService {
 
     debugPrint('Registered for background notifications');
   }
+
+  // Start periodic token refresh and online status update
+  Future<void> startPeriodicUpdates() async {
+    // Update FCM token and online status every 30 minutes
+    Timer.periodic(const Duration(minutes: 30), (timer) async {
+      final prefs = await SharedPreferences.getInstance();
+      final userId = prefs.getString(Constants.userIdKey);
+
+      if (userId != null) {
+        // Update FCM token
+        await _updateFCMToken();
+
+        // Update online status
+        try {
+          await FirebaseFirestore.instance
+              .collection(Constants.usersCollection)
+              .doc(userId)
+              .update({
+            'lastSeen': FieldValue.serverTimestamp(),
+            'isOnline': true,
+          });
+        } catch (e) {
+          debugPrint('Error updating online status: $e');
+        }
+      } else {
+        // User is not logged in, cancel the timer
+        timer.cancel();
+      }
+    });
+  }
 }
 
 // Background message handler (must be a top-level function)
@@ -971,33 +1086,47 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   NotificationDetails(android: androidPlatformChannelSpecifics);
 
   await flutterLocalNotificationsPlugin.show(
-    message.hashCode,
+    message.hashCode % 100000, // Ensure ID is within 32-bit integer range
     message.notification?.title ?? 'New Notification',
     message.notification?.body ?? '',
     platformChannelSpecifics,
   );
 
-  Future<void> handleBackgroundMessage(RemoteMessage message) async {
-    final notification = message.notification;
-    final android = message.notification?.android;
+  // Special handling for call notifications
+  if (message.data['type'] == 'call') {
+    final callId = message.data['callId'] ?? '0';
+    final callerName = message.data['callerName'] ?? 'Unknown';
+    final callType = message.data['callType'] ?? 'voice';
 
-    if (notification != null && android != null) {
-      await flutterLocalNotificationsPlugin.show(
-        notification.hashCode,
-        notification.title,
-        notification.body,
-        NotificationDetails(
-          android: AndroidNotificationDetails(
-            'curio_channel_id',
-            'Curio Notifications',
-            channelDescription: 'Curio background notifications',
-            importance: Importance.max,
-            priority: Priority.high,
-            icon: '@mipmap/ic_launcher',
-          ),
-        ),
-      );
-    }
+    // Show a full-screen call notification
+    final androidCallDetails = AndroidNotificationDetails(
+      'call_channel',
+      'Call Notifications',
+      channelDescription: 'Notifications for incoming calls',
+      importance: Importance.max,
+      priority: Priority.max,
+      fullScreenIntent: true,
+      category: AndroidNotificationCategory.call,
+      // Use default sound instead of custom ringtone
+      // sound: const RawResourceAndroidNotificationSound('ringtone'),
+      playSound: true,
+      enableVibration: true,
+      actions: [
+        const AndroidNotificationAction('answer', 'Answer', showsUserInterface: true),
+        const AndroidNotificationAction('decline', 'Decline', showsUserInterface: true),
+      ],
+    );
+
+    // Convert the call ID to a valid notification ID (within 32-bit integer range)
+    // Use a hash code and modulo to ensure it's within range
+    final notificationId = callId.hashCode % 100000;
+
+    await flutterLocalNotificationsPlugin.show(
+      notificationId,
+      'Incoming ${callType == 'video' ? 'Video' : 'Voice'} Call',
+      callerName,
+      NotificationDetails(android: androidCallDetails),
+      payload: 'call:$callId',
+    );
   }
-
 }

@@ -24,13 +24,20 @@ class CallService {
   Timer? _callTimeoutTimer;
   bool _isCallActive = false;
 
+  // Track if an incoming call screen is already showing
+  bool _isIncomingCallScreenShowing = false;
+
+  // Track if an outgoing call screen is already showing
+  bool _isOutgoingCallScreenShowing = false;
+
   // Call notification channel
   static final AndroidNotificationChannel _callChannel = AndroidNotificationChannel(
     'call_channel',
     'Call Notifications',
     description: 'Notifications for incoming calls',
     importance: Importance.max,
-    sound: const RawResourceAndroidNotificationSound('ringtone'),
+    // Use default sound instead of custom ringtone
+    // sound: const RawResourceAndroidNotificationSound('ringtone'),
     playSound: true,
     enableVibration: true,
     vibrationPattern: Int64List.fromList([0, 1000, 500, 1000, 500, 1000, 500, 1000]),
@@ -74,6 +81,12 @@ class CallService {
 
   // Handle incoming call notification
   Future<void> _handleIncomingCallNotification(RemoteMessage message) async {
+    // Prevent duplicate call screens
+    if (_isIncomingCallScreenShowing) {
+      debugPrint('Incoming call screen already showing, ignoring duplicate notification');
+      return;
+    }
+
     final callData = message.data;
     final callerId = callData['callerId'];
     final callerName = callData['callerName'];
@@ -99,6 +112,12 @@ class CallService {
     required bool isVideoCall,
     String? callerProfileImage,
   }) async {
+    // Prevent duplicate call screens
+    if (_isIncomingCallScreenShowing) {
+      debugPrint('Incoming call screen already showing, ignoring duplicate notification');
+      return;
+    }
+
     final callIdInt = int.tryParse(callId) ?? 0;
     final callType = isVideoCall ? CallType.video : CallType.voice;
 
@@ -119,67 +138,76 @@ class CallService {
     String? callerImage,
     required CallType callType,
   }) async {
-    // Save call details for when the notification is tapped
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('incoming_call', json.encode({
-      'callId': callId,
-      'callerId': callerId,
-      'callerName': callerName,
-      'callerImage': callerImage,
-      'callType': callType == CallType.video ? 'video' : 'voice',
-      'timestamp': DateTime.now().millisecondsSinceEpoch,
-    }));
+    try {
+      // Save call details for when the notification is tapped
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString('incoming_call', json.encode({
+        'callId': callId,
+        'callerId': callerId,
+        'callerName': callerName,
+        'callerImage': callerImage,
+        'callType': callType == CallType.video ? 'video' : 'voice',
+        'timestamp': DateTime.now().millisecondsSinceEpoch,
+      }));
 
-    // Show a full-screen notification for the call
-    await _flutterLocalNotificationsPlugin.show(
-      callId,
-      'Incoming ${callType == CallType.video ? 'Video' : 'Voice'} Call',
-      callerName,
-      NotificationDetails(
-        android: AndroidNotificationDetails(
-          _callChannel.id,
-          _callChannel.name,
-          channelDescription: _callChannel.description,
-          importance: _callChannel.importance,
-          priority: Priority.max,
-          fullScreenIntent: true,
-          category: AndroidNotificationCategory.call,
-          sound: _callChannel.sound,
-          playSound: _callChannel.playSound,
-          enableVibration: _callChannel.enableVibration,
-          vibrationPattern: _callChannel.vibrationPattern,
-          actions: [
-            const AndroidNotificationAction('answer', 'Answer', showsUserInterface: true),
-            const AndroidNotificationAction('decline', 'Decline', showsUserInterface: true),
-          ],
-        ),
-        iOS: const DarwinNotificationDetails(
-          presentAlert: true,
-          presentBadge: true,
-          presentSound: true,
-          sound: 'ringtone.caf',
-          interruptionLevel: InterruptionLevel.timeSensitive,
-          categoryIdentifier: 'call',
-        ),
-      ),
-      payload: 'call:$callId',
-    );
+      // Convert the call ID to a valid notification ID (within 32-bit integer range)
+      final notificationId = callId.hashCode % 100000; // Use hashCode and modulo to get a smaller number
 
-    // If the app is in foreground, show the incoming call screen
-    if (navigatorKey.currentContext != null) {
-      _showIncomingCallScreen(
-        callId: callId,
-        callerId: callerId,
-        callerName: callerName,
-        callerImage: callerImage,
-        callType: callType,
+      // Show a full-screen notification for the call
+      await _flutterLocalNotificationsPlugin.show(
+        notificationId,
+        'Incoming ${callType == CallType.video ? 'Video' : 'Voice'} Call',
+        callerName,
+        NotificationDetails(
+          android: AndroidNotificationDetails(
+            _callChannel.id,
+            _callChannel.name,
+            channelDescription: _callChannel.description,
+            importance: _callChannel.importance,
+            priority: Priority.max,
+            fullScreenIntent: true,
+            category: AndroidNotificationCategory.call,
+            sound: _callChannel.sound,
+            playSound: _callChannel.playSound,
+            enableVibration: _callChannel.enableVibration,
+            vibrationPattern: _callChannel.vibrationPattern,
+            actions: [
+              const AndroidNotificationAction('answer', 'Answer', showsUserInterface: true),
+              const AndroidNotificationAction('decline', 'Decline', showsUserInterface: true),
+            ],
+          ),
+          iOS: const DarwinNotificationDetails(
+            presentAlert: true,
+            presentBadge: true,
+            presentSound: true,
+            // Remove custom sound reference
+            // sound: 'ringtone.caf',
+            interruptionLevel: InterruptionLevel.timeSensitive,
+            categoryIdentifier: 'call',
+          ),
+        ),
+        payload: 'call:$callId',
       );
-    }
 
-    // Set a timeout for the call (60 seconds)
-    _callTimeoutTimer = Timer(const Duration(seconds: 60), () {
-      _cancelIncomingCall(callId);
-    });
+      // If the app is in foreground, show the incoming call screen
+      if (navigatorKey.currentContext != null) {
+        _showIncomingCallScreen(
+          callId: callId,
+          callerId: callerId,
+          callerName: callerName,
+          callerImage: callerImage,
+          callType: callType,
+        );
+      }
+
+      // Set a timeout for the call (60 seconds)
+      _callTimeoutTimer?.cancel(); // Cancel any existing timer
+      _callTimeoutTimer = Timer(const Duration(seconds: 60), () {
+        _cancelIncomingCall(callId);
+      });
+    } catch (e) {
+      debugPrint('Error showing incoming call notification: $e');
+    }
   }
 
   // Show incoming call screen
@@ -190,7 +218,14 @@ class CallService {
     String? callerImage,
     required CallType callType,
   }) {
+    if (_isIncomingCallScreenShowing) {
+      debugPrint('Incoming call screen already showing, ignoring duplicate call');
+      return;
+    }
+
     if (navigatorKey.currentContext != null) {
+      _isIncomingCallScreenShowing = true;
+
       Navigator.push(
         navigatorKey.currentContext!,
         MaterialPageRoute(
@@ -204,12 +239,20 @@ class CallService {
             onDecline: () => _declineCall(callId),
           ),
         ),
-      );
+      ).then((_) {
+        // Reset flag when screen is closed
+        _isIncomingCallScreenShowing = false;
+      });
     }
   }
 
   // Handle call notification tap
   void _handleCallNotificationTap(RemoteMessage message) async {
+    if (_isIncomingCallScreenShowing) {
+      debugPrint('Incoming call screen already showing, ignoring notification tap');
+      return;
+    }
+
     final callData = message.data;
     final callerId = callData['callerId'];
     final callerName = callData['callerName'];
@@ -217,15 +260,32 @@ class CallService {
     final callType = callData['callType'] == 'video' ? CallType.video : CallType.voice;
     final callId = int.tryParse(callData['callId'] ?? '0') ?? 0;
 
-    // Show incoming call screen
-    _showIncomingCallScreen(
-      callId: callId,
-      callerId: callerId,
-      callerName: callerName,
-      callerImage: callerImage,
-      callType: callType,
-    );
+    // Check if the call is still active in Firestore
+    final callDoc = await FirebaseFirestore.instance
+        .collection('calls')
+        .doc(callId.toString())
+        .get();
+
+    if (callDoc.exists) {
+      final data = callDoc.data() as Map<String, dynamic>;
+      final status = data['status'] as String;
+
+      // Only show the incoming call screen if the call is still ringing
+      if (status == 'ringing') {
+        // Show incoming call screen
+        _showIncomingCallScreen(
+          callId: callId,
+          callerId: callerId,
+          callerName: callerName,
+          callerImage: callerImage,
+          callType: callType,
+        );
+      } else {
+        debugPrint('Call is no longer active, status: $status');
+      }
+    }
   }
+
   Future<RtcEngine?> setupCall({
     required String callerId,
     required String calleeId,
@@ -253,7 +313,6 @@ class CallService {
     }
   }
 
-  // ✅ NEW METHOD
   Future<void> disposeEngine() async {
     try {
       await _leaveChannel();
@@ -273,6 +332,12 @@ class CallService {
     required CallType callType,
   }) async {
     try {
+      // Prevent duplicate outgoing calls
+      if (_isOutgoingCallScreenShowing || _isCallActive) {
+        debugPrint('Call already in progress, ignoring duplicate call attempt');
+        return false;
+      }
+
       // Check if call permissions are granted
       if (!await _checkCallPermissions(callType)) {
         return false;
@@ -293,23 +358,6 @@ class CallService {
         return false;
       }
 
-      // Create a call document in Firestore
-      await FirebaseFirestore.instance.collection('calls').doc(callId.toString()).set({
-        'callId': callId,
-        'callerId': currentUserId,
-        'callerName': currentUserName,
-        'callerImage': currentUserImage,
-        'recipientId': recipientId,
-        'recipientName': recipientName,
-        'recipientImage': recipientImage,
-        'callType': callType == CallType.video ? 'video' : 'voice',
-        'status': 'ringing',
-        'startTime': FieldValue.serverTimestamp(),
-        'endTime': null,
-        'channel': 'channel_$callId',
-        'token': '', // Will be generated by your server
-      });
-
       // Get recipient's FCM token
       final recipientDoc = await FirebaseFirestore.instance
           .collection(Constants.usersCollection)
@@ -318,26 +366,78 @@ class CallService {
 
       if (!recipientDoc.exists) {
         debugPrint('Recipient not found');
+
+        // Show error message to the user
+        if (navigatorKey.currentContext != null) {
+          ScaffoldMessenger.of(navigatorKey.currentContext!).showSnackBar(
+            const SnackBar(
+              content: Text('Recipient user not found'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+
         return false;
       }
 
       final recipientData = recipientDoc.data() as Map<String, dynamic>;
       final fcmToken = recipientData['fcmToken'] as String?;
 
-      if (fcmToken == null) {
+      if (fcmToken == null || fcmToken.isEmpty) {
         debugPrint('Recipient FCM token not found');
-        return false;
-      }
 
-      // Send a call notification to the recipient
-      // In a real app, you would use Firebase Cloud Functions or a server for this
-      // For now, we'll simulate it by updating the call document
-      await FirebaseFirestore.instance.collection('calls').doc(callId.toString()).update({
-        'notificationSent': true,
-      });
+        // Create the call document anyway - we'll rely on Firestore listener
+        await FirebaseFirestore.instance.collection('calls').doc(callId.toString()).set({
+          'callId': callId,
+          'callerId': currentUserId,
+          'callerName': currentUserName,
+          'callerImage': currentUserImage,
+          'recipientId': recipientId,
+          'recipientName': recipientName,
+          'recipientImage': recipientImage,
+          'callType': callType == CallType.video ? 'video' : 'voice',
+          'status': 'ringing',
+          'startTime': FieldValue.serverTimestamp(),
+          'endTime': null,
+          'channel': 'channel_$callId',
+          'token': '', // Will be generated by your server
+          'fcmNotificationSent': false, // Mark that FCM notification wasn't sent
+        });
+
+        // Show a warning to the user
+        if (navigatorKey.currentContext != null) {
+          ScaffoldMessenger.of(navigatorKey.currentContext!).showSnackBar(
+            const SnackBar(
+              content: Text('Recipient may not receive notification. They need to be online to receive the call.'),
+              backgroundColor: Colors.orange,
+            ),
+          );
+        }
+      } else {
+        // Create a call document in Firestore with FCM token
+        await FirebaseFirestore.instance.collection('calls').doc(callId.toString()).set({
+          'callId': callId,
+          'callerId': currentUserId,
+          'callerName': currentUserName,
+          'callerImage': currentUserImage,
+          'recipientId': recipientId,
+          'recipientName': recipientName,
+          'recipientImage': recipientImage,
+          'callType': callType == CallType.video ? 'video' : 'voice',
+          'status': 'ringing',
+          'startTime': FieldValue.serverTimestamp(),
+          'endTime': null,
+          'channel': 'channel_$callId',
+          'token': '', // Will be generated by your server
+          'recipientFcmToken': fcmToken, // Store the FCM token
+          'fcmNotificationSent': true, // Mark that FCM notification was sent
+        });
+      }
 
       // Show the outgoing call screen
       if (navigatorKey.currentContext != null) {
+        _isOutgoingCallScreenShowing = true;
+
         Navigator.push(
           navigatorKey.currentContext!,
           MaterialPageRoute(
@@ -350,10 +450,14 @@ class CallService {
               onCancel: () => _cancelOutgoingCall(callId),
             ),
           ),
-        );
+        ).then((_) {
+          // Reset flag when screen is closed
+          _isOutgoingCallScreenShowing = false;
+        });
       }
 
       // Set a timeout for the outgoing call (60 seconds)
+      _callTimeoutTimer?.cancel(); // Cancel any existing timer
       _callTimeoutTimer = Timer(const Duration(seconds: 60), () {
         _cancelOutgoingCall(callId);
       });
@@ -362,6 +466,17 @@ class CallService {
       return true;
     } catch (e) {
       debugPrint('Error making call: $e');
+
+      // Show error to the user
+      if (navigatorKey.currentContext != null) {
+        ScaffoldMessenger.of(navigatorKey.currentContext!).showSnackBar(
+          SnackBar(
+            content: Text('Error making call: ${e.toString()}'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+
       return false;
     }
   }
@@ -411,11 +526,15 @@ class CallService {
               onCallEnd: () => _endCall(callId),
             ),
           ),
-        );
+        ).then((_) {
+          // Reset incoming call screen flag
+          _isIncomingCallScreenShowing = false;
+        });
       }
 
-      // Cancel the notification
-      await _flutterLocalNotificationsPlugin.cancel(callId);
+      // Cancel the notification using the same ID conversion
+      final notificationId = callId.hashCode % 100000;
+      await _flutterLocalNotificationsPlugin.cancel(notificationId);
 
       _isCallActive = true;
       _currentCallId = callId;
@@ -438,13 +557,17 @@ class CallService {
         'endTime': FieldValue.serverTimestamp(),
       });
 
-      // Cancel the notification
-      await _flutterLocalNotificationsPlugin.cancel(callId);
+      // Cancel the notification using the same ID conversion
+      final notificationId = callId.hashCode % 100000;
+      await _flutterLocalNotificationsPlugin.cancel(notificationId);
 
       // Close the incoming call screen if it's open
-      if (navigatorKey.currentContext != null) {
+      if (navigatorKey.currentContext != null && Navigator.canPop(navigatorKey.currentContext!)) {
         Navigator.of(navigatorKey.currentContext!).pop();
       }
+
+      // Reset flag
+      _isIncomingCallScreenShowing = false;
     } catch (e) {
       debugPrint('Error declining call: $e');
     }
@@ -463,12 +586,13 @@ class CallService {
       });
 
       // Close the outgoing call screen if it's open
-      if (navigatorKey.currentContext != null) {
+      if (navigatorKey.currentContext != null && Navigator.canPop(navigatorKey.currentContext!)) {
         Navigator.of(navigatorKey.currentContext!).pop();
       }
 
       _isCallActive = false;
       _currentCallId = null;
+      _isOutgoingCallScreenShowing = false;
     } catch (e) {
       debugPrint('Error cancelling outgoing call: $e');
     }
@@ -483,13 +607,29 @@ class CallService {
         'endTime': FieldValue.serverTimestamp(),
       });
 
-      // Cancel the notification
-      await _flutterLocalNotificationsPlugin.cancel(callId);
+      // Cancel the notification using the same ID conversion
+      final notificationId = callId.hashCode % 100000;
+      await _flutterLocalNotificationsPlugin.cancel(notificationId);
+
+      // Close the incoming call screen if it's open
+      if (_isIncomingCallScreenShowing && navigatorKey.currentContext != null && Navigator.canPop(navigatorKey.currentContext!)) {
+        Navigator.of(navigatorKey.currentContext!).pop();
+      }
+
+      // Reset flag
+      _isIncomingCallScreenShowing = false;
     } catch (e) {
       debugPrint('Error cancelling incoming call: $e');
     }
   }
+
   void listenForIncomingCalls(String currentUserId, BuildContext context) {
+    // Prevent duplicate listeners
+    if (_isCallActive || _isIncomingCallScreenShowing) {
+      debugPrint('Call already active or incoming call screen showing, not setting up listener');
+      return;
+    }
+
     FirebaseFirestore.instance
         .collection('calls')
         .where('recipientId', isEqualTo: currentUserId)
@@ -497,7 +637,16 @@ class CallService {
         .snapshots()
         .listen((snapshot) {
       if (snapshot.docs.isNotEmpty) {
-        final data = snapshot.docs.first.data();
+        // Only process the most recent call if there are multiple
+        final sortedDocs = snapshot.docs.toList()
+          ..sort((a, b) {
+            final aTime = a.data()['startTime'] as Timestamp?;
+            final bTime = b.data()['startTime'] as Timestamp?;
+            if (aTime == null || bTime == null) return 0;
+            return bTime.compareTo(aTime); // Most recent first
+          });
+
+        final data = sortedDocs.first.data();
 
         final callId = int.tryParse(data['callId'].toString()) ?? 0;
         final callerId = data['callerId'];
@@ -507,17 +656,19 @@ class CallService {
 
         debugPrint("📞 Incoming call from $callerName");
 
-        _showIncomingCallScreen(
-          callId: callId,
-          callerId: callerId,
-          callerName: callerName,
-          callerImage: callerImage,
-          callType: callType,
-        );
+        // Only show if no call screen is currently showing
+        if (!_isIncomingCallScreenShowing && !_isOutgoingCallScreenShowing) {
+          _showIncomingCallNotification(
+            callId: callId,
+            callerId: callerId,
+            callerName: callerName,
+            callerImage: callerImage,
+            callType: callType,
+          );
+        }
       }
     });
   }
-
 
   // End an active call
   Future<void> _endCall(int callId) async {
@@ -533,6 +684,8 @@ class CallService {
 
       _isCallActive = false;
       _currentCallId = null;
+      _isIncomingCallScreenShowing = false;
+      _isOutgoingCallScreenShowing = false;
     } catch (e) {
       debugPrint('Error ending call: $e');
     }
@@ -633,6 +786,9 @@ class CallService {
     _leaveChannel();
     _engine?.release();
     _engine = null;
+    _isCallActive = false;
+    _isIncomingCallScreenShowing = false;
+    _isOutgoingCallScreenShowing = false;
   }
 
   // Check if a call is active
@@ -688,12 +844,14 @@ class _IncomingCallScreenState extends State<IncomingCallScreen> {
                 CircleAvatar(
                   radius: 70,
                   backgroundColor: Colors.blue,
-                  backgroundImage: widget.callerImage != null
+                  backgroundImage: widget.callerImage != null && widget.callerImage!.isNotEmpty
                       ? MemoryImage(base64Decode(widget.callerImage!))
                       : null,
-                  child: widget.callerImage == null
+                  child: widget.callerImage == null || widget.callerImage!.isEmpty
                       ? Text(
-                    widget.callerName[0].toUpperCase(),
+                    widget.callerName.isNotEmpty
+                        ? widget.callerName[0].toUpperCase()
+                        : '?',
                     style: const TextStyle(
                       fontSize: 40,
                       color: Colors.white,
@@ -891,12 +1049,14 @@ class _OutgoingCallScreenState extends State<OutgoingCallScreen> {
                 CircleAvatar(
                   radius: 70,
                   backgroundColor: Colors.blue,
-                  backgroundImage: widget.recipientImage != null
+                  backgroundImage: widget.recipientImage != null && widget.recipientImage!.isNotEmpty
                       ? MemoryImage(base64Decode(widget.recipientImage!))
                       : null,
-                  child: widget.recipientImage == null
+                  child: widget.recipientImage == null || widget.recipientImage!.isEmpty
                       ? Text(
-                    widget.recipientName[0].toUpperCase(),
+                    widget.recipientName.isNotEmpty
+                        ? widget.recipientName[0].toUpperCase()
+                        : '?',
                     style: const TextStyle(
                       fontSize: 40,
                       color: Colors.white,
@@ -1005,7 +1165,8 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
       priority: Priority.max,
       fullScreenIntent: true,
       category: AndroidNotificationCategory.call,
-      sound: const RawResourceAndroidNotificationSound('ringtone'),
+      // Use default sound instead of custom ringtone
+      // sound: const RawResourceAndroidNotificationSound('ringtone'),
       playSound: true,
       enableVibration: true,
       actions: [
@@ -1021,8 +1182,11 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
     final callerName = message.data['callerName'] ?? 'Unknown';
     final callType = message.data['callType'] ?? 'voice';
 
+    // Convert the call ID to a valid notification ID (within 32-bit integer range)
+    final notificationId = callId.hashCode % 100000; // Use hashCode and modulo to get a smaller number
+
     await flutterLocalNotificationsPlugin.show(
-      callId,
+      notificationId,
       'Incoming ${callType == 'video' ? 'Video' : 'Voice'} Call',
       callerName,
       platformChannelSpecifics,

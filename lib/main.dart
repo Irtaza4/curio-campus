@@ -18,9 +18,14 @@ import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:curio_campus/utils/navigator_key.dart'; // Import the navigator key
 
+// Global reference to services for easy access
+late CallService callService;
+late NotificationService notificationService;
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
+
   // Register background message handler
   FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
 
@@ -28,6 +33,9 @@ void main() async {
   final notificationService = NotificationService();
   await notificationService.initialize();
   await notificationService.setupBackgroundNotifications();
+
+  // Ensure FCM token is updated on app start
+  await notificationService.updateFCMToken();
 
   // Initialize call service with Agora App ID
   final callService = CallService();
@@ -90,6 +98,9 @@ class MyApp extends StatelessWidget {
 
 @pragma('vm:entry-point')
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
+  // Initialize Firebase if needed
+  await Firebase.initializeApp();
+
   // Handle background notifications here
   if (message.data['type'] == 'call') {
     final flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
@@ -102,7 +113,8 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
       priority: Priority.max,
       fullScreenIntent: true,
       category: AndroidNotificationCategory.call,
-      sound: RawResourceAndroidNotificationSound('ringtone'),
+      // Use default sound instead of custom ringtone
+      // sound: RawResourceAndroidNotificationSound('ringtone'),
       playSound: true,
       enableVibration: true,
       actions: [
@@ -115,8 +127,11 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
     final callerName = message.data['callerName'] ?? 'Unknown';
     final callType = message.data['callType'] ?? 'voice';
 
+    // Convert the call ID to a valid notification ID (within 32-bit integer range)
+    final notificationId = callId % 100000; // Use modulo to get a smaller number
+
     await flutterLocalNotificationsPlugin.show(
-      callId,
+      notificationId,
       'Incoming ${callType == 'video' ? 'Video' : 'Voice'} Call',
       callerName,
       NotificationDetails(android: androidPlatformChannelSpecifics),
