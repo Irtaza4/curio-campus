@@ -173,7 +173,15 @@ class NotificationService {
       importance: Importance.high,
     );
 
-    // Create call channel with proper Int64List for vibration pattern
+    // 🔔 New missed call channel
+    const AndroidNotificationChannel missedCallChannel = AndroidNotificationChannel(
+      'missed_call_channel',
+      'Missed Calls',
+      description: 'Missed call alerts',
+      importance: Importance.high,
+    );
+
+    // Create call channel with vibration
     final Int64List vibrationPattern = Int64List(8);
     vibrationPattern[0] = 0;
     vibrationPattern[1] = 1000;
@@ -195,22 +203,16 @@ class NotificationService {
       vibrationPattern: vibrationPattern,
     );
 
-    await _flutterLocalNotificationsPlugin
-        .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>()
-        ?.createNotificationChannel(chatChannel);
+    final androidPlugin = _flutterLocalNotificationsPlugin
+        .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>();
 
-    await _flutterLocalNotificationsPlugin
-        .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>()
-        ?.createNotificationChannel(emergencyChannel);
-
-    await _flutterLocalNotificationsPlugin
-        .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>()
-        ?.createNotificationChannel(projectChannel);
-
-    await _flutterLocalNotificationsPlugin
-        .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>()
-        ?.createNotificationChannel(callChannel);
+    await androidPlugin?.createNotificationChannel(chatChannel);
+    await androidPlugin?.createNotificationChannel(emergencyChannel);
+    await androidPlugin?.createNotificationChannel(projectChannel);
+    await androidPlugin?.createNotificationChannel(callChannel);
+    await androidPlugin?.createNotificationChannel(missedCallChannel); // ✅ Added
   }
+
 
   // Update FCM token and save to Firestore
   Future<void> _updateFCMToken() async {
@@ -396,6 +398,7 @@ class NotificationService {
       case 'chat':
         return Colors.green;
       case 'call':
+
         return Colors.purple;
       default:
         return Colors.teal;
@@ -973,4 +976,28 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
     message.notification?.body ?? '',
     platformChannelSpecifics,
   );
+
+  Future<void> handleBackgroundMessage(RemoteMessage message) async {
+    final notification = message.notification;
+    final android = message.notification?.android;
+
+    if (notification != null && android != null) {
+      await flutterLocalNotificationsPlugin.show(
+        notification.hashCode,
+        notification.title,
+        notification.body,
+        NotificationDetails(
+          android: AndroidNotificationDetails(
+            'curio_channel_id',
+            'Curio Notifications',
+            channelDescription: 'Curio background notifications',
+            importance: Importance.max,
+            priority: Priority.high,
+            icon: '@mipmap/ic_launcher',
+          ),
+        ),
+      );
+    }
+  }
+
 }

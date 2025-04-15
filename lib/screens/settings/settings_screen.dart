@@ -4,7 +4,10 @@ import 'package:curio_campus/providers/auth_provider.dart';
 import 'package:curio_campus/providers/theme_provider.dart';
 import 'package:curio_campus/screens/auth/login_screen.dart';
 import 'package:curio_campus/screens/profile/edit_profile_screen.dart';
-import '../../utils/app_theme.dart';
+import 'package:curio_campus/utils/app_theme.dart';
+import 'dart:io';
+import 'package:android_intent_plus/android_intent.dart';
+import 'package:device_info_plus/device_info_plus.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({Key? key}) : super(key: key);
@@ -19,7 +22,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
     final authProvider = Provider.of<AuthProvider>(context);
     final themeProvider = Provider.of<ThemeProvider>(context);
     final isDarkMode = themeProvider.isDarkMode;
-    final theme = Theme.of(context);
 
     return Scaffold(
       appBar: AppBar(
@@ -29,7 +31,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
         padding: const EdgeInsets.all(16.0),
         child: Column(
           children: [
-            // Dark Mode Option
             _buildSettingItem(
               icon: isDarkMode ? Icons.dark_mode : Icons.light_mode,
               title: 'Dark Mode',
@@ -47,7 +48,45 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
             const Divider(),
 
-            // Edit Profile Option
+            _buildSettingItem(
+              icon: Icons.battery_alert,
+              title: 'Background Activity',
+              trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+              onTap: () async {
+                final confirm = await showDialog<bool>(
+                  context: context,
+                  builder: (context) => AlertDialog(
+                    title: const Text('Background Activity'),
+                    content: const Text(
+                        'To ensure you receive calls and messages while the app is in the background, please allow background activity. Do you want to continue?'
+                    ),
+                    actions: [
+                      TextButton(
+                        onPressed: () => Navigator.pop(context, false),
+                        child: const Text('Cancel'),
+                      ),
+                      TextButton(
+                        onPressed: () => Navigator.pop(context, true),
+                        child: const Text('Continue'),
+                      ),
+                    ],
+                  ),
+                );
+
+                if (confirm == true) {
+                  final androidInfo = await DeviceInfoPlugin().androidInfo;
+                  if (Platform.isAndroid && androidInfo.version.sdkInt >= 23) {
+                    const intent = AndroidIntent(
+                      action: 'android.settings.IGNORE_BATTERY_OPTIMIZATION_SETTINGS',
+                    );
+                    await intent.launch();
+                  }
+                }
+              },
+            ),
+
+            const Divider(),
+
             _buildSettingItem(
               icon: Icons.edit,
               title: 'Edit Profile',
@@ -64,7 +103,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
             const Divider(),
 
-            // Logout Option
             _buildSettingItem(
               icon: Icons.logout,
               title: 'Logout',

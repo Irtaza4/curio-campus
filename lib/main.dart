@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:curio_campus/screens/splash_screen.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:provider/provider.dart';
 import 'package:curio_campus/providers/auth_provider.dart';
 import 'package:curio_campus/providers/chat_provider.dart';
@@ -20,6 +21,8 @@ import 'package:curio_campus/utils/navigator_key.dart'; // Import the navigator 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
+  // Register background message handler
+  FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
 
   // Initialize notification service
   final notificationService = NotificationService();
@@ -80,6 +83,44 @@ class MyApp extends StatelessWidget {
           );
         },
       ),
+    );
+  }
+}
+
+
+@pragma('vm:entry-point')
+Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
+  // Handle background notifications here
+  if (message.data['type'] == 'call') {
+    final flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
+
+    final androidPlatformChannelSpecifics = AndroidNotificationDetails(
+      'call_channel',
+      'Call Notifications',
+      channelDescription: 'Notifications for incoming calls',
+      importance: Importance.max,
+      priority: Priority.max,
+      fullScreenIntent: true,
+      category: AndroidNotificationCategory.call,
+      sound: RawResourceAndroidNotificationSound('ringtone'),
+      playSound: true,
+      enableVibration: true,
+      actions: [
+        AndroidNotificationAction('answer', 'Answer', showsUserInterface: true),
+        AndroidNotificationAction('decline', 'Decline', showsUserInterface: true),
+      ],
+    );
+
+    final callId = int.tryParse(message.data['callId'] ?? '0') ?? 0;
+    final callerName = message.data['callerName'] ?? 'Unknown';
+    final callType = message.data['callType'] ?? 'voice';
+
+    await flutterLocalNotificationsPlugin.show(
+      callId,
+      'Incoming ${callType == 'video' ? 'Video' : 'Voice'} Call',
+      callerName,
+      NotificationDetails(android: androidPlatformChannelSpecifics),
+      payload: 'call:$callId',
     );
   }
 }
