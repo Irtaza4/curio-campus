@@ -2,27 +2,21 @@ import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:curio_campus/utils/app_theme.dart';
-import 'package:provider/provider.dart';
-import 'package:curio_campus/providers/auth_provider.dart';
-import 'package:curio_campus/models/user_model.dart';
-import 'package:curio_campus/providers/project_provider.dart';
+import 'package:agora_rtc_engine/agora_rtc_engine.dart';
 import 'package:permission_handler/permission_handler.dart';
-import 'package:curio_campus/utils/image_utils.dart';
-import 'package:path_provider/path_provider.dart';
-import 'dart:io';
-import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 enum CallType { voice, video }
-enum CallState { ringing, connecting, connected, ended, failed, busy, noAnswer, networkError }
-enum NetworkStatus { online, offline, unknown }
 
 class CallScreen extends StatefulWidget {
   final String userId;
   final String userName;
   final CallType callType;
   final String? profileImageBase64;
-  final bool autoConnect;
-  final bool isOutgoing; // Whether this is an outgoing call or incoming call
+  final RtcEngine engine;
+  final int callId;
+  final bool isOutgoing;
+  final VoidCallback onCallEnd;
 
   const CallScreen({
     Key? key,
@@ -30,515 +24,302 @@ class CallScreen extends StatefulWidget {
     required this.userName,
     required this.callType,
     this.profileImageBase64,
-    this.autoConnect = false,
-    this.isOutgoing = true, // Default to outgoing call
+    required this.engine,
+    required this.callId,
+    required this.isOutgoing,
+    required this.onCallEnd,
   }) : super(key: key);
 
   @override
   State<CallScreen> createState() => _CallScreenState();
 }
 
-class _CallScreenState extends State<CallScreen> with WidgetsBindingObserver {
+class _CallScreenState extends State<CallScreen> {
   bool _isMuted = false;
   bool _isSpeakerOn = false;
   bool _isCameraOff = false;
-  CallState _callState = CallState.ringing;
+  bool _isCallConnected = false;
+  bool _isCallRinging = true;
   Duration _callDuration = Duration.zero;
   late DateTime _callStartTime;
   Timer? _callTimer;
   bool _isScreenSharing = false;
-  bool _isScreenRecording = false;
-  bool _permissionsGranted = false;
-  bool _isCheckingPermissions = true;
-  Timer? _ringTimer;
-  bool _callAccepted = false;
-  bool _isRecordingScreen = false;
-  String? _recordingPath;
-  Timer? _recordingTimer;
-  Duration _recordingDuration = Duration.zero;
-  NetworkStatus _networkStatus = NetworkStatus.unknown;
-  Timer? _networkCheckTimer;
-  int _ringCount = 0;
-  final FlutterLocalNotificationsPlugin _flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
+  int? _remoteUid;
+  bool _localUserJoined = false;
+  StreamSubscription<DocumentSnapshot>? _callSubscription;
+  bool _networkQualityPoor = false;
+  String _callStatus = 'connecting';
 
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addObserver(this);
-    _initializeNotifications();
-    _checkPermissions();
-    _startNetworkCheck();
+    _initializeCall();
   }
 
-  Future<void> _initializeNotifications() async {
-    const AndroidInitializationSettings initializationSettingsAndroid =
-    AndroidInitializationSettings('@mipmap/ic_launcher');
-
-    const DarwinInitializationSettings initializationSettingsIOS =
-    DarwinInitializationSettings();
-
-    const InitializationSettings initializationSettings = InitializationSettings(
-      android: initializationSettingsAndroid,
-      iOS: initializationSettingsIOS,
-    );
-
-    await _flutterLocalNotificationsPlugin.initialize(
-      initializationSettings,
-    );
-  }
-
-  void _startNetworkCheck() {
-    // Simulate network check every 2 seconds
-    _networkCheckTimer = Timer.periodic(const Duration(seconds: 2), (timer) {
-      _checkNetworkStatus();
-    });
-
-    // Initial check
-    _checkNetworkStatus();
-  }
-
-  void _checkNetworkStatus() {
-    // In a real app, you would check actual network connectivity
-    // For this demo, we'll simulate network status
-
-    // Simulate 90% chance of being online
-    final isOnline = DateTime.now().millisecondsSinceEpoch % 10 < 9;
-
-    setState(() {
-      _networkStatus = isOnline ? NetworkStatus.online : NetworkStatus.offline;
-    });
-
-    // If we're in ringing state and network goes offline, update UI
-    if (_callState == CallState.ringing && _networkStatus == NetworkStatus.offline) {
-      setState(() {
-        _callState = CallState.networkError;
-      });
-
-      // Show network error message
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Network error. Please check your connection.'),
-          backgroundColor: Colors.red,
-          duration: Duration(seconds: 3),
-        ),
-      );
-    }
-  }
-
-  @override
-  void didChangeAppLifecycleState(AppLifecycleState state) {
-    // Handle app going to background/foreground
-    if (state == AppLifecycleState.paused) {
-      // App went to background
-      if (_callState == CallState.ringing || _callState == CallState.connected) {
-        _showCallNotification();
-      }
-    } else if (state == AppLifecycleState.resumed) {
-      // App came to foreground
-      _cancelCallNotification();
-    }
-  }
-
-  Future<void> _showCallNotification() async {
-    const AndroidNotificationDetails androidPlatformChannelSpecifics =
-    AndroidNotificationDetails(
-      'call_channel',
-      'Call Notifications',
-      channelDescription: 'Notifications for ongoing calls',
-      importance: Importance.high,
-      priority: Priority.high,
-      ongoing: true,
-      autoCancel: false,
-    );
-
-    const NotificationDetails platformChannelSpecifics =
-    NotificationDetails(android: androidPlatformChannelSpecifics);
-
-    await _flutterLocalNotificationsPlugin.show(
-      0,
-      _callState == CallState.ringing
-          ? 'Calling ${widget.userName}...'
-          : 'On call with ${widget.userName}',
-      _callState == CallState.connected
-          ? 'Tap to return to call'
-          : 'Call in progress',
-      platformChannelSpecifics,
-    );
-  }
-
-  Future<void> _cancelCallNotification() async {
-    await _flutterLocalNotificationsPlugin.cancel(0);
-  }
-
-  Future<void> _checkPermissions() async {
-    setState(() {
-      _isCheckingPermissions = true;
-    });
-
-    bool granted = false;
-
-    if (widget.callType == CallType.video) {
-      final cameraStatus = await Permission.camera.request();
-      final micStatus = await Permission.microphone.request();
-      granted = cameraStatus.isGranted && micStatus.isGranted;
-    } else {
-      final micStatus = await Permission.microphone.request();
-      granted = micStatus.isGranted;
-    }
-
-    setState(() {
-      _permissionsGranted = granted;
-      _isCheckingPermissions = false;
-    });
-
-    if (granted) {
-      _initializeCall();
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(widget.callType == CallType.video
-              ? 'Camera and microphone permissions are required for video calls'
-              : 'Microphone permission is required for voice calls'),
-          backgroundColor: Colors.red,
-          duration: const Duration(seconds: 5),
-          action: SnackBarAction(
-            label: 'Settings',
-            onPressed: () => openAppSettings(),
-          ),
-        ),
-      );
-    }
-  }
-
-  @override
-  void dispose() {
-    WidgetsBinding.instance.removeObserver(this);
-    _callTimer?.cancel();
-    _ringTimer?.cancel();
-    _recordingTimer?.cancel();
-    _networkCheckTimer?.cancel();
-    _stopScreenRecording();
-    _cancelCallNotification();
-    super.dispose();
-  }
-
-  void _initializeCall() {
-    // Check if permissions are granted before proceeding
-    if (!_permissionsGranted) {
-      _checkPermissions().then((_) {
-        if (_permissionsGranted) {
-          _startCall();
-        }
-      });
-      return;
-    }
-
-    _startCall();
-  }
-
-  void _startCall() {
-    // If this is an incoming call, show the incoming call UI
-    if (!widget.isOutgoing) {
-      setState(() {
-        _callState = CallState.ringing;
-      });
-
-      // Play ringtone here in a real app
-
-      return;
-    }
-
-    // For outgoing calls, show ringing state
-    setState(() {
-      _callState = CallState.ringing;
-    });
-
-    // Simulate ringing for 30 seconds before showing "No answer" if not answered
-    _ringTimer = Timer(const Duration(seconds: 30), () {
-      if (_callState == CallState.ringing && !_callAccepted && mounted) {
-        setState(() {
-          _callState = CallState.noAnswer;
-        });
-
-        // Show missed call message
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('No answer'),
-            duration: Duration(seconds: 2),
-          ),
-        );
-
-        // Close call screen after 2 seconds
-        Future.delayed(const Duration(seconds: 2), () {
-          if (mounted) {
-            Navigator.pop(context);
-          }
-        });
-      }
-    });
-
-    // Simulate ringing sound and vibration
-    _simulateRinging();
-
-    // If autoConnect is true, automatically accept the call after 3 seconds
-    if (widget.autoConnect) {
-      Future.delayed(const Duration(seconds: 3), () {
-        if (mounted && _callState == CallState.ringing) {
-          _acceptCall();
-        }
-      });
-    }
-
-    // Simulate random network status changes during ringing
-    _simulateNetworkChanges();
-  }
-
-  void _simulateNetworkChanges() {
-    // Randomly simulate network issues during call setup
-    Future.delayed(Duration(seconds: 2 + (DateTime.now().millisecondsSinceEpoch % 5)), () {
-      if (mounted && _callState == CallState.ringing) {
-        // 20% chance of network error
-        if (DateTime.now().millisecondsSinceEpoch % 5 == 0) {
+  Future<void> _initializeCall() async {
+    // Set up event handlers for the Agora engine
+    widget.engine.registerEventHandler(
+      RtcEngineEventHandler(
+        onJoinChannelSuccess: (connection, elapsed) {
+          debugPrint('Local user joined channel: ${connection.channelId}');
           setState(() {
-            _networkStatus = NetworkStatus.offline;
+            _localUserJoined = true;
+            _isCallRinging = false;
+            _isCallConnected = true;
+            _callStartTime = DateTime.now();
           });
-
-          // Show connecting message
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Poor connection...'),
-              duration: Duration(seconds: 2),
-            ),
-          );
-
-          // Restore connection after 2 seconds
-          Future.delayed(const Duration(seconds: 2), () {
-            if (mounted) {
-              setState(() {
-                _networkStatus = NetworkStatus.online;
-              });
-            }
+          _startCallTimer();
+        },
+        onUserJoined: (connection, remoteUid, elapsed) {
+          debugPrint('Remote user joined: $remoteUid');
+          setState(() {
+            _remoteUid = remoteUid;
+            _isCallRinging = false;
+            _isCallConnected = true;
           });
-        }
-      }
-    });
-  }
-
-  void _simulateRinging() {
-    // Simulate ringing sound and vibration
-    // In a real app, you would play an actual ringtone
-
-    // Update ring count every second to show "Ringing..." animation
-    Timer.periodic(const Duration(seconds: 1), (timer) {
-      if (mounted && _callState == CallState.ringing) {
-        setState(() {
-          _ringCount++;
-        });
-      } else {
-        timer.cancel();
-      }
-    });
-  }
-
-  void _acceptCall() {
-    _callAccepted = true;
-    _ringTimer?.cancel();
-
-    setState(() {
-      _callState = CallState.connecting;
-    });
-
-    // Simulate connection delay
-    Future.delayed(const Duration(seconds: 1), () {
-      if (mounted) {
-        setState(() {
-          _callState = CallState.connected;
-          _callStartTime = DateTime.now();
-        });
-
-        // Start call timer
-        _callTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
-          if (mounted) {
+        },
+        onUserOffline: (connection, remoteUid, reason) {
+          debugPrint('Remote user left: $remoteUid, reason: $reason');
+          setState(() {
+            _remoteUid = null;
+          });
+          if (reason == UserOfflineReasonType.userOfflineQuit) {
+            _endCall();
+          }
+        },
+        onNetworkQuality: (connection, remoteUid, txQuality, rxQuality) {
+          final isPoor = txQuality.index >= 4 || rxQuality.index >= 4;
+          if (_networkQualityPoor != isPoor) {
             setState(() {
-              _callDuration = DateTime.now().difference(_callStartTime);
+              _networkQualityPoor = isPoor;
             });
           }
+        },
+        onConnectionStateChanged: (connection, state, reason) {
+          debugPrint('Connection state changed: $state, reason: $reason');
+          setState(() {
+            _callStatus = state == ConnectionStateType.connectionStateConnected
+                ? 'connected'
+                : state == ConnectionStateType.connectionStateConnecting
+                ? 'connecting'
+                : 'disconnected';
+          });
+        },
+        onError: (err, msg) {
+          debugPrint('Agora error: $err, $msg');
+        },
+      ),
+    );
+
+    _callSubscription = FirebaseFirestore.instance
+        .collection('calls')
+        .doc(widget.callId.toString())
+        .snapshots()
+        .listen((snapshot) {
+      if (snapshot.exists) {
+        final data = snapshot.data() as Map<String, dynamic>;
+        final status = data['status'] as String;
+
+        if (status == 'ended' || status == 'declined') {
+          _endCall();
+        }
+      }
+    });
+
+    if (widget.callType == CallType.video) {
+      await widget.engine.enableVideo();
+      await widget.engine.startPreview();
+    } else {
+      await widget.engine.disableVideo();
+    }
+
+    await widget.engine.setAudioProfile(
+      profile: AudioProfileType.audioProfileDefault,
+      scenario: AudioScenarioType.audioScenarioChatroom,
+    );
+
+    if (widget.isOutgoing) {
+      setState(() {
+        _isCallRinging = true;
+        _callStatus = 'ringing';
+      });
+    }
+  }
+
+  // Future<void> _initializeCall() async {
+  //   // Set up event handlers for the Agora engine
+  //   widget.engine.registerEventHandler(
+  //     RtcEngineEventHandler(
+  //       onJoinChannelSuccess: (connection, elapsed) {
+  //         debugPrint('Local user joined channel: ${connection.channelId}');
+  //         setState(() {
+  //           _localUserJoined = true;
+  //           _isCallRinging = false;
+  //           _isCallConnected = true;
+  //           _callStartTime = DateTime.now();
+  //         });
+  //         _startCallTimer();
+  //       },
+  //       onUserJoined: (connection, remoteUid, elapsed) {
+  //         debugPrint('Remote user joined: $remoteUid');
+  //         setState(() {
+  //           _remoteUid = remoteUid;
+  //           _isCallRinging = false;
+  //           _isCallConnected = true;
+  //         });
+  //       },
+  //       onUserOffline: (connection, remoteUid, reason) {
+  //         debugPrint('Remote user left: $remoteUid, reason: $reason');
+  //         setState(() {
+  //           _remoteUid = null;
+  //         });
+  //         // End the call if the remote user left
+  //         if (reason == UserOfflineReasonType.userOfflineQuit) {
+  //           _endCall();
+  //         }
+  //       },
+  //       onNetworkQuality: (connection, remoteUid, txQuality, rxQuality) {
+  //         // Update network quality indicator - fixed comparison
+  //         final isPoor = txQuality.index >= 4 || rxQuality.index >= 4; // 4 or higher means poor quality
+  //         if (_networkQualityPoor != isPoor) {
+  //           setState(() {
+  //             _networkQualityPoor = isPoor;
+  //           });
+  //         }
+  //       },
+  //       onConnectionStateChanged: (connection, state, reason) {
+  //         debugPrint('Connection state changed: $state, reason: $reason');
+  //         if (state == ConnectionStateType.connectionStateConnected) {
+  //           setState(() {
+  //             _callStatus = 'connected';
+  //           });
+  //         } else if (state == ConnectionStateType.connectionStateConnecting) {
+  //           setState(() {
+  //             _callStatus = 'connecting';
+  //           });
+  //         } else if (state == ConnectionStateType.connectionStateDisconnected) {
+  //           setState(() {
+  //             _callStatus = 'disconnected';
+  //           });
+  //         }
+  //       },
+  //       onError: (err, msg) {
+  //         debugPrint('Agora error: $err, $msg');
+  //       },
+  //     ),
+  //   );
+  //
+  //   // Listen for call updates from Firestore
+  //   _callSubscription = FirebaseFirestore.instance
+  //       .collection('calls')
+  //       .doc(widget.callId.toString())
+  //       .snapshots()
+  //       .listen((snapshot) {
+  //     if (snapshot.exists) {
+  //       final data = snapshot.data() as Map<String, dynamic>;
+  //       final status = data['status'] as String;
+  //
+  //       if (status == 'ended' || status == 'declined') {
+  //         // Call was ended by the other party
+  //         _endCall();
+  //       }
+  //     }
+  //   });
+  //
+  //   // Enable video for video calls
+  //   if (widget.callType == CallType.video) {
+  //     await widget.engine.enableVideo();
+  //     await widget.engine.startPreview();
+  //   } else {
+  //     await widget.engine.disableVideo();
+  //   }
+  //
+  //   // Set audio profile for better voice quality
+  //   await widget.engine.setAudioProfile(
+  //     profile: AudioProfileType.audioProfileDefault,
+  //     scenario: AudioScenarioType.audioScenarioChatroom,
+  //   );
+  //
+  //   // Join the channel - fixed token parameter
+  //   // await widget.engine.joinChannel(
+  //   //   token: '', // Empty string instead of null
+  //   //   channelId: 'channel_${widget.callId}',
+  //   //   uid: 0,
+  //   //   options: const ChannelMediaOptions(
+  //   //     clientRoleType: ClientRoleType.clientRoleBroadcaster,
+  //   //     channelProfile: ChannelProfileType.channelProfileLiveBroadcasting,
+  //   //   ),
+  //   // );
+  //
+  //   // Simulate call connection after a short delay
+  //   if (widget.isOutgoing) {
+  //     setState(() {
+  //       _isCallRinging = true;
+  //       _callStatus = 'ringing';
+  //     });
+  //   }
+  // }
+
+  void _startCallTimer() {
+    _callTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (mounted) {
+        setState(() {
+          _callDuration = DateTime.now().difference(_callStartTime);
         });
       }
     });
-  }
-
-  void _handleCallError(String message) {
-    if (mounted) {
-      setState(() {
-        _callState = CallState.failed;
-      });
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(message),
-          backgroundColor: Colors.red,
-          duration: const Duration(seconds: 5),
-        ),
-      );
-
-      // Close call screen after error
-      Future.delayed(const Duration(seconds: 2), () {
-        if (mounted) {
-          Navigator.pop(context);
-        }
-      });
-    }
   }
 
   void _endCall() {
-    setState(() {
-      _callState = CallState.ended;
-    });
-
     _callTimer?.cancel();
-    _stopScreenRecording();
+    _callSubscription?.cancel();
 
-    // Close call screen after a short delay
-    Future.delayed(const Duration(milliseconds: 500), () {
-      if (mounted) {
-        Navigator.pop(context);
-      }
+    // Update call status in Firestore
+    FirebaseFirestore.instance
+        .collection('calls')
+        .doc(widget.callId.toString())
+        .update({
+      'status': 'ended',
+      'endTime': FieldValue.serverTimestamp(),
+    }).catchError((e) {
+      debugPrint('Error updating call status: $e');
     });
+
+    // Leave the channel
+    widget.engine.leaveChannel();
+
+    // Call the onCallEnd callback
+    widget.onCallEnd();
+
+    // Close the call screen
+    if (mounted) {
+      Navigator.pop(context);
+    }
   }
 
   void _toggleMute() {
     setState(() {
       _isMuted = !_isMuted;
     });
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(_isMuted ? 'Microphone muted' : 'Microphone unmuted'),
-        duration: const Duration(seconds: 1),
-      ),
-    );
+    widget.engine.muteLocalAudioStream(_isMuted);
   }
 
   void _toggleSpeaker() {
     setState(() {
       _isSpeakerOn = !_isSpeakerOn;
     });
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(_isSpeakerOn ? 'Speaker on' : 'Speaker off'),
-        duration: const Duration(seconds: 1),
-      ),
-    );
+    widget.engine.setEnableSpeakerphone(_isSpeakerOn);
   }
 
   void _toggleCamera() {
     setState(() {
       _isCameraOff = !_isCameraOff;
     });
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(_isCameraOff ? 'Camera off' : 'Camera on'),
-        duration: const Duration(seconds: 1),
-      ),
-    );
-  }
-
-  void _toggleScreenShare() {
-    setState(() {
-      _isScreenSharing = !_isScreenSharing;
-    });
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(_isScreenSharing ? 'Screen sharing started' : 'Screen sharing stopped'),
-        duration: const Duration(seconds: 2),
-      ),
-    );
-  }
-
-  Future<void> _toggleScreenRecording() async {
-    if (_isRecordingScreen) {
-      await _stopScreenRecording();
-    } else {
-      await _startScreenRecording();
-    }
-  }
-
-  Future<void> _startScreenRecording() async {
-    try {
-      // Request storage permission
-      final status = await Permission.storage.request();
-      if (!status.isGranted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Storage permission is required for screen recording'),
-            backgroundColor: Colors.red,
-          ),
-        );
-        return;
-      }
-
-      // Create a unique filename
-      final tempDir = await getTemporaryDirectory();
-      final timestamp = DateTime.now().millisecondsSinceEpoch;
-      _recordingPath = '${tempDir.path}/screen_recording_$timestamp.mp4';
-
-      // In a real app, you would use a screen recording package here
-      // For this demo, we'll just simulate recording
-      setState(() {
-        _isRecordingScreen = true;
-        _recordingDuration = Duration.zero;
-      });
-
-      // Start recording timer
-      _recordingTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
-        if (mounted) {
-          setState(() {
-            _recordingDuration = Duration(seconds: _recordingDuration.inSeconds + 1);
-          });
-        }
-      });
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Screen recording started'),
-          duration: Duration(seconds: 2),
-        ),
-      );
-    } catch (e) {
-      debugPrint('Error starting screen recording: $e');
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Failed to start recording: $e'),
-          backgroundColor: Colors.red,
-        ),
-      );
-    }
-  }
-
-  Future<void> _stopScreenRecording() async {
-    if (!_isRecordingScreen) return;
-
-    _recordingTimer?.cancel();
-
-    // In a real app, you would stop the actual recording here
-    setState(() {
-      _isRecordingScreen = false;
-    });
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Screen recording saved to: $_recordingPath'),
-        duration: const Duration(seconds: 3),
-      ),
-    );
+    widget.engine.muteLocalVideoStream(_isCameraOff);
   }
 
   void _switchCamera() {
-    // Implement camera switching logic
+    widget.engine.switchCamera();
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
         content: Text('Camera switched'),
@@ -559,561 +340,286 @@ class _CallScreenState extends State<CallScreen> with WidgetsBindingObserver {
   }
 
   @override
+  void dispose() {
+    _callTimer?.cancel();
+    _callSubscription?.cancel();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final isDarkMode = theme.brightness == Brightness.dark;
     final size = MediaQuery.of(context).size;
 
-    if (_isCheckingPermissions) {
-      return Scaffold(
-        backgroundColor: Colors.black,
-        body: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: const [
-              CircularProgressIndicator(color: Colors.white),
-              SizedBox(height: 16),
-              Text(
-                'Checking permissions...',
-                style: TextStyle(color: Colors.white),
+    return WillPopScope(
+      onWillPop: () async {
+        // Show confirmation dialog before ending call
+        final result = await showDialog<bool>(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: const Text('End Call'),
+            content: const Text('Are you sure you want to end this call?'),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context, false),
+                child: const Text('Cancel'),
+              ),
+              TextButton(
+                onPressed: () => Navigator.pop(context, true),
+                child: const Text('End Call', style: TextStyle(color: Colors.red)),
               ),
             ],
           ),
-        ),
-      );
-    }
-
-    if (!_permissionsGranted) {
-      return Scaffold(
+        );
+        if (result == true) {
+          _endCall();
+        }
+        return false;
+      },
+      child: Scaffold(
         backgroundColor: Colors.black,
-        appBar: AppBar(
-          backgroundColor: Colors.transparent,
-          elevation: 0,
-          leading: IconButton(
-            icon: const Icon(Icons.arrow_back, color: Colors.white),
-            onPressed: () => Navigator.pop(context),
-          ),
-        ),
-        body: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(
-                widget.callType == CallType.video ? Icons.videocam_off : Icons.mic_off,
-                color: Colors.white,
-                size: 64,
+        body: Stack(
+          children: [
+            // Background - video feed for video calls, gradient for voice calls
+            widget.callType == CallType.video
+                ? _buildVideoView()
+                : Container(
+              width: double.infinity,
+              height: double.infinity,
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [
+                    AppTheme.primaryColor.withOpacity(0.8),
+                    Colors.black,
+                  ],
+                ),
               ),
-              const SizedBox(height: 16),
-              const Text(
-                'Permission denied',
-                style: TextStyle(color: Colors.white, fontSize: 20),
-              ),
-              const SizedBox(height: 8),
-              ElevatedButton(
-                onPressed: () async {
-                  await openAppSettings();
-                },
-                child: const Text('Open Settings'),
-              ),
-            ],
-          ),
-        ),
-      );
-    }
+            ),
 
-    return Scaffold(
-      backgroundColor: Colors.black,
-      body: Stack(
-        children: [
-          // Background - would be the video feed in a real implementation
-          widget.callType == CallType.video
-              ? Container(
-            width: double.infinity,
-            height: double.infinity,
-            color: Colors.black87,
-            child: _isCameraOff
-                ? Center(
-              child: Icon(
-                Icons.videocam_off,
-                size: 80,
-                color: Colors.white.withOpacity(0.5),
-              ),
-            )
-                : _isScreenSharing
-                ? Center(
+            // Call UI
+            SafeArea(
               child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(
-                    Icons.screen_share,
-                    size: 80,
-                    color: Colors.white.withOpacity(0.5),
-                  ),
-                  const SizedBox(height: 16),
-                  Text(
-                    'Screen Sharing Active',
-                    style: TextStyle(
-                      color: Colors.white.withOpacity(0.8),
-                      fontSize: 18,
-                    ),
-                  ),
-                ],
-              ),
-            )
-                : null,
-          )
-              : Container(
-            width: double.infinity,
-            height: double.infinity,
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: [
-                  AppTheme.primaryColor.withOpacity(0.8),
-                  Colors.black,
-                ],
-              ),
-            ),
-          ),
-
-          // Network status indicator
-          if (_networkStatus == NetworkStatus.offline)
-            Positioned(
-              top: 40,
-              left: 0,
-              right: 0,
-              child: Container(
-                padding: const EdgeInsets.symmetric(vertical: 4),
-                color: Colors.red,
-                child: const Center(
-                  child: Text(
-                    'No network connection',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-              ),
-            ),
-
-          // Call UI
-          SafeArea(
-            child: Column(
-              children: [
-                // Top bar with call info
-                Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      IconButton(
-                        icon: const Icon(
-                          Icons.keyboard_arrow_down,
-                          color: Colors.white,
-                          size: 28,
-                        ),
-                        onPressed: () {
-                          Navigator.pop(context);
-                        },
-                      ),
-                      Column(
-                        children: [
-                          Text(
-                            widget.userName,
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 20,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            _getCallStatusText(),
-                            style: TextStyle(
-                              color: Colors.white.withOpacity(0.8),
-                              fontSize: 14,
-                            ),
-                          ),
-                        ],
-                      ),
-                      IconButton(
-                        icon: Icon(
-                          widget.callType == CallType.video
-                              ? Icons.switch_camera
-                              : Icons.info_outline,
-                          color: Colors.white,
-                          size: 24,
-                        ),
-                        onPressed: widget.callType == CallType.video && _callState == CallState.connected
-                            ? _switchCamera
-                            : null,
-                      ),
-                    ],
-                  ),
-                ),
-
-                // Screen recording indicator
-                if (_isRecordingScreen)
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                    margin: const EdgeInsets.symmetric(horizontal: 16),
-                    decoration: BoxDecoration(
-                      color: Colors.red.withOpacity(0.7),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
+                  // Top bar with call info
+                  Padding(
+                    padding: const EdgeInsets.all(16.0),
                     child: Row(
-                      mainAxisSize: MainAxisSize.min,
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        const Icon(
-                          Icons.fiber_manual_record,
-                          color: Colors.white,
-                          size: 16,
-                        ),
-                        const SizedBox(width: 8),
-                        Text(
-                          'Recording: ${_formatDuration(_recordingDuration)}',
-                          style: const TextStyle(
+                        IconButton(
+                          icon: const Icon(
+                            Icons.keyboard_arrow_down,
                             color: Colors.white,
-                            fontWeight: FontWeight.bold,
+                            size: 28,
                           ),
+                          onPressed: () {
+                            // Show confirmation dialog before minimizing call
+                            showDialog(
+                              context: context,
+                              builder: (context) => AlertDialog(
+                                title: const Text('End Call'),
+                                content: const Text('Are you sure you want to end this call?'),
+                                actions: [
+                                  TextButton(
+                                    onPressed: () => Navigator.pop(context),
+                                    child: const Text('Cancel'),
+                                  ),
+                                  TextButton(
+                                    onPressed: () {
+                                      Navigator.pop(context);
+                                      _endCall();
+                                    },
+                                    child: const Text('End Call', style: TextStyle(color: Colors.red)),
+                                  ),
+                                ],
+                              ),
+                            );
+                          },
+                        ),
+                        Column(
+                          children: [
+                            Text(
+                              widget.userName,
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 20,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Row(
+                              children: [
+                                if (_networkQualityPoor)
+                                  const Icon(
+                                    Icons.signal_cellular_connected_no_internet_4_bar,
+                                    color: Colors.orange,
+                                    size: 14,
+                                  ),
+                                const SizedBox(width: 4),
+                                Text(
+                                  _isCallRinging
+                                      ? _callStatus.capitalize()
+                                      : _formatDuration(_callDuration),
+                                  style: TextStyle(
+                                    color: Colors.white.withOpacity(0.8),
+                                    fontSize: 14,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                        IconButton(
+                          icon: Icon(
+                            widget.callType == CallType.video
+                                ? Icons.switch_camera
+                                : Icons.info_outline,
+                            color: Colors.white,
+                            size: 24,
+                          ),
+                          onPressed: widget.callType == CallType.video
+                              ? _switchCamera
+                              : null,
                         ),
                       ],
                     ),
                   ),
 
-                // User info (centered for voice calls, top for video)
-                if (_callState == CallState.ringing && widget.isOutgoing)
-                  Expanded(
-                    child: Center(
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          _buildProfileAvatar(),
-                          const SizedBox(height: 24),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Text(
-                                'Calling',
-                                style: const TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 18,
-                                ),
-                              ),
-                              SizedBox(width: 4),
-                              _buildRingingDots(),
-                            ],
-                          ),
-                          if (_networkStatus == NetworkStatus.offline)
-                            Padding(
-                              padding: const EdgeInsets.only(top: 16),
-                              child: Text(
-                                'Poor connection...',
-                                style: TextStyle(
-                                  color: Colors.red[300],
-                                  fontSize: 14,
-                                ),
-                              ),
-                            ),
-                        ],
-                      ),
-                    ),
-                  )
-                else if (_callState == CallState.ringing && !widget.isOutgoing)
-                  Expanded(
-                    child: Center(
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          _buildProfileAvatar(),
-                          const SizedBox(height: 24),
-                          Text(
-                            'Incoming call...',
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 18,
-                            ),
-                          ),
-                          const SizedBox(height: 32),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              ElevatedButton(
-                                onPressed: _endCall,
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: Colors.red,
-                                  padding: const EdgeInsets.all(16),
-                                  shape: const CircleBorder(),
-                                ),
-                                child: const Icon(
-                                  Icons.call_end,
-                                  color: Colors.white,
-                                  size: 32,
-                                ),
-                              ),
-                              const SizedBox(width: 48),
-                              ElevatedButton(
-                                onPressed: _acceptCall,
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: Colors.green,
-                                  padding: const EdgeInsets.all(16),
-                                  shape: const CircleBorder(),
-                                ),
-                                child: const Icon(
-                                  Icons.call,
-                                  color: Colors.white,
-                                  size: 32,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ),
-                  )
-                else if (_callState == CallState.connected && widget.callType == CallType.voice)
+                  // User info (centered for voice calls, top for video)
+                  if (widget.callType == CallType.voice || !_isCallConnected)
                     Expanded(
                       child: Center(
                         child: Column(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            _buildProfileAvatar(),
-                            const SizedBox(height: 24),
-                            Text(
-                              _formatDuration(_callDuration),
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 18,
-                              ),
+                            CircleAvatar(
+                              radius: 60,
+                              backgroundColor: AppTheme.primaryColor,
+                              backgroundImage: widget.profileImageBase64 != null && widget.profileImageBase64!.isNotEmpty
+                                  ? MemoryImage(base64Decode(widget.profileImageBase64!))
+                                  : null,
+                              onBackgroundImageError: widget.profileImageBase64 != null && widget.profileImageBase64!.isNotEmpty
+                                  ? (_, __) {
+                                // Handle error silently
+                              }
+                                  : null,
+                              child: (widget.profileImageBase64 == null || widget.profileImageBase64!.isEmpty)
+                                  ? Text(
+                                widget.userName.isNotEmpty
+                                    ? widget.userName[0].toUpperCase()
+                                    : '?',
+                                style: const TextStyle(color: Colors.white, fontSize: 40),
+                              )
+                                  : null,
                             ),
+
+                            const SizedBox(height: 24),
+                            if (_isCallRinging)
+                              Text(
+                                _callStatus.capitalize(),
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 18,
+                                ),
+                              ),
                           ],
                         ),
                       ),
-                    )
-                  else if (_callState == CallState.ended || _callState == CallState.failed ||
-                        _callState == CallState.noAnswer || _callState == CallState.networkError)
-                      Expanded(
-                        child: Center(
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              _buildProfileAvatar(),
-                              const SizedBox(height: 24),
-                              Text(
-                                _getCallEndStatusText(),
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                              if (_callState == CallState.ended && _callDuration.inSeconds > 0)
-                                Padding(
-                                  padding: const EdgeInsets.only(top: 8),
-                                  child: Text(
-                                    'Duration: ${_formatDuration(_callDuration)}',
-                                    style: TextStyle(
-                                      color: Colors.white.withOpacity(0.7),
-                                      fontSize: 14,
-                                    ),
-                                  ),
-                                ),
-                            ],
-                          ),
-                        ),
-                      )
-                    else
-                      Expanded(child: Container()),
+                    ),
 
-                // Call controls
-                if (_callState != CallState.ended && _callState != CallState.failed &&
-                    _callState != CallState.noAnswer && _callState != CallState.networkError)
+                  // Call controls
                   Container(
                     padding: const EdgeInsets.symmetric(vertical: 24),
                     margin: const EdgeInsets.only(bottom: 24),
-                    child: Column(
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                       children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                          children: [
-                            if (_callState == CallState.connected) ...[
-                              _buildCallButton(
-                                icon: _isMuted ? Icons.mic_off : Icons.mic,
-                                label: _isMuted ? 'Unmute' : 'Mute',
-                                onPressed: _toggleMute,
-                                backgroundColor: Colors.white.withOpacity(0.2),
-                              ),
-                              _buildCallButton(
-                                icon: Icons.call_end,
-                                label: 'End',
-                                onPressed: _endCall,
-                                backgroundColor: Colors.red,
-                                iconColor: Colors.white,
-                              ),
-                              if (widget.callType == CallType.video)
-                                _buildCallButton(
-                                  icon: _isCameraOff ? Icons.videocam_off : Icons.videocam,
-                                  label: _isCameraOff ? 'Camera On' : 'Camera Off',
-                                  onPressed: _toggleCamera,
-                                  backgroundColor: Colors.white.withOpacity(0.2),
-                                )
-                              else
-                                _buildCallButton(
-                                  icon: _isSpeakerOn ? Icons.volume_up : Icons.volume_down,
-                                  label: _isSpeakerOn ? 'Speaker Off' : 'Speaker On',
-                                  onPressed: _toggleSpeaker,
-                                  backgroundColor: Colors.white.withOpacity(0.2),
-                                ),
-                            ] else if (widget.isOutgoing && _callState == CallState.ringing)
-                              _buildCallButton(
-                                icon: Icons.call_end,
-                                label: 'Cancel',
-                                onPressed: _endCall,
-                                backgroundColor: Colors.red,
-                                iconColor: Colors.white,
-                              ),
-                          ],
+                        _buildCallButton(
+                          icon: _isMuted ? Icons.mic_off : Icons.mic,
+                          label: _isMuted ? 'Unmute' : 'Mute',
+                          onPressed: _toggleMute,
+                          backgroundColor: Colors.white.withOpacity(0.2),
                         ),
-
-                        // Additional controls for connected calls
-                        if (_callState == CallState.connected && widget.callType == CallType.video)
-                          Padding(
-                            padding: const EdgeInsets.only(top: 16),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                              children: [
-                                _buildCallButton(
-                                  icon: _isScreenSharing ? Icons.stop_screen_share : Icons.screen_share,
-                                  label: _isScreenSharing ? 'Stop Share' : 'Share Screen',
-                                  onPressed: _toggleScreenShare,
-                                  backgroundColor: Colors.white.withOpacity(0.2),
-                                ),
-                                _buildCallButton(
-                                  icon: _isRecordingScreen ? Icons.stop_circle : Icons.fiber_manual_record,
-                                  label: _isRecordingScreen ? 'Stop Recording' : 'Record Screen',
-                                  onPressed: _toggleScreenRecording,
-                                  backgroundColor: _isRecordingScreen ? Colors.red.withOpacity(0.6) : Colors.white.withOpacity(0.2),
-                                ),
-                                _buildCallButton(
-                                  icon: _isSpeakerOn ? Icons.volume_up : Icons.volume_down,
-                                  label: _isSpeakerOn ? 'Speaker Off' : 'Speaker On',
-                                  onPressed: _toggleSpeaker,
-                                  backgroundColor: Colors.white.withOpacity(0.2),
-                                ),
-                              ],
-                            ),
+                        _buildCallButton(
+                          icon: Icons.call_end,
+                          label: 'End',
+                          onPressed: _endCall,
+                          backgroundColor: Colors.red,
+                          iconColor: Colors.white,
+                        ),
+                        if (widget.callType == CallType.video) ...[
+                          _buildCallButton(
+                            icon: _isCameraOff ? Icons.videocam_off : Icons.videocam,
+                            label: _isCameraOff ? 'Camera On' : 'Camera Off',
+                            onPressed: _toggleCamera,
+                            backgroundColor: Colors.white.withOpacity(0.2),
+                          ),
+                        ] else
+                          _buildCallButton(
+                            icon: _isSpeakerOn ? Icons.volume_up : Icons.volume_down,
+                            label: _isSpeakerOn ? 'Speaker Off' : 'Speaker On',
+                            onPressed: _toggleSpeaker,
+                            backgroundColor: Colors.white.withOpacity(0.2),
                           ),
                       ],
                     ),
                   ),
-              ],
+                ],
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
 
-  Widget _buildRingingDots() {
-    // Animated dots to show ringing status
-    final dotsCount = (_ringCount % 3) + 1;
-    return Row(
-      mainAxisSize: MainAxisSize.min,
+  Widget _buildVideoView() {
+    return Stack(
       children: [
-        for (int i = 0; i < dotsCount; i++)
-          Text(
-            '.',
-            style: const TextStyle(
-              color: Colors.white,
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
+        // Remote video (full screen)
+        _remoteUid != null
+            ? AgoraVideoView(
+          controller: VideoViewController.remote(
+            rtcEngine: widget.engine,
+            canvas: VideoCanvas(uid: _remoteUid),
+            connection: RtcConnection(channelId: 'channel_${widget.callId}'),
+          ),
+        )
+            : Container(
+          color: Colors.black,
+          child: const Center(
+            child: Text(
+              'Waiting for remote user to join...',
+              style: TextStyle(color: Colors.white),
+            ),
+          ),
+        ),
+
+        // Local video (picture-in-picture)
+        if (_localUserJoined && widget.callType == CallType.video && !_isCameraOff)
+          Positioned(
+            top: 80,
+            right: 20,
+            child: Container(
+              width: 120,
+              height: 180,
+              decoration: BoxDecoration(
+                border: Border.all(color: Colors.white, width: 2),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(6),
+                child: AgoraVideoView(
+                  controller: VideoViewController(
+                    rtcEngine: widget.engine,
+                    canvas: const VideoCanvas(uid: 0),
+                  ),
+                ),
+              ),
             ),
           ),
       ],
-    );
-  }
-
-  String _getCallStatusText() {
-    switch (_callState) {
-      case CallState.ringing:
-        return widget.isOutgoing ? 'Calling...' : 'Incoming call...';
-      case CallState.connecting:
-        return 'Connecting...';
-      case CallState.connected:
-        return _formatDuration(_callDuration);
-      case CallState.ended:
-        return 'Call ended';
-      case CallState.failed:
-        return 'Call failed';
-      case CallState.busy:
-        return 'User is busy';
-      case CallState.noAnswer:
-        return 'No answer';
-      case CallState.networkError:
-        return 'Network error';
-      default:
-        return '';
-    }
-  }
-
-  String _getCallEndStatusText() {
-    switch (_callState) {
-      case CallState.ended:
-        return 'Call ended';
-      case CallState.failed:
-        return 'Call failed';
-      case CallState.busy:
-        return 'User is busy';
-      case CallState.noAnswer:
-        return 'No answer';
-      case CallState.networkError:
-        return 'Network error';
-      default:
-        return 'Call ended';
-    }
-  }
-
-  Widget _buildProfileAvatar() {
-    // Fixed the CircleAvatar issue by properly handling null backgroundImage
-    if (widget.profileImageBase64 != null && widget.profileImageBase64!.isNotEmpty) {
-      try {
-        // Try to decode the base64 string using our improved utility
-        final bytes = ImageUtils.safelyDecodeBase64(widget.profileImageBase64!);
-
-        if (bytes != null) {
-          return CircleAvatar(
-            radius: 60,
-            backgroundColor: AppTheme.primaryColor,
-            child: ClipOval(
-              child: Image.memory(
-                bytes,
-                width: 120,
-                height: 120,
-                fit: BoxFit.cover,
-                errorBuilder: (context, error, stackTrace) {
-                  return Text(
-                    widget.userName.isNotEmpty ? widget.userName[0].toUpperCase() : '?',
-                    style: const TextStyle(color: Colors.white, fontSize: 40),
-                  );
-                },
-              ),
-            ),
-          );
-        }
-      } catch (e) {
-        debugPrint('Error decoding profile image: $e');
-      }
-    }
-
-    return CircleAvatar(
-      radius: 60,
-      backgroundColor: AppTheme.primaryColor,
-      child: Text(
-        widget.userName.isNotEmpty ? widget.userName[0].toUpperCase() : '?',
-        style: const TextStyle(color: Colors.white, fontSize: 40),
-      ),
     );
   }
 
@@ -1149,5 +655,12 @@ class _CallScreenState extends State<CallScreen> with WidgetsBindingObserver {
         ),
       ],
     );
+  }
+}
+
+// Extension to capitalize the first letter of a string
+extension StringExtension on String {
+  String capitalize() {
+    return isNotEmpty ? "${this[0].toUpperCase()}${substring(1)}" : this;
   }
 }

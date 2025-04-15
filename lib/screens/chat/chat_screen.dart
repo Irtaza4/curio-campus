@@ -17,6 +17,7 @@ import '../../utils/app_theme.dart';
 import '../../widgets/audio_player.dart';
 import '../../widgets/voice_recorder.dart';
 import 'edit_group_chat_screen.dart';
+import 'package:curio_campus/services/call_service.dart';
 
 class ChatScreen extends StatefulWidget {
   final String chatId;
@@ -172,23 +173,20 @@ class _ChatScreenState extends State<ChatScreen> {
     _scrollToBottom();
   }
 
+  // Fixed _initiateCall method to provide required parameters
   void _initiateCall(bool isVideoCall) {
     if (_otherUserId == null) return;
 
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (_) => CallScreen(
-          userId: _otherUserId!,
-          userName: _senderName.isNotEmpty ? _senderName : widget.chatName,
-          callType: isVideoCall ? CallType.video : CallType.voice,
-          profileImageBase64: _otherUserProfileImage,
-          autoConnect: false, // Set to false to prevent auto-connection
-          isOutgoing: true, // This is an outgoing call
-        ),
-      ),
+    final callService = CallService();
+
+    callService.makeCall(
+      recipientId: _otherUserId!,
+      recipientName: _senderName.isNotEmpty ? _senderName : widget.chatName,
+      recipientImage: _otherUserProfileImage,
+      callType: isVideoCall ? CallType.video : CallType.voice,
     );
   }
+
 
   void _showMoreOptions() {
     final theme = Theme.of(context);

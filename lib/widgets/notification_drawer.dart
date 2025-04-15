@@ -9,6 +9,8 @@ import 'package:curio_campus/screens/project/project_detail_screen.dart';
 import 'package:curio_campus/providers/chat_provider.dart';
 import 'package:curio_campus/models/chat_model.dart';
 
+import '../services/call_service.dart';
+
 class NotificationDrawer extends StatelessWidget {
   final NotificationType? filterType;
   final String title;
@@ -257,7 +259,6 @@ class NotificationDrawer extends StatelessWidget {
       case NotificationType.chat:
         if (notification.relatedId != null) {
           final chatProvider = Provider.of<ChatProvider>(context, listen: false);
-          // Fix the null error by providing a default ChatModel instead of null
           final chat = chatProvider.chats.firstWhere(
                 (chat) => chat.id == notification.relatedId,
             orElse: () => ChatModel(
@@ -274,13 +275,14 @@ class NotificationDrawer extends StatelessWidget {
             context,
             MaterialPageRoute(
               builder: (_) => ChatScreen(
-                chatId: notification.relatedId!,
-                chatName: notification.title,
+                chatId: chat.id,
+                chatName: chat.name,
               ),
             ),
           );
         }
         break;
+
       case NotificationType.emergency:
         if (notification.relatedId != null) {
           Navigator.push(
@@ -294,6 +296,7 @@ class NotificationDrawer extends StatelessWidget {
           );
         }
         break;
+
       case NotificationType.project:
         if (notification.relatedId != null) {
           Navigator.push(
@@ -306,15 +309,32 @@ class NotificationDrawer extends StatelessWidget {
           );
         }
         break;
+
       case NotificationType.profile:
-      // Navigate to profile screen or specific profile section
         Navigator.of(context).popUntil((route) => route.isFirst);
         Provider.of<NotificationProvider>(context, listen: false).markAsRead(notification.id);
         break;
+
       case NotificationType.system:
-      // Handle system notifications
         Navigator.pop(context);
+        break;
+
+      case NotificationType.call:
+      // ✅ Fix: handle call notification using CallService
+        if (notification.additionalData != null && notification.relatedId != null) {
+          final callService = CallService();
+          callService.handleIncomingCallFromNotification(
+            callId: notification.relatedId!,
+            callerId: notification.additionalData?['callerId'] ?? '',
+            callerName: notification.additionalData?['callerName'] ?? 'Unknown',
+            isVideoCall: notification.additionalData?['callType'] == 'video',
+            callerProfileImage: notification.additionalData?['callerImage'],
+          );
+        } else {
+          debugPrint('Call notification missing required data.');
+        }
         break;
     }
   }
+
 }

@@ -1,4 +1,5 @@
-import 'dart:io';
+import 'dart:convert';
+import 'dart:typed_data';
 
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
@@ -16,13 +17,11 @@ import 'package:curio_campus/screens/emergency/emergency_request_detail_screen.d
 import 'package:curio_campus/screens/project/project_detail_screen.dart';
 import 'package:curio_campus/providers/notification_provider.dart';
 import 'package:curio_campus/utils/navigator_key.dart';
-
-import 'call_service.dart' as call_service;
+import 'package:curio_campus/services/call_service.dart';
 
 class NotificationService {
   static final NotificationService _instance = NotificationService._internal();
   factory NotificationService() => _instance;
-  Future<dynamic> get callService async => callService;
   NotificationService._internal();
 
   final FirebaseMessaging _firebaseMessaging = FirebaseMessaging.instance;
@@ -174,6 +173,28 @@ class NotificationService {
       importance: Importance.high,
     );
 
+    // Create call channel with proper Int64List for vibration pattern
+    final Int64List vibrationPattern = Int64List(8);
+    vibrationPattern[0] = 0;
+    vibrationPattern[1] = 1000;
+    vibrationPattern[2] = 500;
+    vibrationPattern[3] = 1000;
+    vibrationPattern[4] = 500;
+    vibrationPattern[5] = 1000;
+    vibrationPattern[6] = 500;
+    vibrationPattern[7] = 1000;
+
+    final AndroidNotificationChannel callChannel = AndroidNotificationChannel(
+      'call_channel',
+      'Call Notifications',
+      description: 'Notifications for incoming calls',
+      importance: Importance.max,
+      sound: const RawResourceAndroidNotificationSound('ringtone'),
+      playSound: true,
+      enableVibration: true,
+      vibrationPattern: vibrationPattern,
+    );
+
     await _flutterLocalNotificationsPlugin
         .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>()
         ?.createNotificationChannel(chatChannel);
@@ -185,6 +206,10 @@ class NotificationService {
     await _flutterLocalNotificationsPlugin
         .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>()
         ?.createNotificationChannel(projectChannel);
+
+    await _flutterLocalNotificationsPlugin
+        .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>()
+        ?.createNotificationChannel(callChannel);
   }
 
   // Update FCM token and save to Firestore
@@ -265,16 +290,38 @@ class NotificationService {
 
   // Improve the _showLocalNotification method to handle different notification types
   Future<void> _showLocalNotification(RemoteMessage message) async {
+    // Check if this is a call notification
+    if (message.data['type'] == 'call') {
+      // Handle call notifications separately
+      final callId = message.data['callId'];
+      final callerId = message.data['callerId'];
+      final callerName = message.data['callerName'];
+      final callerImage = message.data['callerImage'];
+      final isVideoCall = message.data['callType'] == 'video';
+
+      // Use the CallService to handle the incoming call
+      final callService = CallService();
+      callService.handleIncomingCallFromNotification(
+        callId: callId ?? '0',
+        callerId: callerId ?? '',
+        callerName: callerName ?? 'Unknown',
+        isVideoCall: isVideoCall,
+        callerProfileImage: callerImage,
+      );
+
+      return;
+    }
+
     final androidPlatformChannelSpecifics = AndroidNotificationDetails(
-      'curio_campus_channel',
-      'Curio Campus Notifications',
+      _getChannelIdFromType(message.data['type']),
+      _getChannelNameFromType(message.data['type']),
       channelDescription: 'Notifications from Curio Campus',
       importance: Importance.max,
       priority: Priority.high,
       showWhen: true,
     );
 
-    final iOSPlatformChannelSpecifics = DarwinNotificationDetails();
+    final iOSPlatformChannelSpecifics = const DarwinNotificationDetails();
 
     final platformChannelSpecifics = NotificationDetails(
       android: androidPlatformChannelSpecifics,
@@ -306,9 +353,6 @@ class NotificationService {
       );
     }
   }
-
-  // Add a public method to show local notifications
-  // Add this method after the _showLocalNotification method:
 
   // Public method to show local notifications
   Future<void> showLocalNotification({
@@ -351,6 +395,8 @@ class NotificationService {
         return Colors.blue;
       case 'chat':
         return Colors.green;
+      case 'call':
+        return Colors.purple;
       default:
         return Colors.teal;
     }
@@ -368,6 +414,11 @@ class NotificationService {
         return [
           const AndroidNotificationAction('reply', 'Reply'),
           const AndroidNotificationAction('view', 'View Chat'),
+        ];
+      case 'call':
+        return [
+          const AndroidNotificationAction('answer', 'Answer', showsUserInterface: true),
+          const AndroidNotificationAction('decline', 'Decline', showsUserInterface: true),
         ];
       case 'project':
         return [
@@ -390,26 +441,113 @@ class NotificationService {
       case 'chat':
         final chatId = data['chatId'];
         final chatName = data['chatName'];
-        // Navigate to chat screen
+        if (chatId != null && navigatorKey.currentContext != null) {
+          Navigator.push(
+            navigatorKey.currentContext!,
+            MaterialPageRoute(
+              builder: (_) => ChatScreen(
+                chatId: chatId,
+                chatName: chatName ?? 'Chat',
+              ),
+            ),
+          );
+        }
+        break;
+      case 'call':
+        final callId = data['callId'];
+        final callerId = data['callerId'];
+        final callerName = data['callerName'];
+        final isVideoCall = data['callType'] == 'video';
+        final callerImage = data['callerImage'];
+
+        if (callId != null && callerId != null) {
+          final callService = CallService();
+          callService.handleIncomingCallFromNotification(
+            callId: callId,
+            callerId: callerId,
+            callerName: callerName ?? 'Unknown',
+            isVideoCall: isVideoCall,
+            callerProfileImage: callerImage,
+          );
+        }
         break;
       case 'emergency':
         final requestId = data['requestId'];
-        // Navigate to emergency request details
+        if (requestId != null && navigatorKey.currentContext != null) {
+          Navigator.push(
+            navigatorKey.currentContext!,
+            MaterialPageRoute(
+              builder: (_) => EmergencyRequestDetailScreen(
+                requestId: requestId,
+                isOwnRequest: data['isOwnRequest'] == 'true',
+              ),
+            ),
+          );
+        }
         break;
       case 'project':
         final projectId = data['projectId'];
-        // Navigate to project details
+        if (projectId != null && navigatorKey.currentContext != null) {
+          Navigator.push(
+            navigatorKey.currentContext!,
+            MaterialPageRoute(
+              builder: (_) => ProjectDetailScreen(
+                projectId: projectId,
+              ),
+            ),
+          );
+        }
         break;
     }
   }
 
   // Handle notification tap from local notification
-  void _onNotificationTapped(NotificationResponse response) {
-    debugPrint('Local notification tapped: ${response.payload}');
+  void _handleNotificationClick(String? payload) {
+    if (payload == null) return;
 
-    // Parse payload and navigate accordingly
-    if (response.payload != null) {
-      // Handle navigation based on payload
+    debugPrint('Local notification payload: $payload');
+
+    try {
+      // Try to parse the payload as a map
+      final payloadMap = Map<String, dynamic>.from(
+          json.decode(payload.replaceAll('{', '{"').replaceAll(': ', '": "').replaceAll(', ', '", "').replaceAll('}', '"}'))
+      );
+
+      // Handle based on notification type
+      final type = payloadMap['type'];
+
+      if (type == 'call') {
+        final callId = payloadMap['callId'];
+        final callerId = payloadMap['callerId'];
+        final callerName = payloadMap['callerName'];
+        final isVideoCall = payloadMap['callType'] == 'video';
+        final callerImage = payloadMap['callerImage'];
+
+        if (callId != null && callerId != null) {
+          final callService = CallService();
+          callService.handleIncomingCallFromNotification(
+            callId: callId,
+            callerId: callerId,
+            callerName: callerName ?? 'Unknown',
+            isVideoCall: isVideoCall,
+            callerProfileImage: callerImage,
+          );
+        }
+      } else if (type == 'chat' && payloadMap['chatId'] != null) {
+        if (navigatorKey.currentContext != null) {
+          Navigator.push(
+            navigatorKey.currentContext!,
+            MaterialPageRoute(
+              builder: (_) => ChatScreen(
+                chatId: payloadMap['chatId'],
+                chatName: payloadMap['chatName'] ?? 'Chat',
+              ),
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      debugPrint('Error parsing notification payload: $e');
     }
   }
 
@@ -577,9 +715,6 @@ class NotificationService {
     }
   }
 
-  // Update the notification service to handle real notifications
-  // Add this method to the NotificationService class
-
   // Method to handle incoming FCM messages and create real notifications
   void setupNotificationHandlers() {
     // Handle foreground messages
@@ -666,6 +801,8 @@ class NotificationService {
         return 'emergency_channel';
       case 'project':
         return 'project_channel';
+      case 'call':
+        return 'call_channel';
       case 'profile':
         return 'profile_channel';
       default:
@@ -682,6 +819,8 @@ class NotificationService {
         return 'Emergency Requests';
       case 'project':
         return 'Project Updates';
+      case 'call':
+        return 'Call Notifications';
       case 'profile':
         return 'Profile Updates';
       default:
@@ -698,6 +837,8 @@ class NotificationService {
         return Colors.orange;
       case 'project':
         return Colors.green;
+      case 'call':
+        return Colors.purple;
       case 'profile':
         return Colors.purple;
       default:
@@ -714,6 +855,8 @@ class NotificationService {
         return NotificationType.emergency;
       case 'project':
         return NotificationType.project;
+      case 'call':
+        return NotificationType.call;
       case 'profile':
         return NotificationType.profile;
       default:
@@ -765,33 +908,21 @@ class NotificationService {
           );
         }
         break;
+      case NotificationType.call:
+        if (notification.relatedId != null && notification.additionalData != null) {
+          final callService = CallService();
+          callService.handleIncomingCallFromNotification(
+            callId: notification.relatedId!,
+            callerId: notification.additionalData!['callerId'] ?? '',
+            callerName: notification.additionalData!['callerName'] ?? 'Unknown',
+            isVideoCall: notification.additionalData!['callType'] == 'video',
+            callerProfileImage: notification.additionalData!['callerImage'],
+          );
+        }
+        break;
       default:
         break;
     }
-  }
-
-  // Handle notification clicks
-  void _handleNotificationClick(String? payload) {
-    if (payload == null) return;
-
-    debugPrint('Notification payload: $payload');
-
-    // Parse the payload and navigate to the appropriate screen
-    // This will depend on your app's navigation structure
-    // For example:
-    // if (payload.contains('chat')) {
-    //   Navigator.of(context).pushNamed('/chat', arguments: payload);
-    // }
-  }
-
-  // Subscribe to a topic
-  Future<void> subscribeToTopic(String topic) async {
-    await _firebaseMessaging.subscribeToTopic(topic);
-  }
-
-  // Unsubscribe from a topic
-  Future<void> unsubscribeFromTopic(String topic) async {
-    await _firebaseMessaging.unsubscribeFromTopic(topic);
   }
 
   Future<void> registerForBackgroundNotifications() async {
@@ -812,7 +943,6 @@ class NotificationService {
   }
 }
 
-// Improve the _firebaseMessagingBackgroundHandler function at the bottom of the file
 // Background message handler (must be a top-level function)
 @pragma('vm:entry-point')
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
@@ -844,53 +974,3 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
     platformChannelSpecifics,
   );
 }
-// Add this method to your NotificationService class
-
-Future<void> setupBackgroundNotifications() async {
-  // This method sets up background notification handling
-  debugPrint('Setting up background notifications');
-
-  // Request permission for critical alerts on iOS
-  if (Platform.isIOS) {
-    await FirebaseMessaging.instance.requestPermission(
-      alert: true,
-      badge: true,
-      sound: true,
-      criticalAlert: true,
-      provisional: false,
-    );
-  }
-
-  // Set up background message handler
-  FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
-
-  // Handle notification click when app is in background
-  FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
-    debugPrint('App opened from background state via notification: ${message.data}');
-    // Handle the notification click based on the data
-    handleNotificationClick(message.data);
-  });
-}
-
-// Helper method to handle notification clicks
-void handleNotificationClick(Map<String, dynamic> data) {
-  if (data['type'] == 'call') {
-    final callId = data['callId'];
-    final callerId = data['callerId'];
-    final callerName = data['callerName'];
-    final isVideoCall = data['isVideoCall'] == 'true';
-    final callerProfileImage = data['callerProfileImage'];
-
-    if (callId != null && callerId != null) {
-      call_service.CallService().handleIncomingCallFromNotification(
-        callId: callId,
-        callerId: callerId,
-        callerName: callerName ?? '',
-        isVideoCall: isVideoCall,
-        callerProfileImage: callerProfileImage,
-      );
-    }
-  }
-}
-
-

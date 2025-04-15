@@ -225,7 +225,7 @@ class _ImageViewerScreenState extends State<ImageViewerScreen> {
 
       try {
         // Try to decode the base64 string using our improved utility
-        final bytes = ImageUtils.safelyDecodeBase64(base64String);
+        final bytes = ImageUtils.safelyDecodeBase64(base64String!);
 
         if (bytes == null) {
           return Center(

@@ -42,6 +42,8 @@ class _SkillSelectorState extends State<SkillSelector> {
     'Bitbucket', 'Jira', 'Trello', 'Figma', 'Adobe XD'
   ];
 
+  String _searchQuery = ''; // ✅ NEW: search query state
+
   @override
   Widget build(BuildContext context) {
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
@@ -77,7 +79,6 @@ class _SkillSelectorState extends State<SkillSelector> {
             ),
             const SizedBox(height: 8),
           ],
-
           if (availableSkillsFiltered.isNotEmpty)
             InkWell(
               onTap: () {
@@ -87,7 +88,8 @@ class _SkillSelectorState extends State<SkillSelector> {
               child: Container(
                 padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
                 decoration: BoxDecoration(
-                  border: Border.all(color: isDarkMode ? Colors.grey[600]! : Colors.grey.shade400),
+                  border: Border.all(
+                      color: isDarkMode ? Colors.grey[600]! : Colors.grey.shade400),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Row(
@@ -108,7 +110,6 @@ class _SkillSelectorState extends State<SkillSelector> {
                 ),
               ),
             ),
-
           if (availableSkillsFiltered.isEmpty)
             Padding(
               padding: const EdgeInsets.symmetric(vertical: 8),
@@ -126,11 +127,6 @@ class _SkillSelectorState extends State<SkillSelector> {
   }
 
   void _showSkillSelectionDialog(List<String> availableSkills, bool isDarkMode) {
-    final majorSkillsFiltered =
-    availableSkills.where((skill) => _majorSkills.contains(skill)).toList();
-    final minorSkillsFiltered =
-    availableSkills.where((skill) => _minorSkills.contains(skill)).toList();
-
     bool showingMajorSkills = true;
 
     showDialog(
@@ -138,6 +134,18 @@ class _SkillSelectorState extends State<SkillSelector> {
       builder: (dialogContext) {
         return StatefulBuilder(
           builder: (context, setState) {
+            final majorSkillsFiltered = availableSkills
+                .where((skill) =>
+            _majorSkills.contains(skill) &&
+                skill.toLowerCase().contains(_searchQuery))
+                .toList();
+
+            final minorSkillsFiltered = availableSkills
+                .where((skill) =>
+            _minorSkills.contains(skill) &&
+                skill.toLowerCase().contains(_searchQuery))
+                .toList();
+
             return AlertDialog(
               backgroundColor: isDarkMode ? Colors.grey[900] : null,
               title: Text(
@@ -151,22 +159,27 @@ class _SkillSelectorState extends State<SkillSelector> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     TextField(
-                      style: TextStyle(color: isDarkMode ? Colors.white : Colors.black),
+                      style:
+                      TextStyle(color: isDarkMode ? Colors.white : Colors.black),
                       decoration: InputDecoration(
                         hintText: 'Search skills...',
                         hintStyle: TextStyle(
                             color: isDarkMode ? Colors.grey[400] : Colors.grey[600]),
                         prefixIcon: Icon(Icons.search,
-                            color: isDarkMode ? Colors.grey[300] : Colors.grey[700]),
+                            color:
+                            isDarkMode ? Colors.grey[300] : Colors.grey[700]),
                         filled: true,
-                        fillColor: isDarkMode ? Colors.grey[800] : Colors.grey[100],
+                        fillColor:
+                        isDarkMode ? Colors.grey[800] : Colors.grey[100],
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(8),
                           borderSide: BorderSide.none,
                         ),
                       ),
                       onChanged: (value) {
-                        setState(() {});
+                        setState(() {
+                          _searchQuery = value.toLowerCase();
+                        });
                       },
                     ),
                     const SizedBox(height: 16),
@@ -177,12 +190,15 @@ class _SkillSelectorState extends State<SkillSelector> {
                             style: ElevatedButton.styleFrom(
                               backgroundColor: showingMajorSkills
                                   ? AppTheme.primaryColor
-                                  : (isDarkMode ? Colors.grey[700] : Colors.grey.shade300),
+                                  : (isDarkMode
+                                  ? Colors.grey[700]
+                                  : Colors.grey.shade300),
                               foregroundColor: showingMajorSkills
                                   ? Colors.white
                                   : (isDarkMode ? Colors.white : Colors.black),
                             ),
-                            onPressed: () => setState(() => showingMajorSkills = true),
+                            onPressed: () =>
+                                setState(() => showingMajorSkills = true),
                             child: const Text('Major Skills'),
                           ),
                         ),
@@ -192,12 +208,15 @@ class _SkillSelectorState extends State<SkillSelector> {
                             style: ElevatedButton.styleFrom(
                               backgroundColor: !showingMajorSkills
                                   ? AppTheme.primaryColor
-                                  : (isDarkMode ? Colors.grey[700] : Colors.grey.shade300),
+                                  : (isDarkMode
+                                  ? Colors.grey[700]
+                                  : Colors.grey.shade300),
                               foregroundColor: !showingMajorSkills
                                   ? Colors.white
                                   : (isDarkMode ? Colors.white : Colors.black),
                             ),
-                            onPressed: () => setState(() => showingMajorSkills = false),
+                            onPressed: () =>
+                                setState(() => showingMajorSkills = false),
                             child: const Text('Minor Skills'),
                           ),
                         ),
@@ -232,7 +251,8 @@ class _SkillSelectorState extends State<SkillSelector> {
                             ),
                             onTap: () {
                               final updatedSkills =
-                              List<String>.from(widget.selectedSkills)..add(skill);
+                              List<String>.from(widget.selectedSkills)
+                                ..add(skill);
                               widget.onSkillsChanged(updatedSkills);
                               Navigator.pop(dialogContext);
                             },
@@ -250,7 +270,8 @@ class _SkillSelectorState extends State<SkillSelector> {
                   },
                   child: Text(
                     'Cancel',
-                    style: TextStyle(color: isDarkMode ? Colors.white : Colors.black),
+                    style:
+                    TextStyle(color: isDarkMode ? Colors.white : Colors.black),
                   ),
                 ),
               ],

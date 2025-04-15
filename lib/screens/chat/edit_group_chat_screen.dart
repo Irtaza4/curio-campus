@@ -305,7 +305,7 @@ class _EditGroupChatScreenState extends State<EditGroupChatScreen> {
                         base64String: _groupImageBase64,
                         width: 100,
                         height: 100,
-                        isCircular: true,
+
                         placeholder: CircleAvatar(
                           radius: 50,
                           backgroundColor: isDarkMode ? AppTheme.darkLightGrayColor : AppTheme.lightGrayColor,

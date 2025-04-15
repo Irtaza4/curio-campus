@@ -29,6 +29,7 @@ class _VoiceRecorderState extends State<VoiceRecorder> {
   Timer? _timer;
   int _recordingDuration = 0;
   bool _isProcessing = false;
+  bool _hasPermission = false;
 
   @override
   void initState() {
@@ -39,107 +40,121 @@ class _VoiceRecorderState extends State<VoiceRecorder> {
   Future<void> _checkPermissions() async {
     // Request microphone permission explicitly
     final status = await Permission.microphone.request();
-    if (status != PermissionStatus.granted) {
+    setState(() {
+      _hasPermission = status.isGranted;
+    });
+
+    if (!_hasPermission) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Microphone permission is required to record audio'),
-          backgroundColor: Colors.red,
+        SnackBar(
+          content: const Text('Microphone permission is required to record audio'),
+          action: SnackBarAction(
+            label: 'Settings',
+            onPressed: () => openAppSettings(),
+          ),
         ),
       );
-    } else {
-      // Start recording automatically when the recorder is shown
-      _startRecording();
     }
   }
 
   Future<void> _startRecording() async {
+    if (!_hasPermission) {
+      await _checkPermissions();
+      if (!_hasPermission) return;
+    }
+
     try {
-      if (await _audioRecorder.hasPermission()) {
-        final tempDir = await getTemporaryDirectory();
-        _recordingPath = '${tempDir.path}/audio_${DateTime.now().millisecondsSinceEpoch}.m4a';
+      // Get temp directory
+      final tempDir = await getTemporaryDirectory();
+      _recordingPath = '${tempDir.path}/audio_${DateTime.now().millisecondsSinceEpoch}.m4a';
 
-        await _audioRecorder.start(
-          const RecordConfig(
-            encoder: AudioEncoder.aacLc,
-            bitRate: 128000,
-            sampleRate: 44100,
-          ),
-          path: _recordingPath,
-        );
+      // Configure audio recorder - fixed parameter issues
+      await _audioRecorder.start(
+        RecordConfig(
+          encoder: AudioEncoder.aacLc,
+          bitRate: 128000,
+          sampleRate: 44100,
+        ),
+        path: _recordingPath,
+      );
 
+      setState(() {
+        _isRecording = true;
+        _recordingDuration = 0;
+      });
+
+      // Start timer to track recording duration
+      _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
         setState(() {
-          _isRecording = true;
-          _recordingDuration = 0;
+          _recordingDuration++;
         });
-
-        _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
-          setState(() {
-            _recordingDuration++;
-          });
-        });
-      } else {
-        await _checkPermissions();
-      }
+      });
     } catch (e) {
       debugPrint('Error starting recording: $e');
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Failed to start recording: $e'),
-          backgroundColor: Colors.red,
-        ),
+        SnackBar(content: Text('Failed to start recording: $e')),
       );
     }
   }
 
   Future<void> _stopRecording() async {
-    if (_isProcessing) return;
-
+    _timer?.cancel();
     setState(() {
       _isProcessing = true;
     });
 
-    _timer?.cancel();
-
     try {
-      final path = await _audioRecorder.stop();
+      // Stop recording
+      await _audioRecorder.stop();
 
-      if (path != null) {
-        // Convert audio file to base64
-        final File audioFile = File(path);
-        final bytes = await audioFile.readAsBytes();
+      // Read file as bytes
+      final file = File(_recordingPath);
+      if (await file.exists()) {
+        final bytes = await file.readAsBytes();
         final base64Audio = base64Encode(bytes);
 
+        // Call the callback with the base64 encoded audio
         widget.onStop(base64Audio, _recordingDuration);
+
+        // Clean up
+        await file.delete();
       } else {
-        widget.onCancel();
+        throw Exception('Recording file not found');
       }
     } catch (e) {
       debugPrint('Error stopping recording: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to process recording: $e')),
+      );
       widget.onCancel();
+    } finally {
+      setState(() {
+        _isRecording = false;
+        _isProcessing = false;
+      });
     }
-
-    setState(() {
-      _isRecording = false;
-      _isProcessing = false;
-    });
   }
 
   void _cancelRecording() async {
-    if (_isProcessing) return;
-
     _timer?.cancel();
 
     try {
       await _audioRecorder.stop();
+
+      // Delete the recording file if it exists
+      final file = File(_recordingPath);
+      if (await file.exists()) {
+        await file.delete();
+      }
     } catch (e) {
       debugPrint('Error canceling recording: $e');
+    } finally {
+      setState(() {
+        _isRecording = false;
+        _isProcessing = false;
+      });
+      widget.onCancel();
     }
-
-    setState(() {
-      _isRecording = false;
-    });
-
-    widget.onCancel();
   }
 
   String _formatDuration(int seconds) {
@@ -157,65 +172,74 @@ class _VoiceRecorderState extends State<VoiceRecorder> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final isDarkMode = theme.brightness == Brightness.dark;
-
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 24),
       decoration: BoxDecoration(
-        color: isDarkMode ? Colors.grey[800] : Colors.grey[200],
-        borderRadius: BorderRadius.circular(24),
+        color: Theme.of(context).cardColor,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.1),
+            blurRadius: 10,
+            offset: const Offset(0, 5),
+          ),
+        ],
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Row(
-            children: [
-              Icon(
-                Icons.mic,
-                color: _isRecording ? Colors.red : AppTheme.primaryColor,
-                size: 24,
-              ),
-              const SizedBox(width: 12),
-              Text(
-                _isRecording
-                    ? 'Recording... ${_formatDuration(_recordingDuration)}'
-                    : 'Preparing to record...',
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  color: isDarkMode ? Colors.white : Colors.black87,
-                ),
-              ),
-              const Spacer(),
-              if (_isProcessing)
-                const SizedBox(
-                  width: 20,
-                  height: 20,
-                  child: CircularProgressIndicator(
-                    strokeWidth: 2,
-                    valueColor: AlwaysStoppedAnimation<Color>(Colors.red),
-                  ),
-                )
-              else ...[
-                IconButton(
-                  icon: const Icon(Icons.cancel, color: Colors.red),
-                  onPressed: _cancelRecording,
-                ),
-                IconButton(
-                  icon: const Icon(Icons.stop, color: Colors.red),
-                  onPressed: _stopRecording,
-                ),
-              ],
-            ],
+          Text(
+            _isRecording ? 'Recording...' : 'Voice Message',
+            style: const TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+            ),
           ),
+          const SizedBox(height: 16),
           if (_isRecording) ...[
+            Text(
+              _formatDuration(_recordingDuration),
+              style: const TextStyle(
+                fontSize: 24,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
             const SizedBox(height: 8),
             LinearProgressIndicator(
               value: null, // Indeterminate
-              backgroundColor: isDarkMode ? Colors.grey[700] : Colors.grey[300],
+              backgroundColor: Colors.grey[300],
               valueColor: AlwaysStoppedAnimation<Color>(AppTheme.primaryColor),
             ),
           ],
+          const SizedBox(height: 24),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+              if (!_isRecording && !_isProcessing)
+                ElevatedButton.icon(
+                  onPressed: _startRecording,
+                  icon: const Icon(Icons.mic),
+                  label: const Text('Start Recording'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppTheme.primaryColor,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  ),
+                )
+              else if (_isProcessing)
+                const CircularProgressIndicator()
+              else ...[
+                  IconButton(
+                    onPressed: _cancelRecording,
+                    icon: const Icon(Icons.cancel, color: Colors.red, size: 32),
+                  ),
+                  IconButton(
+                    onPressed: _stopRecording,
+                    icon: const Icon(Icons.stop_circle, color: Colors.green, size: 32),
+                  ),
+                ],
+            ],
+          ),
         ],
       ),
     );

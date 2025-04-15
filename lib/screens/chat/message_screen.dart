@@ -306,7 +306,7 @@ class _MessagesScreenState extends State<MessagesScreen> {
             base64String: chat.groupImageUrl,
             width: 40,
             height: 40,
-            isCircular: true,
+
             placeholder: ImageUtils.getGroupPlaceholder(),
           );
         }
@@ -321,7 +321,7 @@ class _MessagesScreenState extends State<MessagesScreen> {
           base64String: profileImageBase64,
           width: 40,
           height: 40,
-          isCircular: true,
+
           placeholder: ImageUtils.getUserPlaceholder(initial: displayName),
         );
       } else {

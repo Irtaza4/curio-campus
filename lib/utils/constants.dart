@@ -1,11 +1,13 @@
 class Constants {
   // Firebase collections
+
   static const String usersCollection = 'users';
   static const String chatsCollection = 'chats';
   static const String messagesCollection = 'messages';
   static const String projectsCollection = 'projects';
   static const String tasksCollection = 'tasks';
   static const String emergencyRequestsCollection = 'emergencyRequests';
+  static const String callsCollection = 'calls';
 
   // Navigation routes
   static const String splashRoute = '/splash';
@@ -30,5 +32,8 @@ class Constants {
   static const int maxProjectNameLength = 50;
   static const int maxTaskNameLength = 100;
   static const int maxEmergencyTitleLength = 100;
+
+  // image key
+  static const String userImageKey = 'user_image_key';
 }
 

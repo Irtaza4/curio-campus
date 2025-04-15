@@ -11,15 +11,12 @@ import 'package:curio_campus/providers/emergency_provider.dart';
 import 'package:curio_campus/providers/notification_provider.dart';
 import 'package:curio_campus/providers/theme_provider.dart';
 import 'package:curio_campus/services/notification_service.dart';
+import 'package:curio_campus/services/call_service.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:curio_campus/utils/navigator_key.dart'; // Import the navigator key
 
-// Define a single global navigator key
-// final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>(); // Moved to navigator_key.dart
-
-// Update the main function to handle notification clicks
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
@@ -28,6 +25,10 @@ void main() async {
   final notificationService = NotificationService();
   await notificationService.initialize();
   await notificationService.setupBackgroundNotifications();
+
+  // Initialize call service with Agora App ID
+  final callService = CallService();
+  await callService.initialize('c4a1309f72be434592965a29b64c1fd4');
 
   // Handle notification click when app is terminated
   FirebaseMessaging.instance.getInitialMessage().then((RemoteMessage? message) {

@@ -5,7 +5,8 @@ enum NotificationType {
   emergency,
   project,
   profile,
-  system
+  call, // ✅ Added missing type
+  system,
 }
 
 class NotificationModel {
@@ -65,6 +66,8 @@ class NotificationModel {
         return NotificationType.project;
       case 'profile':
         return NotificationType.profile;
+      case 'call': // ✅ Added to match enum
+        return NotificationType.call;
       default:
         return NotificationType.system;
     }
@@ -80,6 +83,8 @@ class NotificationModel {
         return Icons.assignment_outlined;
       case NotificationType.profile:
         return Icons.person_outline;
+      case NotificationType.call: // ✅ Added icon
+        return Icons.call_outlined;
       case NotificationType.system:
         return Icons.notifications_none;
     }
@@ -94,6 +99,8 @@ class NotificationModel {
       case NotificationType.project:
         return Colors.green;
       case NotificationType.profile:
+        return Colors.purple;
+      case NotificationType.call: // ✅ Added color
         return Colors.purple;
       case NotificationType.system:
         return Colors.grey;
@@ -117,4 +124,3 @@ class NotificationModel {
     }
   }
 }
-
