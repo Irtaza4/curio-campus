@@ -12,6 +12,8 @@ import 'package:curio_campus/utils/navigator_key.dart';
 import 'package:curio_campus/screens/chat/call_screen.dart';
 import 'dart:typed_data';
 
+import 'package:uuid/uuid.dart';
+
 class CallService {
   static final CallService _instance = CallService._internal();
   factory CallService() => _instance;
@@ -507,38 +509,79 @@ class CallService {
       // Initialize the Agora engine
       await _initializeAgoraEngine();
 
-      // Join the call channel
-      await _joinChannel(callId.toString());
+      try {
+        // Join the call channel with retry mechanism
+        int retryCount = 0;
+        const maxRetries = 3;
 
-      // Show the call screen
-      if (navigatorKey.currentContext != null) {
-        Navigator.pushReplacement(
-          navigatorKey.currentContext!,
-          MaterialPageRoute(
-            builder: (_) => CallScreen(
-              userId: callerId,
-              userName: callerName,
-              callType: callType,
-              profileImageBase64: callerImage,
-              engine: _engine!,
-              callId: callId,
-              isOutgoing: false,
-              onCallEnd: () => _endCall(callId),
+        while (retryCount < maxRetries) {
+          try {
+            await _joinChannel(callId.toString());
+            break; // Success, exit the loop
+          } catch (e) {
+            retryCount++;
+            debugPrint('Join channel attempt $retryCount failed: $e');
+
+            if (retryCount >= maxRetries) {
+              throw e; // Rethrow after max retries
+            }
+
+            // Wait before retrying
+            await Future.delayed(const Duration(seconds: 1));
+          }
+        }
+
+        // Show the call screen
+        if (navigatorKey.currentContext != null) {
+          Navigator.pushReplacement(
+            navigatorKey.currentContext!,
+            MaterialPageRoute(
+              builder: (_) => CallScreen(
+                userId: callerId,
+                userName: callerName,
+                callType: callType,
+                profileImageBase64: callerImage,
+                engine: _engine!,
+                callId: callId,
+                isOutgoing: false,
+                onCallEnd: () => _endCall(callId),
+              ),
             ),
-          ),
-        ).then((_) {
-          // Reset incoming call screen flag
-          _isIncomingCallScreenShowing = false;
+          ).then((_) {
+            // Reset incoming call screen flag
+            _isIncomingCallScreenShowing = false;
+          });
+        }
+
+        // Cancel the notification using the same ID conversion
+        final notificationId = callId.hashCode % 100000;
+        await _flutterLocalNotificationsPlugin.cancel(notificationId);
+
+        _isCallActive = true;
+        _currentCallId = callId;
+        return true;
+      } catch (e) {
+        debugPrint('Error accepting call: $e');
+
+        // Show error to user
+        if (navigatorKey.currentContext != null) {
+          ScaffoldMessenger.of(navigatorKey.currentContext!).showSnackBar(
+            SnackBar(
+              content: Text('Error connecting to call: ${e.toString()}'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+
+        // Update call status to failed
+        await FirebaseFirestore.instance.collection('calls').doc(callId.toString()).update({
+          'status': 'failed',
+          'endTime': FieldValue.serverTimestamp(),
+          'errorMessage': e.toString(),
         });
+
+        return false;
       }
-
-      // Cancel the notification using the same ID conversion
-      final notificationId = callId.hashCode % 100000;
-      await _flutterLocalNotificationsPlugin.cancel(notificationId);
-
-      _isCallActive = true;
-      _currentCallId = callId;
-      return true;
     } catch (e) {
       debugPrint('Error accepting call: $e');
       return false;
@@ -618,8 +661,113 @@ class CallService {
 
       // Reset flag
       _isIncomingCallScreenShowing = false;
+
+      // Handle missed call (add to chat)
+      await _handleMissedCall(callId);
     } catch (e) {
       debugPrint('Error cancelling incoming call: $e');
+    }
+  }
+
+// Fix the _handleMissedCall method
+  Future<void> _handleMissedCall(int callId) async {
+    try {
+      // Get call details
+      final callDoc = await FirebaseFirestore.instance
+          .collection('calls')
+          .doc(callId.toString())
+          .get();
+
+      if (!callDoc.exists) return;
+
+      final callData = callDoc.data() as Map<String, dynamic>;
+      final callerId = callData['callerId'] as String?;
+      final recipientId = callData['recipientId'] as String?;
+      final callTypeStr = callData['callType'] as String?;
+      final callType = (callTypeStr == 'video') ? 'video' : 'voice';
+
+      if (callerId == null || recipientId == null) return;
+
+      // Update call status to missed
+      await FirebaseFirestore.instance
+          .collection('calls')
+          .doc(callId.toString())
+          .update({
+        'status': 'missed',
+        'endTime': FieldValue.serverTimestamp(),
+      });
+
+      // Add call event to chat
+      // Create a chat ID (combination of both user IDs, sorted alphabetically)
+      final chatId = [callerId, recipientId]..sort();
+      final chatRoomId = chatId.join('_');
+
+      // Create a message for the call event
+      final callMessage = {
+        'id': const Uuid().v4(),
+        'type': 'call_event',
+        'callType': callType,
+        'status': 'missed',
+        'duration': 0,
+        'timestamp': FieldValue.serverTimestamp(),
+        'senderId': callerId,
+        'senderName': callData['callerName'] ?? 'Unknown',
+        'senderAvatar': callData['callerImage'],
+        'chatId': chatRoomId,
+        'content': '${callType == 'video' ? 'Video' : 'Voice'} call missed',
+        'isRead': false,
+        'callId': callId,
+        'isOutgoing': false,
+      };
+
+      // Add to Firestore
+      await FirebaseFirestore.instance
+          .collection('chats')
+          .doc(chatRoomId)
+          .collection('messages')
+          .doc(callMessage['id'] as String)
+          .set(callMessage);
+
+      // Update last message in chat document
+      await FirebaseFirestore.instance
+          .collection('chats')
+          .doc(chatRoomId)
+          .set({
+        'lastMessageContent': '${callType == 'video' ? 'Video' : 'Voice'} call missed',
+        'lastMessageSenderId': callerId,
+        'lastMessageAt': FieldValue.serverTimestamp(),
+        'participants': [callerId, recipientId],
+      }, SetOptions(merge: true));
+
+      // Show a missed call notification
+      final notificationId = callId.hashCode % 100000;
+
+      final androidDetails = AndroidNotificationDetails(
+        'missed_call_channel',
+        'Missed Calls',
+        channelDescription: 'Notifications for missed calls',
+        importance: Importance.high,
+        priority: Priority.high,
+        color: Colors.red,
+      );
+
+      final notificationDetails = NotificationDetails(
+        android: androidDetails,
+        iOS: const DarwinNotificationDetails(),
+      );
+
+      // Get caller name
+      final callerName = callData['callerName'] as String? ?? 'Unknown';
+
+      await _flutterLocalNotificationsPlugin.show(
+        notificationId,
+        'Missed ${callType == 'video' ? 'Video' : 'Voice'} Call',
+        'You missed a call from $callerName',
+        notificationDetails,
+      );
+
+    } catch (e) {
+      debugPrint('Error handling missed call: $e');
     }
   }
 
@@ -737,19 +885,33 @@ class CallService {
       await _initializeAgoraEngine();
     }
 
-    // In a real app, you would get a token from your server
-    // For testing, we'll use a temporary token or no token
-    const String token = ''; // Replace with your token generation logic
+    try {
+      // In a real app, you would get a token from your server
+      // For testing, we'll use a temporary token or no token
+      const String token = ''; // Replace with your token generation logic
 
-    await _engine!.joinChannel(
-      token: token,
-      channelId: 'channel_$channelName',
-      uid: 0,
-      options: const ChannelMediaOptions(
+      // Set channel options with proper error handling
+      final options = const ChannelMediaOptions(
         clientRoleType: ClientRoleType.clientRoleBroadcaster,
         channelProfile: ChannelProfileType.channelProfileLiveBroadcasting,
-      ),
-    );
+        publishCameraTrack: true,
+        publishMicrophoneTrack: true,
+      );
+
+      // Join the channel with proper error handling
+      await _engine!.joinChannel(
+        token: token,
+        channelId: 'channel_$channelName',
+        uid: 0,
+        options: options,
+      );
+
+      debugPrint('Successfully joined channel: channel_$channelName');
+    } catch (e) {
+      debugPrint('Error joining channel: $e');
+      // Rethrow to allow caller to handle the error
+      rethrow;
+    }
   }
 
   // Leave an Agora channel

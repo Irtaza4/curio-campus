@@ -121,6 +121,14 @@ class NotificationService {
     _isInitialized = true;
   }
 
+  // Add this public method to your NotificationService class, after the initialize() method:
+
+// Public method to handle foreground messages
+  Future<void> handleForegroundMessage(RemoteMessage message) async {
+    debugPrint('Handling foreground message');
+    return _showLocalNotification(message);
+  }
+
   // Add a public method to update FCM token that can be called from main.dart
   // Add this method after the initialize() method
 
@@ -129,9 +137,27 @@ class NotificationService {
   }
 
   // Add this method after the initialize() method:
+  // Enhance the setupBackgroundNotifications method
   Future<void> setupBackgroundNotifications() async {
     // Set up notification handling when app is in background
     FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
+
+    // Request notification permissions with high priority
+    await FirebaseMessaging.instance.requestPermission(
+      alert: true,
+      badge: true,
+      sound: true,
+      provisional: false,
+      criticalAlert: true,
+      announcement: true,
+    );
+
+    // Set foreground notification presentation options
+    await FirebaseMessaging.instance.setForegroundNotificationPresentationOptions(
+      alert: true,
+      badge: true,
+      sound: true,
+    );
 
     // Handle when user taps on notification from terminated state
     final initialMessage = await FirebaseMessaging.instance.getInitialMessage();
@@ -170,6 +196,20 @@ class NotificationService {
         }
       }
     }
+
+    // Register for background fetch to keep notifications working
+    await _registerBackgroundTasks();
+  }
+
+// Add this method to register background tasks
+  Future<void> _registerBackgroundTasks() async {
+    // This would typically use a package like workmanager or background_fetch
+    // For this example, we'll just set up periodic FCM token refresh
+
+    // Schedule periodic token refresh
+    Timer.periodic(const Duration(hours: 12), (timer) async {
+      await updateFCMToken();
+    });
   }
 
   // Create notification channels for Android
@@ -359,68 +399,91 @@ class NotificationService {
   }
 
   // Improve the _showLocalNotification method to handle different notification types
+  // Improve the _showLocalNotification method
   Future<void> _showLocalNotification(RemoteMessage message) async {
-    // Check if this is a call notification
-    if (message.data['type'] == 'call') {
-      // Handle call notifications separately
-      final callId = message.data['callId'];
-      final callerId = message.data['callerId'];
-      final callerName = message.data['callerName'];
-      final callerImage = message.data['callerImage'];
-      final isVideoCall = message.data['callType'] == 'video';
+    try {
+      // Check if this is a call notification
+      if (message.data['type'] == 'call') {
+        // Handle call notifications separately
+        final callId = message.data['callId'];
+        final callerId = message.data['callerId'];
+        final callerName = message.data['callerName'];
+        final callerImage = message.data['callerImage'];
+        final isVideoCall = message.data['callType'] == 'video';
 
-      // Use the CallService to handle the incoming call
-      final callService = CallService();
-      callService.handleIncomingCallFromNotification(
-        callId: callId ?? '0',
-        callerId: callerId ?? '',
-        callerName: callerName ?? 'Unknown',
-        isVideoCall: isVideoCall,
-        callerProfileImage: callerImage,
+        // Use the CallService to handle the incoming call
+        final callService = CallService();
+        callService.handleIncomingCallFromNotification(
+          callId: callId ?? '0',
+          callerId: callerId ?? '',
+          callerName: callerName ?? 'Unknown',
+          isVideoCall: isVideoCall,
+          callerProfileImage: callerImage,
+        );
+
+        return;
+      }
+
+      // For other notification types
+      final androidPlatformChannelSpecifics = AndroidNotificationDetails(
+        _getChannelIdFromType(message.data['type']),
+        _getChannelNameFromType(message.data['type']),
+        channelDescription: 'Notifications from Curio Campus',
+        importance: Importance.max,
+        priority: Priority.high,
+        showWhen: true,
+        enableVibration: true,
+        enableLights: true,
+        playSound: true,
+        fullScreenIntent: message.data['type'] == 'call',
+        category: message.data['type'] == 'call'
+            ? AndroidNotificationCategory.call
+            : AndroidNotificationCategory.message,
       );
 
-      return;
-    }
-
-    final androidPlatformChannelSpecifics = AndroidNotificationDetails(
-      _getChannelIdFromType(message.data['type']),
-      _getChannelNameFromType(message.data['type']),
-      channelDescription: 'Notifications from Curio Campus',
-      importance: Importance.max,
-      priority: Priority.high,
-      showWhen: true,
-    );
-
-    final iOSPlatformChannelSpecifics = const DarwinNotificationDetails();
-
-    final platformChannelSpecifics = NotificationDetails(
-      android: androidPlatformChannelSpecifics,
-      iOS: iOSPlatformChannelSpecifics,
-    );
-
-    await _flutterLocalNotificationsPlugin.show(
-      message.hashCode,
-      message.notification?.title ?? 'New Notification',
-      message.notification?.body ?? '',
-      platformChannelSpecifics,
-      payload: message.data.toString(),
-    );
-
-    // Add to local notifications if app is in foreground
-    if (navigatorKey.currentContext != null) {
-      final notificationProvider = Provider.of<NotificationProvider>(
-        navigatorKey.currentContext!,
-        listen: false,
+      final iOSPlatformChannelSpecifics = DarwinNotificationDetails(
+        presentAlert: true,
+        presentBadge: true,
+        presentSound: true,
+        interruptionLevel: message.data['type'] == 'call'
+            ? InterruptionLevel.timeSensitive
+            : InterruptionLevel.active,
       );
 
-      // Add to local notifications with named parameters
-      notificationProvider.addNotification(
-        title: message.notification?.title ?? 'New Notification',
-        message: message.notification?.body ?? '',
-        type: _parseNotificationType(message.data['type'] as String? ?? 'system'),
-        relatedId: message.data['relatedId'] as String?,
-        additionalData: message.data,
+      final platformChannelSpecifics = NotificationDetails(
+        android: androidPlatformChannelSpecifics,
+        iOS: iOSPlatformChannelSpecifics,
       );
+
+      // Generate a unique notification ID
+      final notificationId = DateTime.now().millisecondsSinceEpoch % 100000;
+
+      await _flutterLocalNotificationsPlugin.show(
+        notificationId,
+        message.notification?.title ?? 'New Notification',
+        message.notification?.body ?? '',
+        platformChannelSpecifics,
+        payload: json.encode(message.data),
+      );
+
+      // Add to local notifications if app is in foreground
+      if (navigatorKey.currentContext != null) {
+        final notificationProvider = Provider.of<NotificationProvider>(
+          navigatorKey.currentContext!,
+          listen: false,
+        );
+
+        // Add to local notifications with named parameters
+        notificationProvider.addNotification(
+          title: message.notification?.title ?? 'New Notification',
+          message: message.notification?.body ?? '',
+          type: _parseNotificationType(message.data['type'] as String? ?? 'system'),
+          relatedId: message.data['relatedId'] as String?,
+          additionalData: message.data,
+        );
+      }
+    } catch (e) {
+      debugPrint('Error showing local notification: $e');
     }
   }
 

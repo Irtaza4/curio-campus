@@ -12,6 +12,7 @@ import 'package:curio_campus/providers/project_provider.dart';
 import 'package:curio_campus/utils/image_utils.dart';
 import 'package:curio_campus/screens/chat/call_screen.dart';
 import 'package:curio_campus/screens/chat/image_viewer_screen.dart';
+import 'package:curio_campus/widgets/call_message_bubble.dart';
 
 import '../../utils/app_theme.dart';
 import '../../widgets/audio_player.dart';
@@ -749,6 +750,19 @@ class _ChatScreenState extends State<ChatScreen> {
 
   Widget _buildMessageContent(MessageModel message, bool isCurrentUser, bool isDarkMode) {
     switch (message.type) {
+      case MessageType.call_event:
+        return CallMessageBubble(
+          message: {
+            'callType': message.fileUrl == 'video' ? 'video' : 'voice',
+            'status': message.content.contains('missed')
+                ? 'missed'
+                : (message.content.contains('declined') ? 'declined' : 'ended'),
+            'duration': message.duration,
+            'timestamp': message.timestamp,
+            'isOutgoing': message.content.contains('outgoing'),
+          },
+          isCurrentUser: isCurrentUser,
+        );
       case MessageType.image:
         return ClipRRect(
           borderRadius: BorderRadius.circular(14),

@@ -5,6 +5,7 @@ import 'package:curio_campus/utils/app_theme.dart';
 import 'package:agora_rtc_engine/agora_rtc_engine.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 enum CallType { voice, video }
 
@@ -58,6 +59,12 @@ class _CallScreenState extends State<CallScreen> with SingleTickerProviderStateM
   // Add this flag to track if the controller has been disposed
   bool _isControllerDisposed = false;
 
+  // For chat messages during call
+  StreamSubscription<QuerySnapshot>? _chatSubscription;
+  List<Map<String, dynamic>> _recentMessages = [];
+  bool _showMessageBanner = false;
+  Timer? _messageBannerTimer;
+
   @override
   void initState() {
     super.initState();
@@ -72,6 +79,54 @@ class _CallScreenState extends State<CallScreen> with SingleTickerProviderStateM
     _pulseAnimation = Tween<double>(begin: 1.0, end: 1.15).animate(
       CurvedAnimation(parent: _pulseController, curve: Curves.easeInOut),
     );
+
+    // Listen for new chat messages
+    _listenForChatMessages();
+  }
+
+  void _listenForChatMessages() async {
+    // Get the current user ID
+    final prefs = await SharedPreferences.getInstance();
+    final currentUserId = prefs.getString('user_id');
+
+    if (currentUserId == null) return;
+
+    // Create a chat ID (combination of both user IDs, sorted alphabetically)
+    final chatId = [currentUserId, widget.userId]..sort();
+    final chatRoomId = chatId.join('_');
+
+    // Listen for new messages
+    _chatSubscription = FirebaseFirestore.instance
+        .collection('chats')
+        .doc(chatRoomId)
+        .collection('messages')
+        .orderBy('timestamp', descending: true)
+        .limit(1)
+        .snapshots()
+        .listen((snapshot) {
+      if (snapshot.docs.isNotEmpty) {
+        final message = snapshot.docs.first.data();
+        final senderId = message['senderId'];
+
+        // Only show notifications for messages from the other user
+        if (senderId != currentUserId) {
+          setState(() {
+            _recentMessages.add(message);
+            _showMessageBanner = true;
+          });
+
+          // Hide the banner after 5 seconds
+          _messageBannerTimer?.cancel();
+          _messageBannerTimer = Timer(const Duration(seconds: 5), () {
+            if (mounted) {
+              setState(() {
+                _showMessageBanner = false;
+              });
+            }
+          });
+        }
+      }
+    });
   }
 
   Future<void> _initializeCall() async {
@@ -181,6 +236,8 @@ class _CallScreenState extends State<CallScreen> with SingleTickerProviderStateM
 
     _callTimer?.cancel();
     _callSubscription?.cancel();
+    _chatSubscription?.cancel();
+    _messageBannerTimer?.cancel();
 
     // Don't dispose the controller here, it will be disposed in the dispose() method
 
@@ -191,9 +248,13 @@ class _CallScreenState extends State<CallScreen> with SingleTickerProviderStateM
         .update({
       'status': 'ended',
       'endTime': FieldValue.serverTimestamp(),
+      'duration': _callDuration.inSeconds,
     }).catchError((e) {
       debugPrint('Error updating call status: $e');
     });
+
+    // Add call event to chat
+    _addCallEventToChat('ended');
 
     // Call the onCallEnd callback
     widget.onCallEnd();
@@ -201,6 +262,65 @@ class _CallScreenState extends State<CallScreen> with SingleTickerProviderStateM
     // Close the call screen
     if (mounted) {
       Navigator.pop(context);
+    }
+  }
+
+  // Add call event to chat
+  Future<void> _addCallEventToChat(String status) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final currentUserId = prefs.getString('user_id');
+
+      if (currentUserId == null) return;
+
+      // Create a chat ID (combination of both user IDs, sorted alphabetically)
+      final chatId = [currentUserId, widget.userId]..sort();
+      final chatRoomId = chatId.join('_');
+
+      // Create a message for the call event
+      final callMessage = {
+        'type': 'call_event',
+        'callType': widget.callType == CallType.video ? 'video' : 'voice',
+        'status': status,
+        'duration': _isCallConnected ? _callDuration.inSeconds : 0,
+        'timestamp': FieldValue.serverTimestamp(),
+        'senderId': currentUserId,
+        'callId': widget.callId,
+        'isOutgoing': widget.isOutgoing,
+      };
+
+      // Add to Firestore
+      await FirebaseFirestore.instance
+          .collection('chats')
+          .doc(chatRoomId)
+          .collection('messages')
+          .add(callMessage);
+
+      // Update last message in chat document
+      await FirebaseFirestore.instance
+          .collection('chats')
+          .doc(chatRoomId)
+          .set({
+        'lastMessage': '${widget.callType == CallType.video ? 'Video' : 'Voice'} call ${_getCallStatusText(status)}',
+        'lastMessageTime': FieldValue.serverTimestamp(),
+        'participants': [currentUserId, widget.userId],
+      }, SetOptions(merge: true));
+
+    } catch (e) {
+      debugPrint('Error adding call event to chat: $e');
+    }
+  }
+
+  String _getCallStatusText(String status) {
+    switch (status) {
+      case 'ended':
+        return _isCallConnected ? 'ended' : 'missed';
+      case 'declined':
+        return 'declined';
+      case 'missed':
+        return 'missed';
+      default:
+        return status;
     }
   }
 
@@ -235,6 +355,78 @@ class _CallScreenState extends State<CallScreen> with SingleTickerProviderStateM
     );
   }
 
+  // Toggle screen sharing
+  void _toggleScreenSharing() async {
+    if (_isScreenSharing) {
+      // Stop screen sharing
+      try {
+        await widget.engine.stopScreenCapture();
+        if (widget.callType == CallType.video) {
+          await widget.engine.enableVideo();
+          await widget.engine.startPreview();
+        }
+
+        setState(() {
+          _isScreenSharing = false;
+        });
+      } catch (e) {
+        debugPrint('Error stopping screen capture: $e');
+      }
+    } else {
+      // Start screen sharing
+      if (widget.callType == CallType.video) {
+        await widget.engine.stopPreview();
+      }
+
+      // On Android, we need to request permission
+      if (Theme.of(context).platform == TargetPlatform.android) {
+        await [Permission.storage, Permission.photos].request();
+      }
+
+      // Start screen capture
+      try {
+        // For Agora RTC Engine 6.5.1
+        final params = const ScreenCaptureParameters2(
+          captureVideo: true,
+          captureAudio: true,
+        );
+
+        await widget.engine.startScreenCapture(params);
+
+        // Enable screen sharing video stream
+        await widget.engine.updateChannelMediaOptions(
+          const ChannelMediaOptions(
+            publishScreenTrack: true,
+            publishScreenCaptureAudio: true,
+            publishCameraTrack: false,
+          ),
+        );
+
+        setState(() {
+          _isScreenSharing = true;
+        });
+
+        // Show success message
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Screen sharing started'),
+            backgroundColor: Colors.green,
+            duration: Duration(seconds: 2),
+          ),
+        );
+      } catch (e) {
+        debugPrint('Error starting screen capture: $e');
+        // Show error to user
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to start screen sharing: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
   String _formatDuration(Duration duration) {
     String twoDigits(int n) => n.toString().padLeft(2, '0');
     final hours = twoDigits(duration.inHours);
@@ -250,6 +442,8 @@ class _CallScreenState extends State<CallScreen> with SingleTickerProviderStateM
   void dispose() {
     _callTimer?.cancel();
     _callSubscription?.cancel();
+    _chatSubscription?.cancel();
+    _messageBannerTimer?.cancel();
 
     // Only dispose the controller if it hasn't been disposed yet
     if (!_isControllerDisposed) {
@@ -320,24 +514,23 @@ class _CallScreenState extends State<CallScreen> with SingleTickerProviderStateM
               child: Column(
                 children: [
                   // Top bar with call info
-                  Padding(
+                  Container(
+                    width: double.infinity,
                     padding: const EdgeInsets.all(16.0),
                     child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Text(
-                              widget.callType == CallType.video
-                                  ? 'Video Call'
-                                  : widget.isOutgoing ? 'Outgoing Voice Call' : 'Voice Call',
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 18,
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                          ],
+                        Text(
+                          widget.callType == CallType.video
+                              ? 'Video Call'
+                              : widget.isOutgoing ? 'Outgoing Voice Call' : 'Voice Call',
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 18,
+                            fontWeight: FontWeight.w500,
+                          ),
+                          textAlign: TextAlign.center,
                         ),
                         if (_isCallConnected)
                           Padding(
@@ -348,6 +541,7 @@ class _CallScreenState extends State<CallScreen> with SingleTickerProviderStateM
                                 color: Colors.white.withOpacity(0.7),
                                 fontSize: 14,
                               ),
+                              textAlign: TextAlign.center,
                             ),
                           ),
                       ],
@@ -422,6 +616,7 @@ class _CallScreenState extends State<CallScreen> with SingleTickerProviderStateM
                                 fontSize: 20,
                                 fontWeight: FontWeight.normal,
                               ),
+                              textAlign: TextAlign.center,
                             ),
                             const SizedBox(height: 8),
                             if (_isCallRinging || !_isCallConnected)
@@ -431,6 +626,7 @@ class _CallScreenState extends State<CallScreen> with SingleTickerProviderStateM
                                   color: Colors.white.withOpacity(0.7),
                                   fontSize: 16,
                                 ),
+                                textAlign: TextAlign.center,
                               ),
                             if (_isCallConnected && !_isCallRinging && widget.callType == CallType.voice)
                               Padding(
@@ -442,6 +638,39 @@ class _CallScreenState extends State<CallScreen> with SingleTickerProviderStateM
                                     fontSize: 16,
                                     fontWeight: FontWeight.bold,
                                   ),
+                                  textAlign: TextAlign.center,
+                                ),
+                              ),
+
+                            // Network quality indicator
+                            if (_isCallConnected)
+                              Padding(
+                                padding: const EdgeInsets.only(top: 16.0),
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Icon(
+                                      _networkQualityPoor
+                                          ? Icons.signal_cellular_alt_1_bar
+                                          : Icons.signal_cellular_alt,
+                                      color: _networkQualityPoor
+                                          ? Colors.orange
+                                          : Colors.green,
+                                      size: 16,
+                                    ),
+                                    const SizedBox(width: 4),
+                                    Text(
+                                      _networkQualityPoor
+                                          ? 'Poor connection'
+                                          : 'Good connection',
+                                      style: TextStyle(
+                                        color: _networkQualityPoor
+                                            ? Colors.orange
+                                            : Colors.green,
+                                        fontSize: 12,
+                                      ),
+                                    ),
+                                  ],
                                 ),
                               ),
                           ],
@@ -451,6 +680,7 @@ class _CallScreenState extends State<CallScreen> with SingleTickerProviderStateM
 
                   // Call controls
                   Container(
+                    width: double.infinity,
                     padding: const EdgeInsets.symmetric(vertical: 24),
                     margin: const EdgeInsets.only(bottom: 24),
                     child: isOutgoingCall
@@ -460,6 +690,67 @@ class _CallScreenState extends State<CallScreen> with SingleTickerProviderStateM
                 ],
               ),
             ),
+
+            // Message banner
+            if (_showMessageBanner && _recentMessages.isNotEmpty)
+              Positioned(
+                top: MediaQuery.of(context).padding.top + 70,
+                left: 0,
+                right: 0,
+                child: GestureDetector(
+                  onTap: () {
+                    // Hide the banner
+                    setState(() {
+                      _showMessageBanner = false;
+                    });
+                  },
+                  child: Container(
+                    margin: const EdgeInsets.symmetric(horizontal: 16),
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                    decoration: BoxDecoration(
+                      color: Colors.black.withOpacity(0.7),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: Colors.white24),
+                    ),
+                    child: Row(
+                      children: [
+                        const CircleAvatar(
+                          radius: 16,
+                          backgroundColor: Colors.blue,
+                          child: Icon(Icons.message, color: Colors.white, size: 16),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                widget.userName,
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 14,
+                                ),
+                              ),
+                              const SizedBox(height: 2),
+                              Text(
+                                _recentMessages.last['text'] ?? 'New message',
+                                style: const TextStyle(
+                                  color: Colors.white70,
+                                  fontSize: 13,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ],
+                          ),
+                        ),
+                        const Icon(Icons.close, color: Colors.white54, size: 16),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
           ],
         ),
       ),
@@ -489,7 +780,7 @@ class _CallScreenState extends State<CallScreen> with SingleTickerProviderStateM
         ),
 
         // Local video (picture-in-picture)
-        if (_localUserJoined && widget.callType == CallType.video && !_isCameraOff)
+        if (_localUserJoined && widget.callType == CallType.video && !_isCameraOff && !_isScreenSharing)
           Positioned(
             top: 80,
             right: 20,
@@ -511,67 +802,134 @@ class _CallScreenState extends State<CallScreen> with SingleTickerProviderStateM
               ),
             ),
           ),
+
+        // Screen sharing indicator
+        if (_isScreenSharing)
+          Positioned(
+            top: 80,
+            left: 0,
+            right: 0,
+            child: Center(
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                decoration: BoxDecoration(
+                  color: Colors.black.withOpacity(0.7),
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: const [
+                    Icon(Icons.screen_share, color: Colors.white, size: 16),
+                    SizedBox(width: 8),
+                    Text(
+                      'Screen sharing active',
+                      style: TextStyle(color: Colors.white, fontSize: 14),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
       ],
     );
   }
 
   Widget _buildOutgoingCallControls() {
-    return Column(
-      children: [
-        Container(
-          width: 64,
-          height: 64,
-          decoration: BoxDecoration(
-            color: Colors.red,
-            shape: BoxShape.circle,
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Container(
+            width: 64,
+            height: 64,
+            decoration: const BoxDecoration(
+              color: Colors.red,
+              shape: BoxShape.circle,
+            ),
+            child: IconButton(
+              icon: const Icon(Icons.call_end, color: Colors.white, size: 30),
+              onPressed: _endCall,
+            ),
           ),
-          child: IconButton(
-            icon: Icon(Icons.call_end, color: Colors.white, size: 30),
-            onPressed: _endCall,
+          const SizedBox(height: 8),
+          Text(
+            'Cancel',
+            style: TextStyle(
+              color: Colors.white.withOpacity(0.8),
+              fontSize: 14,
+            ),
           ),
-        ),
-        const SizedBox(height: 8),
-        Text(
-          'Cancel',
-          style: TextStyle(
-            color: Colors.white.withOpacity(0.8),
-            fontSize: 14,
-          ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 
   Widget _buildActiveCallControls() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+    return Column(
       children: [
-        _buildCallButton(
-          icon: _isMuted ? Icons.mic_off : Icons.mic,
-          label: _isMuted ? 'Unmute' : 'Mute',
-          onPressed: _toggleMute,
-          backgroundColor: Colors.white.withOpacity(0.2),
+        // First row of controls
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            _buildCallButton(
+              icon: _isMuted ? Icons.mic_off : Icons.mic,
+              label: _isMuted ? 'Unmute' : 'Mute',
+              onPressed: _toggleMute,
+              backgroundColor: Colors.white.withOpacity(0.2),
+            ),
+            const SizedBox(width: 16),
+            _buildCallButton(
+              icon: Icons.call_end,
+              label: 'End',
+              onPressed: _endCall,
+              backgroundColor: Colors.red,
+              iconColor: Colors.white,
+            ),
+            const SizedBox(width: 16),
+            if (widget.callType == CallType.video) ...[
+              _buildCallButton(
+                icon: _isCameraOff ? Icons.videocam_off : Icons.videocam,
+                label: _isCameraOff ? 'Camera On' : 'Camera Off',
+                onPressed: _toggleCamera,
+                backgroundColor: Colors.white.withOpacity(0.2),
+              ),
+            ] else
+              _buildCallButton(
+                icon: _isSpeakerOn ? Icons.volume_up : Icons.volume_down,
+                label: _isSpeakerOn ? 'Speaker Off' : 'Speaker On',
+                onPressed: _toggleSpeaker,
+                backgroundColor: Colors.white.withOpacity(0.2),
+              ),
+          ],
         ),
-        _buildCallButton(
-          icon: Icons.call_end,
-          label: 'End',
-          onPressed: _endCall,
-          backgroundColor: Colors.red,
-          iconColor: Colors.white,
-        ),
-        if (widget.callType == CallType.video) ...[
-          _buildCallButton(
-            icon: _isCameraOff ? Icons.videocam_off : Icons.videocam,
-            label: _isCameraOff ? 'Camera On' : 'Camera Off',
-            onPressed: _toggleCamera,
-            backgroundColor: Colors.white.withOpacity(0.2),
-          ),
-        ] else
-          _buildCallButton(
-            icon: _isSpeakerOn ? Icons.volume_up : Icons.volume_down,
-            label: _isSpeakerOn ? 'Speaker Off' : 'Speaker On',
-            onPressed: _toggleSpeaker,
-            backgroundColor: Colors.white.withOpacity(0.2),
+
+        // Second row of controls (additional features)
+        if (_isCallConnected)
+          Padding(
+            padding: const EdgeInsets.only(top: 16.0),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                if (widget.callType == CallType.video)
+                  _buildCallButton(
+                    icon: Icons.flip_camera_ios,
+                    label: 'Flip',
+                    onPressed: _switchCamera,
+                    backgroundColor: Colors.white.withOpacity(0.2),
+                    size: 50,
+                  ),
+                const SizedBox(width: 16),
+                _buildCallButton(
+                  icon: _isScreenSharing ? Icons.stop_screen_share : Icons.screen_share,
+                  label: _isScreenSharing ? 'Stop Share' : 'Share Screen',
+                  onPressed: _toggleScreenSharing,
+                  backgroundColor: _isScreenSharing
+                      ? Colors.blue
+                      : Colors.white.withOpacity(0.2),
+                  size: 50,
+                ),
+              ],
+            ),
           ),
       ],
     );

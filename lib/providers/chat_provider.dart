@@ -838,6 +838,159 @@ class ChatProvider with ChangeNotifier {
       notifyListeners();
     }
   }
+// Add this method to send call event messages
+  Future<void> sendCallEventMessage({
+    required String chatId,
+    required String callType,
+    required String status,
+    int? duration,
+    required bool isOutgoing,
+  }) async {
+    if (_auth.currentUser == null) return;
+
+    try {
+      final userId = _auth.currentUser!.uid;
+      final userDoc = await _firestore
+          .collection(Constants.usersCollection)
+          .doc(userId)
+          .get();
+
+      if (!userDoc.exists) return;
+
+      final userData = userDoc.data() as Map<String, dynamic>;
+      final userName = userData['name'] as String;
+      final userAvatar = userData['profileImageUrl'] as String?;
+
+      final now = DateTime.now();
+      final messageId = const Uuid().v4();
+
+      // Create content based on call type and status
+      String content = '${callType == 'video' ? 'Video' : 'Voice'} call ';
+      if (status == 'missed') {
+        content += 'missed';
+      } else if (status == 'declined') {
+        content += 'declined';
+      } else if (status == 'ended' && (duration == null || duration == 0)) {
+        content += 'missed';
+      } else if (status == 'failed') {
+        content += 'failed';
+      } else {
+        content += isOutgoing ? 'outgoing' : 'incoming';
+      }
+
+      final message = MessageModel(
+        id: messageId,
+        senderId: userId,
+        senderName: userName,
+        senderAvatar: userAvatar,
+        chatId: chatId,
+        content: content,
+        type: MessageType.call_event,
+        timestamp: now,
+        duration: duration,
+        fileUrl: callType, // Store call type in fileUrl field
+      );
+
+      // Add message to local list immediately for instant feedback
+      _messages.insert(0, message);
+      notifyListeners();
+
+      // Add message to chat
+      await _firestore
+          .collection(Constants.chatsCollection)
+          .doc(chatId)
+          .collection(Constants.messagesCollection)
+          .doc(messageId)
+          .set(message.toJson());
+
+      // Update chat with last message info
+      await _firestore
+          .collection(Constants.chatsCollection)
+          .doc(chatId)
+          .update({
+        'lastMessageContent': content,
+        'lastMessageSenderId': userId,
+        'lastMessageAt': now.toIso8601String(),
+        'lastMessageType': 'call_event', // Add message type for better UI handling
+      });
+
+      // Send a notification to the other user about the call event
+      final otherParticipants = (await _firestore
+          .collection(Constants.chatsCollection)
+          .doc(chatId)
+          .get())
+          .data()?['participants'] as List<dynamic>?;
+
+      if (otherParticipants != null) {
+        for (final participantId in otherParticipants) {
+          if (participantId != userId) {
+            // Get the participant's FCM token
+            final participantDoc = await _firestore
+                .collection(Constants.usersCollection)
+                .doc(participantId as String)
+                .get();
+
+            if (participantDoc.exists) {
+              final fcmToken = participantDoc.data()?['fcmToken'] as String?;
+              if (fcmToken != null && fcmToken.isNotEmpty) {
+                // Send a notification about the call event
+                // This would typically be done via a Cloud Function
+                debugPrint('Would send call event notification to $participantId with token $fcmToken');
+              }
+            }
+          }
+        }
+      }
+    } catch (e) {
+      _errorMessage = e.toString();
+      notifyListeners();
+    }
+  }
+
+// Add a method to fetch call history
+  Future<List<MessageModel>> fetchCallHistory() async {
+    if (_auth.currentUser == null) return [];
+
+    try {
+      final userId = _auth.currentUser!.uid;
+
+      // Get all chats where the user is a participant
+      final chatDocs = await _firestore
+          .collection(Constants.chatsCollection)
+          .where('participants', arrayContains: userId)
+          .get();
+
+      List<MessageModel> callMessages = [];
+
+      // For each chat, get call event messages
+      for (final chatDoc in chatDocs.docs) {
+        final chatId = chatDoc.id;
+
+        final messageDocs = await _firestore
+            .collection(Constants.chatsCollection)
+            .doc(chatId)
+            .collection(Constants.messagesCollection)
+            .where('type', isEqualTo: 'call_event')
+            .orderBy('timestamp', descending: true)
+            .limit(20) // Limit to recent calls
+            .get();
+
+        for (final messageDoc in messageDocs.docs) {
+          final messageData = messageDoc.data();
+          callMessages.add(MessageModel.fromJson(messageData));
+        }
+      }
+
+      // Sort by timestamp (most recent first)
+      callMessages.sort((a, b) => b.timestamp.compareTo(a.timestamp));
+
+      return callMessages;
+    } catch (e) {
+      _errorMessage = e.toString();
+      notifyListeners();
+      return [];
+    }
+  }
 
   bool isChatRead(String chatId) {
     final userId = _auth.currentUser?.uid;
