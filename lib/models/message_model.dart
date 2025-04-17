@@ -1,3 +1,5 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+
 enum MessageType { text, image, file, system, audio, video, call_event }
 
 class MessageModel {
@@ -32,23 +34,36 @@ class MessageModel {
 
   factory MessageModel.fromJson(Map<String, dynamic> json) {
     return MessageModel(
-      id: json['id'] as String,
-      senderId: json['senderId'] as String,
-      senderName: json['senderName'] as String,
-      senderAvatar: json['senderAvatar'] as String?,
-      chatId: json['chatId'] as String,
-      content: json['content'] as String,
+      id: json['id']?.toString() ?? '',
+      senderId: json['senderId']?.toString() ?? '',
+      senderName: json['senderName']?.toString() ?? '',
+      senderAvatar: json['senderAvatar']?.toString(),
+      chatId: json['chatId']?.toString() ?? '',
+      content: json['content']?.toString() ?? '',
       type: MessageType.values.firstWhere(
             (e) => e.toString() == 'MessageType.${json['type']}',
         orElse: () => MessageType.text,
       ),
-      timestamp: DateTime.parse(json['timestamp'] as String),
+      timestamp: _parseTimestamp(json['timestamp']),
       isRead: json['isRead'] as bool? ?? false,
-      fileUrl: json['fileUrl'] as String?,
-      fileName: json['fileName'] as String?,
-      duration: json['duration'] as int?,
+      fileUrl: json['fileUrl']?.toString(),
+      fileName: json['fileName']?.toString(),
+      duration: json['duration'] is int
+          ? json['duration']
+          : int.tryParse(json['duration']?.toString() ?? ''),
     );
   }
+
+  static DateTime _parseTimestamp(dynamic value) {
+    if (value is Timestamp) {
+      return value.toDate();
+    } else if (value is String) {
+      return DateTime.tryParse(value) ?? DateTime.now();
+    } else {
+      return DateTime.now(); // fallback
+    }
+  }
+
 
   Map<String, dynamic> toJson() {
     return {

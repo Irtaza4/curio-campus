@@ -1194,70 +1194,66 @@ class _OutgoingCallScreenState extends State<OutgoingCallScreen> {
       backgroundColor: Colors.black,
       body: SafeArea(
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            const SizedBox(height: 60),
-            Column(
-              children: [
-                Text(
-                  'Outgoing ${widget.callType == CallType.video ? 'Video' : 'Voice'} Call',
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(height: 20),
-                CircleAvatar(
-                  radius: 70,
-                  backgroundColor: Colors.blue,
-                  backgroundImage: widget.recipientImage != null && widget.recipientImage!.isNotEmpty
-                      ? MemoryImage(base64Decode(widget.recipientImage!))
-                      : null,
-                  child: widget.recipientImage == null || widget.recipientImage!.isEmpty
-                      ? Text(
-                    widget.recipientName.isNotEmpty
-                        ? widget.recipientName[0].toUpperCase()
-                        : '?',
-                    style: const TextStyle(
-                      fontSize: 40,
-                      color: Colors.white,
-                    ),
-                  )
-                      : null,
-                ),
-                const SizedBox(height: 20),
-                Text(
-                  widget.recipientName,
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(height: 10),
-                Text(
-                  _getStatusText(),
-                  style: const TextStyle(
-                    color: Colors.white70,
-                    fontSize: 16,
-                  ),
-                ),
-              ],
-            ),
-            Padding(
-              padding: const EdgeInsets.only(bottom: 50),
-              child: _buildCallButton(
-                icon: Icons.call_end,
-                color: Colors.red,
-                label: 'Cancel',
-                onPressed: widget.onCancel,
+            const Spacer(),
+            Text(
+              'Outgoing ${widget.callType == CallType.video ? 'Video' : 'Voice'} Call',
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 22,
+                fontWeight: FontWeight.w500,
               ),
             ),
+            const SizedBox(height: 20),
+            CircleAvatar(
+              radius: 60,
+              backgroundColor: Colors.blue,
+              backgroundImage: widget.recipientImage != null && widget.recipientImage!.isNotEmpty
+                  ? MemoryImage(base64Decode(widget.recipientImage!))
+                  : null,
+              child: widget.recipientImage == null || widget.recipientImage!.isEmpty
+                  ? Text(
+                widget.recipientName.isNotEmpty
+                    ? widget.recipientName[0].toUpperCase()
+                    : '?',
+                style: const TextStyle(
+                  fontSize: 36,
+                  color: Colors.white,
+                ),
+              )
+                  : null,
+            ),
+            const SizedBox(height: 16),
+            Text(
+              widget.recipientName,
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 22,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              _getStatusText(),
+              style: const TextStyle(
+                color: Colors.white70,
+                fontSize: 16,
+              ),
+            ),
+            const Spacer(),
+            _buildCallButton(
+              icon: Icons.call_end,
+              color: Colors.red,
+              label: 'Cancel',
+              onPressed: widget.onCancel,
+            ),
+            const SizedBox(height: 40),
           ],
         ),
       ),
     );
+
+
   }
 
   String _getStatusText() {

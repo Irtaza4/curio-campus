@@ -27,21 +27,29 @@ class ChatModel {
 
   factory ChatModel.fromJson(Map<String, dynamic> json) {
     return ChatModel(
-      id: json['id'] as String,
-      name: json['name'] as String,
-      participants: List<String>.from(json['participants']),
+      id: json['id']?.toString() ?? '',
+      name: json['name']?.toString() ?? '',
+      participants: (json['participants'] as List<dynamic>?)
+          ?.map((e) => e.toString())
+          .toList() ??
+          [],
       type: ChatType.values.firstWhere(
             (e) => e.toString() == 'ChatType.${json['type']}',
         orElse: () => ChatType.individual,
       ),
-      createdAt: DateTime.parse(json['createdAt'] as String),
-      lastMessageAt: DateTime.parse(json['lastMessageAt'] as String),
-      lastMessageContent: json['lastMessageContent'] as String?,
-      lastMessageSenderId: json['lastMessageSenderId'] as String?,
-      groupImageUrl: json['groupImageUrl'] as String?,
-      creatorId: json['creatorId'] as String?, // Added to fromJson
+      createdAt: json['createdAt'] != null
+          ? DateTime.tryParse(json['createdAt'].toString()) ?? DateTime.now()
+          : DateTime.now(),
+      lastMessageAt: json['lastMessageAt'] != null
+          ? DateTime.tryParse(json['lastMessageAt'].toString()) ?? DateTime.now()
+          : DateTime.now(),
+      lastMessageContent: json['lastMessageContent']?.toString(),
+      lastMessageSenderId: json['lastMessageSenderId']?.toString(),
+      groupImageUrl: json['groupImageUrl']?.toString(),
+      creatorId: json['creatorId']?.toString(),
     );
   }
+
 
   Map<String, dynamic> toJson() {
     return {

@@ -3,7 +3,6 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:curio_campus/utils/app_theme.dart';
 import 'package:agora_rtc_engine/agora_rtc_engine.dart';
-import 'package:permission_handler/permission_handler.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -44,7 +43,6 @@ class _CallScreenState extends State<CallScreen> with SingleTickerProviderStateM
   Duration _callDuration = Duration.zero;
   late DateTime _callStartTime;
   Timer? _callTimer;
-  bool _isScreenSharing = false;
   int? _remoteUid;
   bool _localUserJoined = false;
   StreamSubscription<DocumentSnapshot>? _callSubscription;
@@ -64,13 +62,14 @@ class _CallScreenState extends State<CallScreen> with SingleTickerProviderStateM
   List<Map<String, dynamic>> _recentMessages = [];
   bool _showMessageBanner = false;
   Timer? _messageBannerTimer;
+  final List<int> _remoteUids = [];
 
   @override
   void initState() {
     super.initState();
+
     _initializeCall();
 
-    // Initialize the pulse animation controller
     _pulseController = AnimationController(
       duration: const Duration(seconds: 2),
       vsync: this,
@@ -80,9 +79,11 @@ class _CallScreenState extends State<CallScreen> with SingleTickerProviderStateM
       CurvedAnimation(parent: _pulseController, curve: Curves.easeInOut),
     );
 
-    // Listen for new chat messages
     _listenForChatMessages();
   }
+
+
+
 
   void _listenForChatMessages() async {
     // Get the current user ID
@@ -130,11 +131,12 @@ class _CallScreenState extends State<CallScreen> with SingleTickerProviderStateM
   }
 
   Future<void> _initializeCall() async {
-    // Set up event handlers for the Agora engine
+    debugPrint('[Agora] Initializing call...');
+
     widget.engine.registerEventHandler(
       RtcEngineEventHandler(
         onJoinChannelSuccess: (connection, elapsed) {
-          debugPrint('Local user joined channel: ${connection.channelId}');
+          debugPrint('[Agora] Local user joined channel: \${connection.channelId}');
           setState(() {
             _localUserJoined = true;
             _isCallRinging = false;
@@ -144,17 +146,29 @@ class _CallScreenState extends State<CallScreen> with SingleTickerProviderStateM
           _startCallTimer();
         },
         onUserJoined: (connection, remoteUid, elapsed) {
-          debugPrint('Remote user joined: $remoteUid');
+          debugPrint('[Agora] Remote user joined: \$remoteUid');
           setState(() {
             _remoteUid = remoteUid;
             _isCallRinging = false;
             _isCallConnected = true;
+            if (!_remoteUids.contains(remoteUid)) {
+              _remoteUids.add(remoteUid);
+            }
           });
         },
+        onFirstRemoteVideoFrame: (connection, remoteUid, width, height, elapsed) {
+          debugPrint('[Agora] 📹 First remote video frame from \$remoteUid (\${width}x\$height)');
+          if (!_remoteUids.contains(remoteUid)) {
+            setState(() {
+              _remoteUids.add(remoteUid);
+            });
+          }
+        },
         onUserOffline: (connection, remoteUid, reason) {
-          debugPrint('Remote user left: $remoteUid, reason: $reason');
+          debugPrint('[Agora] Remote user left: \$remoteUid, reason: \$reason');
           setState(() {
-            _remoteUid = null;
+            _remoteUids.remove(remoteUid);
+            if (_remoteUid == remoteUid) _remoteUid = null;
           });
           if (reason == UserOfflineReasonType.userOfflineQuit) {
             _endCall();
@@ -169,7 +183,7 @@ class _CallScreenState extends State<CallScreen> with SingleTickerProviderStateM
           }
         },
         onConnectionStateChanged: (connection, state, reason) {
-          debugPrint('Connection state changed: $state, reason: $reason');
+          debugPrint('[Agora] Connection state changed: \$state, reason: \$reason');
           setState(() {
             _callStatus = state == ConnectionStateType.connectionStateConnected
                 ? 'connected'
@@ -179,7 +193,7 @@ class _CallScreenState extends State<CallScreen> with SingleTickerProviderStateM
           });
         },
         onError: (err, msg) {
-          debugPrint('Agora error: $err, $msg');
+          debugPrint('❌ Agora error: \$err, \$msg');
         },
       ),
     );
@@ -194,6 +208,7 @@ class _CallScreenState extends State<CallScreen> with SingleTickerProviderStateM
         final status = data['status'] as String;
 
         if (status == 'ended' || status == 'declined') {
+          debugPrint('[Call] Call ended remotely with status: \$status');
           _endCall();
         }
       }
@@ -202,8 +217,10 @@ class _CallScreenState extends State<CallScreen> with SingleTickerProviderStateM
     if (widget.callType == CallType.video) {
       await widget.engine.enableVideo();
       await widget.engine.startPreview();
+      debugPrint('[Agora] Video enabled and preview started');
     } else {
       await widget.engine.disableVideo();
+      debugPrint('[Agora] Video disabled (voice call)');
     }
 
     await widget.engine.setAudioProfile(
@@ -217,7 +234,16 @@ class _CallScreenState extends State<CallScreen> with SingleTickerProviderStateM
         _callStatus = 'ringing';
       });
     }
+
+    debugPrint('[Agora] Call setup complete');
   }
+
+
+
+
+
+
+
 
   void _startCallTimer() {
     _callTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
@@ -356,76 +382,87 @@ class _CallScreenState extends State<CallScreen> with SingleTickerProviderStateM
   }
 
   // Toggle screen sharing
-  void _toggleScreenSharing() async {
-    if (_isScreenSharing) {
-      // Stop screen sharing
-      try {
-        await widget.engine.stopScreenCapture();
-        if (widget.callType == CallType.video) {
-          await widget.engine.enableVideo();
-          await widget.engine.startPreview();
-        }
+  // void _toggleScreenSharing() async {
+  //   try {
+  //     if (_isScreenSharing) {
+  //       debugPrint('[ScreenShare] Stopping screen share...');
+  //       await widget.engine.stopScreenCapture();
+  //
+  //       if (widget.callType == CallType.video) {
+  //         await widget.engine.enableVideo();
+  //         await widget.engine.startPreview();
+  //
+  //         await widget.engine.updateChannelMediaOptions(
+  //           const ChannelMediaOptions(
+  //             publishCameraTrack: true,
+  //             publishScreenTrack: false,
+  //             publishScreenCaptureAudio: false,
+  //             publishMicrophoneTrack: true,
+  //             clientRoleType: ClientRoleType.clientRoleBroadcaster,
+  //           ),
+  //         );
+  //       }
+  //
+  //       setState(() => _isScreenSharing = false);
+  //
+  //       ScaffoldMessenger.of(context).showSnackBar(
+  //         const SnackBar(
+  //           content: Text('Screen sharing stopped'),
+  //           backgroundColor: Colors.orange,
+  //         ),
+  //       );
+  //     } else {
+  //       debugPrint('[ScreenShare] Starting screen share...');
+  //
+  //       if (widget.callType == CallType.video) {
+  //         await widget.engine.stopPreview();
+  //       }
+  //
+  //       await widget.engine.enableVideo();
+  //       debugPrint('[ScreenShare] Video enabled for screen share');
+  //
+  //       const params = ScreenCaptureParameters2(
+  //         captureVideo: true,
+  //         captureAudio: true,
+  //       );
+  //
+  //       await widget.engine.startScreenCapture(params);
+  //       debugPrint('[ScreenShare] startScreenCapture called');
+  //
+  //       await widget.engine.updateChannelMediaOptions(
+  //         const ChannelMediaOptions(
+  //           publishCameraTrack: false,
+  //           publishScreenTrack: true,
+  //           publishScreenCaptureAudio: true,
+  //           publishMicrophoneTrack: true,
+  //           clientRoleType: ClientRoleType.clientRoleBroadcaster,
+  //         ),
+  //       );
+  //
+  //       setState(() => _isScreenSharing = true);
+  //
+  //       ScaffoldMessenger.of(context).showSnackBar(
+  //         const SnackBar(
+  //           content: Text('Screen sharing started'),
+  //           backgroundColor: Colors.green,
+  //         ),
+  //       );
+  //     }
+  //   } catch (e) {
+  //     debugPrint('❌ Screen sharing error: \$e');
+  //     ScaffoldMessenger.of(context).showSnackBar(
+  //       SnackBar(
+  //         content: Text('Failed to toggle screen sharing: \$e'),
+  //         backgroundColor: Colors.red,
+  //       ),
+  //     );
+  //   }
+  // }
 
-        setState(() {
-          _isScreenSharing = false;
-        });
-      } catch (e) {
-        debugPrint('Error stopping screen capture: $e');
-      }
-    } else {
-      // Start screen sharing
-      if (widget.callType == CallType.video) {
-        await widget.engine.stopPreview();
-      }
 
-      // On Android, we need to request permission
-      if (Theme.of(context).platform == TargetPlatform.android) {
-        await [Permission.storage, Permission.photos].request();
-      }
 
-      // Start screen capture
-      try {
-        // For Agora RTC Engine 6.5.1
-        final params = const ScreenCaptureParameters2(
-          captureVideo: true,
-          captureAudio: true,
-        );
 
-        await widget.engine.startScreenCapture(params);
 
-        // Enable screen sharing video stream
-        await widget.engine.updateChannelMediaOptions(
-          const ChannelMediaOptions(
-            publishScreenTrack: true,
-            publishScreenCaptureAudio: true,
-            publishCameraTrack: false,
-          ),
-        );
-
-        setState(() {
-          _isScreenSharing = true;
-        });
-
-        // Show success message
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Screen sharing started'),
-            backgroundColor: Colors.green,
-            duration: Duration(seconds: 2),
-          ),
-        );
-      } catch (e) {
-        debugPrint('Error starting screen capture: $e');
-        // Show error to user
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Failed to start screen sharing: $e'),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
-    }
-  }
 
   String _formatDuration(Duration duration) {
     String twoDigits(int n) => n.toString().padLeft(2, '0');
@@ -760,27 +797,30 @@ class _CallScreenState extends State<CallScreen> with SingleTickerProviderStateM
   Widget _buildVideoView() {
     return Stack(
       children: [
-        // Remote video (full screen)
-        _remoteUid != null
-            ? AgoraVideoView(
-          controller: VideoViewController.remote(
-            rtcEngine: widget.engine,
-            canvas: VideoCanvas(uid: _remoteUid),
-            connection: RtcConnection(channelId: 'channel_${widget.callId}'),
-          ),
-        )
-            : Container(
-          color: Colors.black,
-          child: const Center(
-            child: Text(
-              'Waiting for remote user to join...',
-              style: TextStyle(color: Colors.white),
+        // Show all remote UIDs
+        if (_remoteUids.isNotEmpty)
+          ..._remoteUids.map((uid) => AgoraVideoView(
+            controller: VideoViewController.remote(
+              rtcEngine: widget.engine,
+              canvas: VideoCanvas(uid: uid),
+              connection: RtcConnection(channelId: 'channel_${widget.callId}'),
+            ),
+          )),
+        if (_remoteUids.isEmpty)
+          Container(
+            color: Colors.black,
+            child: const Center(
+              child: Text(
+                'Waiting for remote user to join...',
+                style: TextStyle(color: Colors.white),
+              ),
             ),
           ),
-        ),
 
-        // Local video (picture-in-picture)
-        if (_localUserJoined && widget.callType == CallType.video && !_isCameraOff && !_isScreenSharing)
+        // Local PIP
+        if (_localUserJoined &&
+            widget.callType == CallType.video &&
+            !_isCameraOff)
           Positioned(
             top: 80,
             right: 20,
@@ -802,42 +842,20 @@ class _CallScreenState extends State<CallScreen> with SingleTickerProviderStateM
               ),
             ),
           ),
-
-        // Screen sharing indicator
-        if (_isScreenSharing)
-          Positioned(
-            top: 80,
-            left: 0,
-            right: 0,
-            child: Center(
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                decoration: BoxDecoration(
-                  color: Colors.black.withOpacity(0.7),
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: const [
-                    Icon(Icons.screen_share, color: Colors.white, size: 16),
-                    SizedBox(width: 8),
-                    Text(
-                      'Screen sharing active',
-                      style: TextStyle(color: Colors.white, fontSize: 14),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ),
       ],
     );
   }
 
+
+
+
   Widget _buildOutgoingCallControls() {
-    return Center(
+    return Align(
+      alignment: Alignment.center,
       child: Column(
+        mainAxisSize: MainAxisSize.min, // ensures tight fit vertically
         mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           Container(
             width: 64,
@@ -863,6 +881,7 @@ class _CallScreenState extends State<CallScreen> with SingleTickerProviderStateM
       ),
     );
   }
+
 
   Widget _buildActiveCallControls() {
     return Column(
@@ -918,16 +937,6 @@ class _CallScreenState extends State<CallScreen> with SingleTickerProviderStateM
                     backgroundColor: Colors.white.withOpacity(0.2),
                     size: 50,
                   ),
-                const SizedBox(width: 16),
-                _buildCallButton(
-                  icon: _isScreenSharing ? Icons.stop_screen_share : Icons.screen_share,
-                  label: _isScreenSharing ? 'Stop Share' : 'Share Screen',
-                  onPressed: _toggleScreenSharing,
-                  backgroundColor: _isScreenSharing
-                      ? Colors.blue
-                      : Colors.white.withOpacity(0.2),
-                  size: 50,
-                ),
               ],
             ),
           ),
