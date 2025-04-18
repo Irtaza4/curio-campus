@@ -18,6 +18,7 @@ import 'package:curio_campus/screens/project/project_detail_screen.dart';
 import 'package:curio_campus/providers/notification_provider.dart';
 import 'package:curio_campus/utils/navigator_key.dart';
 import 'package:curio_campus/services/call_service.dart';
+import 'package:http/http.dart' as http;
 import 'dart:async';
 
 class NotificationService {
@@ -518,6 +519,47 @@ class NotificationService {
       ),
     );
   }
+  Future<void> showEmergencyRequestNotification({
+    required String requestId,
+    required String title,
+    required String requesterName,
+  }) async {
+    const AndroidNotificationDetails androidDetails = AndroidNotificationDetails(
+      'emergency_channel',
+      'Emergency Requests',
+      channelDescription: 'Notifications for emergency help requests',
+      importance: Importance.max,
+      priority: Priority.max,
+      playSound: true,
+      enableVibration: true,
+      category: AndroidNotificationCategory.alarm,
+    );
+
+    const DarwinNotificationDetails iOSDetails = DarwinNotificationDetails(
+      presentAlert: true,
+      presentSound: true,
+      presentBadge: true,
+      interruptionLevel: InterruptionLevel.critical,
+    );
+
+    const NotificationDetails notificationDetails = NotificationDetails(
+      android: androidDetails,
+      iOS: iOSDetails,
+    );
+
+    await _flutterLocalNotificationsPlugin.show(
+      DateTime.now().millisecondsSinceEpoch % 100000,
+      'Emergency Help Needed!',
+      '$requesterName needs help: $title',
+      notificationDetails,
+      payload: jsonEncode({
+        'type': 'emergency',
+        'requestId': requestId,
+        'isOwnRequest': 'false',
+      }),
+    );
+  }
+
 
   // Add a method to get notification color based on type
   Color _getNotificationColor(String? type) {
@@ -787,6 +829,27 @@ class NotificationService {
           },
           'topic': topic,
         };
+        await FirebaseMessaging.instance.subscribeToTopic('emergency_alerts');
+
+        await sendFCMNotificationToTopic(
+          topic: topic,
+          title: 'Emergency Request: $title',
+          body: '$requesterName needs help with $skill',
+          data: {
+            'type': 'emergency',
+            'requestId': requestId,
+            'requesterId': requesterId,
+            'requesterName': requesterName,
+            'skill': skill,
+            'channel_id': 'emergency_channel',
+            'channel_name': 'Emergency Requests',
+            'channel_description': 'Notifications for emergency requests',
+            'click_action': 'FLUTTER_NOTIFICATION_CLICK',
+            'isOwnRequest': 'false',
+          },
+        );
+
+
 
         // In a real app, you would send this via Firebase Cloud Functions or a server
         debugPrint('Sending emergency notification to topic $topic: $message');
@@ -817,6 +880,42 @@ class NotificationService {
       debugPrint('Error sending emergency notification: $e');
     }
   }
+
+
+  Future<void> sendFCMNotificationToTopic({
+    required String topic,
+    required String title,
+    required String body,
+    required Map<String, dynamic> data,
+    bool useLocal = false, // Set to true when testing locally
+  }) async {
+    final String localUrl = 'http://192.168.1.2:3000/send-topic-notification'; // Replace with your local IP
+
+    // final String serverUrl = useLocal ? localUrl : productionUrl;
+
+    try {
+      final response = await http.post(
+        Uri.parse(localUrl),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'topic': topic,
+          'title': title,
+          'body': body,
+          'data': data,
+        }),
+      );
+
+      if (response.statusCode == 200) {
+        print('✅ Notification sent successfully');
+      } else {
+        print('❌ Failed with status: ${response.statusCode}, body: ${response.body}');
+      }
+    } catch (e) {
+      print('❌ Error sending notification: $e');
+    }
+  }
+
+
 
   // Add a method to send project notification
   Future<void> sendProjectNotification({

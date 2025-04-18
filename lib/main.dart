@@ -109,6 +109,88 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
     } catch (e) {
       debugPrint('Error handling call notification in background: $e');
     }
+  } else if (message.data['type'] == 'chat') {
+    // Handle chat message notifications
+    try {
+      final flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
+
+      // Create notification channel for Android
+      final androidPlugin = flutterLocalNotificationsPlugin
+          .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>();
+
+      if (androidPlugin != null) {
+        await androidPlugin.createNotificationChannel(
+          const AndroidNotificationChannel(
+            'chat_channel',
+            'Chat Notifications',
+            description: 'Notifications for new messages',
+            importance: Importance.high,
+            playSound: true,
+            enableVibration: true,
+          ),
+        );
+      }
+
+      final senderName = message.data['senderName'] ?? 'Someone';
+      final messageContent = message.notification?.body ?? message.data['content'] ?? 'New message';
+      final chatId = message.data['chatId'];
+      final chatName = message.data['chatName'] ?? 'Chat';
+
+      final androidPlatformChannelSpecifics = AndroidNotificationDetails(
+        'chat_channel',
+        'Chat Notifications',
+        channelDescription: 'Notifications for new messages',
+        importance: Importance.high,
+        priority: Priority.high,
+        showWhen: true,
+        enableVibration: true,
+        category: AndroidNotificationCategory.message,
+      );
+
+      final iOSPlatformChannelSpecifics = const DarwinNotificationDetails(
+        presentAlert: true,
+        presentBadge: true,
+        presentSound: true,
+      );
+
+      final notificationDetails = NotificationDetails(
+        android: androidPlatformChannelSpecifics,
+        iOS: iOSPlatformChannelSpecifics,
+      );
+
+      // Generate a unique notification ID
+      final notificationId = chatId != null
+          ? chatId.hashCode % 100000
+          : DateTime.now().millisecondsSinceEpoch % 100000;
+
+      await flutterLocalNotificationsPlugin.show(
+        notificationId,
+        senderName,
+        messageContent,
+        notificationDetails,
+        payload: json.encode(message.data),
+      );
+
+      // Save message data to shared preferences for when app is opened
+      final prefs = await SharedPreferences.getInstance();
+      final pendingMessages = prefs.getStringList('pending_messages') ?? [];
+      pendingMessages.add(json.encode({
+        'chatId': chatId,
+        'chatName': chatName,
+        'senderName': senderName,
+        'content': messageContent,
+        'timestamp': DateTime.now().millisecondsSinceEpoch,
+      }));
+
+      // Keep only the last 10 messages
+      if (pendingMessages.length > 10) {
+        pendingMessages.removeAt(0);
+      }
+
+      await prefs.setStringList('pending_messages', pendingMessages);
+    } catch (e) {
+      debugPrint('Error handling chat notification in background: $e');
+    }
   } else {
     // For other notification types
     try {
@@ -214,8 +296,9 @@ class _MyAppState extends State<MyApp> {
   Future<void> _checkPendingNotifications() async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      final initialNotificationJson = prefs.getString('initial_notification');
 
+      // Check for initial notification
+      final initialNotificationJson = prefs.getString('initial_notification');
       if (initialNotificationJson != null) {
         final initialNotification = json.decode(initialNotificationJson) as Map<String, dynamic>;
 
@@ -226,6 +309,57 @@ class _MyAppState extends State<MyApp> {
         Future.delayed(const Duration(seconds: 2), () {
           _handleNotificationData(initialNotification);
         });
+      }
+
+      // Check for pending messages
+      final pendingMessages = prefs.getStringList('pending_messages') ?? [];
+      if (pendingMessages.isNotEmpty) {
+        // Process messages that are less than 24 hours old
+        final now = DateTime.now().millisecondsSinceEpoch;
+        final recentMessages = <Map<String, dynamic>>[];
+
+        for (final messageJson in pendingMessages) {
+          try {
+            final message = json.decode(messageJson) as Map<String, dynamic>;
+            final timestamp = message['timestamp'] as int?;
+
+            // Only process messages less than 24 hours old
+            if (timestamp != null && now - timestamp < 24 * 60 * 60 * 1000) {
+              recentMessages.add(message);
+            }
+          } catch (e) {
+            debugPrint('Error parsing message: $e');
+          }
+        }
+
+        // Clear pending messages
+        await prefs.setStringList('pending_messages', []);
+
+        // Process the most recent message after a delay
+        if (recentMessages.isNotEmpty) {
+          // Sort by timestamp (newest first)
+          recentMessages.sort((a, b) =>
+              (b['timestamp'] as int? ?? 0).compareTo(a['timestamp'] as int? ?? 0));
+
+          // Process the most recent message
+          Future.delayed(const Duration(seconds: 2), () {
+            final mostRecent = recentMessages.first;
+            final chatId = mostRecent['chatId'] as String?;
+            final chatName = mostRecent['chatName'] as String?;
+
+            if (chatId != null && chatName != null && navigatorKey.currentContext != null) {
+              Navigator.push(
+                navigatorKey.currentContext!,
+                MaterialPageRoute(
+                  builder: (_) => ChatScreen(
+                    chatId: chatId,
+                    chatName: chatName,
+                  ),
+                ),
+              );
+            }
+          });
+        }
       }
 
       // Check for pending calls

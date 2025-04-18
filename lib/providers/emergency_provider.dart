@@ -274,6 +274,11 @@ class EmergencyProvider with ChangeNotifier {
           });
         }
       }
+      await NotificationService().showEmergencyRequestNotification(
+        requestId: requestId,
+        title: title,
+        requesterName: userName,
+      );
 
       notifyListeners();
       return requestId;

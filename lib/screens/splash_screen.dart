@@ -11,6 +11,7 @@ import 'dart:convert';
 import 'package:curio_campus/screens/chat/chat_screen.dart';
 import 'package:curio_campus/screens/emergency/emergency_request_detail_screen.dart';
 import 'package:curio_campus/screens/project/project_detail_screen.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({Key? key}) : super(key: key);
@@ -49,6 +50,15 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
 
     _controller.forward();
 
+    // ✅ Print the FCM token to console
+    FirebaseMessaging.instance.getToken().then((token) {
+      if (token != null) {
+        print('🔥 FCM Token: $token');
+      } else {
+        print('❌ Failed to get FCM token');
+      }
+    });
+
     // Navigate to the appropriate screen after a delay
     Future.delayed(const Duration(seconds: Constants.splashDuration), () {
       _checkAuthState();
@@ -61,16 +71,12 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
     super.dispose();
   }
 
-  // Update the _checkAuthState method to handle initial notification
   void _checkAuthState() async {
     try {
       final authProvider = Provider.of<AuthProvider>(context, listen: false);
-
-      // Check for initial notification
       final prefs = await SharedPreferences.getInstance();
       final initialNotificationJson = prefs.getString('initial_notification');
 
-      // Initialize projects if user is authenticated
       if (authProvider.isAuthenticated) {
         await Provider.of<ProjectProvider>(context, listen: false).initProjects();
 
@@ -79,11 +85,9 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
             MaterialPageRoute(builder: (_) => const HomeScreen()),
           );
 
-          // Handle initial notification after navigation
           if (initialNotificationJson != null) {
             final notificationData = jsonDecode(initialNotificationJson) as Map<String, dynamic>;
             _handleInitialNotification(notificationData);
-            // Clear the stored notification
             prefs.remove('initial_notification');
           }
         }
@@ -96,7 +100,6 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
       }
     } catch (e) {
       debugPrint('Error in splash screen: $e');
-      // Fallback to login screen if there's any error
       if (mounted) {
         Navigator.of(context).pushReplacement(
           MaterialPageRoute(builder: (_) => const LoginScreen()),
@@ -105,11 +108,9 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
     }
   }
 
-  // Add a method to handle initial notification
   void _handleInitialNotification(Map<String, dynamic> notificationData) {
     final notificationType = notificationData['type'];
 
-    // Delay navigation to ensure HomeScreen is fully loaded
     Future.delayed(const Duration(milliseconds: 500), () {
       if (!mounted) return;
 
@@ -174,11 +175,10 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    // Logo
                     SizedBox(
                       width: 180,
                       height: 180,
-                      child:  Image.asset(
+                      child: Image.asset(
                         'assets/images/logo.png',
                         width: 200,
                         height: 200,
@@ -192,8 +192,6 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
                       ),
                     ),
                     const SizedBox(height: 24),
-
-                    // App name
                     Text(
                       'CurioCampus',
                       style: TextStyle(
@@ -203,42 +201,11 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
                       ),
                     ),
                     const SizedBox(height: 16),
-
-                    // Tagline
-                    const Text(
-                      '. Collaborate .',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w500,
-                        color: Colors.black87,
-                      ),
-                    ),
-                    const Text(
-                      '. Learn .',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w500,
-                        color: Colors.black87,
-                      ),
-                    ),
-                    const Text(
-                      '. Achieve .',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w500,
-                        color: Colors.black87,
-                      ),
-                    ),
+                    const Text('. Collaborate .', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w500)),
+                    const Text('. Learn .', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w500)),
+                    const Text('. Achieve .', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w500)),
                     const SizedBox(height: 48),
-
-                    // Loading indicator
-                    const Text(
-                      'LOADING ...',
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: Colors.black54,
-                      ),
-                    ),
+                    const Text('LOADING ...', style: TextStyle(fontSize: 14, color: Colors.black54)),
                     const SizedBox(height: 8),
                     SizedBox(
                       width: 200,
@@ -262,4 +229,3 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
     );
   }
 }
-

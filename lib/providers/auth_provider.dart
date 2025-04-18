@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -202,6 +203,7 @@ class AuthProvider with ChangeNotifier {
         if (_userModel != null) {
           prefs.setString(Constants.userNameKey, _userModel!.name);
         }
+        await FirebaseMessaging.instance.subscribeToTopic('emergency_alerts');
 
         _isLoading = false;
         notifyListeners();
