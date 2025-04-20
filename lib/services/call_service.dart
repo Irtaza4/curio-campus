@@ -443,13 +443,16 @@ class CallService {
         Navigator.push(
           navigatorKey.currentContext!,
           MaterialPageRoute(
-            builder: (_) => OutgoingCallScreen(
-              callId: callId,
-              recipientId: recipientId,
-              recipientName: recipientName,
-              recipientImage: recipientImage,
-              callType: callType,
-              onCancel: () => _cancelOutgoingCall(callId),
+            builder: (_) => Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 120),
+              child: OutgoingCallScreen(
+                callId: callId,
+                recipientId: recipientId,
+                recipientName: recipientName,
+                recipientImage: recipientImage,
+                callType: callType,
+                onCancel: () => _cancelOutgoingCall(callId),
+              ),
             ),
           ),
         ).then((_) {
