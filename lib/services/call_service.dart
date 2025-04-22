@@ -1199,15 +1199,18 @@ class _OutgoingCallScreenState extends State<OutgoingCallScreen> {
         child: Column(
           children: [
             const Spacer(),
-            Text(
-              'Outgoing ${widget.callType == CallType.video ? 'Video' : 'Voice'} Call',
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 22,
-                fontWeight: FontWeight.w500,
+            Padding(
+              padding: const EdgeInsets.only(left: 10),
+              child: Text(
+                'Outgoing ${widget.callType == CallType.video ? 'Video' : 'Voice'} Call',
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 22,
+                  fontWeight: FontWeight.w500,
+                ),
               ),
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: 30),
             CircleAvatar(
               radius: 60,
               backgroundColor: Colors.blue,
