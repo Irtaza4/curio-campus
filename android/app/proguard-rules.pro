@@ -17,3 +17,10 @@
 # Prevent R8 from removing or warning about DOM XML classes
 -keep class org.w3c.dom.bootstrap.DOMImplementationRegistry { *; }
 -dontwarn org.w3c.dom.bootstrap.**
+
+# Preserve generic type signatures required for TypeToken (used by flutter_local_notifications or Gson)
+-keep class com.google.gson.reflect.TypeToken
+-keepattributes Signature
+
+# Keep all classes for flutter_local_notifications to avoid runtime crashes
+-keep class com.dexterous.flutterlocalnotifications.** { *; }

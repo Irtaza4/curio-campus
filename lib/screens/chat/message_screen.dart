@@ -289,44 +289,79 @@ class _MessagesScreenState extends State<MessagesScreen> {
 
 // Add this new helper method
   Widget _buildChatAvatar(ChatModel chat, String displayName, String? profileImageBase64) {
+    const double avatarSize = 40;
+
     if (chat.type == ChatType.group) {
       // Handle group avatar
       if (chat.groupImageUrl != null && chat.groupImageUrl!.isNotEmpty) {
         if (chat.groupImageUrl!.startsWith('http')) {
-          // Network image
+          // Network image (rounded using CircleAvatar)
           return CircleAvatar(
+            radius: avatarSize / 2,
             backgroundColor: AppTheme.primaryColor,
             backgroundImage: NetworkImage(chat.groupImageUrl!),
             onBackgroundImageError: (_, __) {},
-            child: null,
           );
         } else {
-          // Base64 image
-          return ImageUtils.loadBase64Image(
-            base64String: chat.groupImageUrl,
-            width: 40,
-            height: 40,
-
+          // Base64 image (rounded using ClipOval)
+          return _buildBase64CircleImage(
+            base64String: chat.groupImageUrl!,
+            size: avatarSize,
             placeholder: ImageUtils.getGroupPlaceholder(),
           );
         }
       } else {
         // Default group icon
-        return ImageUtils.getGroupPlaceholder();
+        return ClipOval(
+          child: SizedBox(
+            width: avatarSize,
+            height: avatarSize,
+            child: ImageUtils.getGroupPlaceholder(),
+          ),
+        );
       }
     } else {
       // Handle individual chat avatar
       if (profileImageBase64 != null && profileImageBase64.isNotEmpty) {
-        return ImageUtils.loadBase64Image(
+        return _buildBase64CircleImage(
           base64String: profileImageBase64,
-          width: 40,
-          height: 40,
-
+          size: avatarSize,
           placeholder: ImageUtils.getUserPlaceholder(initial: displayName),
         );
       } else {
-        return ImageUtils.getUserPlaceholder(initial: displayName);
+        return ClipOval(
+          child: SizedBox(
+            width: avatarSize,
+            height: avatarSize,
+            child: ImageUtils.getUserPlaceholder(initial: displayName),
+          ),
+        );
       }
+    }
+  }
+  Widget _buildBase64CircleImage({
+    required String base64String,
+    required double size,
+    Widget? placeholder,
+  }) {
+    try {
+      final bytes = base64Decode(base64String);
+      return ClipOval(
+        child: Image.memory(
+          bytes,
+          width: size,
+          height: size,
+          fit: BoxFit.cover,
+        ),
+      );
+    } catch (e) {
+      return ClipOval(
+        child: SizedBox(
+          width: size,
+          height: size,
+          child: placeholder ?? const Icon(Icons.person),
+        ),
+      );
     }
   }
 

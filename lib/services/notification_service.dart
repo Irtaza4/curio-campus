@@ -889,7 +889,7 @@ class NotificationService {
     required Map<String, dynamic> data,
     bool useLocal = false, // Set to true when testing locally
   }) async {
-    final String localUrl = 'http://192.168.1.2:3000/send-topic-notification'; // Replace with your local IP
+    final String localUrl = 'http://192.168.1.11:3000/send-topic-notification'; // Replace with your local IP
 
     // final String serverUrl = useLocal ? localUrl : productionUrl;
 
