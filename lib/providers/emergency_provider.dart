@@ -13,11 +13,13 @@ class EmergencyProvider with ChangeNotifier {
 
   List<EmergencyRequestModel> _emergencyRequests = [];
   List<EmergencyRequestModel> _myEmergencyRequests = [];
+  List<EmergencyRequestModel> _ignoredRequests = []; // New list for ignored requests
   bool _isLoading = false;
   String? _errorMessage;
 
   List<EmergencyRequestModel> get emergencyRequests => _emergencyRequests;
   List<EmergencyRequestModel> get myEmergencyRequests => _myEmergencyRequests;
+  List<EmergencyRequestModel> get ignoredRequests => _ignoredRequests; // Getter for ignored requests
   bool get isLoading => _isLoading;
   String? get errorMessage => _errorMessage;
 
@@ -29,6 +31,19 @@ class EmergencyProvider with ChangeNotifier {
     notifyListeners();
 
     try {
+      final userId = _auth.currentUser!.uid;
+
+      // Get user's ignored request IDs
+      final userDoc = await _firestore
+          .collection(Constants.usersCollection)
+          .doc(userId)
+          .get();
+
+      List<String> ignoredRequestIds = [];
+      if (userDoc.exists && userDoc.data()!.containsKey('ignoredEmergencyRequests')) {
+        ignoredRequestIds = List<String>.from(userDoc.data()!['ignoredEmergencyRequests']);
+      }
+
       // Create a composite index for this query
       final querySnapshot = await _firestore
           .collection(Constants.emergencyRequestsCollection)
@@ -36,15 +51,32 @@ class EmergencyProvider with ChangeNotifier {
       // Use orderBy with a field that has an index
           .get();
 
-      _emergencyRequests = querySnapshot.docs
-          .map((doc) => EmergencyRequestModel.fromJson({
-        'id': doc.id,
-        ...doc.data(),
-      }))
-          .toList();
+      final List<EmergencyRequestModel> loadedRequests = [];
+      final List<EmergencyRequestModel> loadedIgnoredRequests = [];
 
-      // Sort the list after fetching
-      _emergencyRequests.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+      for (var doc in querySnapshot.docs) {
+        final request = EmergencyRequestModel.fromJson({
+          'id': doc.id,
+          ...doc.data(),
+        });
+
+        // Skip requests created by the current user (they go in myEmergencyRequests)
+        if (request.requesterId == userId) continue;
+
+        // Check if this request is in the ignored list
+        if (ignoredRequestIds.contains(request.id)) {
+          loadedIgnoredRequests.add(request);
+        } else {
+          loadedRequests.add(request);
+        }
+      }
+
+      // Sort the lists after fetching
+      loadedRequests.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+      loadedIgnoredRequests.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+
+      _emergencyRequests = loadedRequests;
+      _ignoredRequests = loadedIgnoredRequests;
 
       _isLoading = false;
       notifyListeners();
@@ -88,6 +120,85 @@ class EmergencyProvider with ChangeNotifier {
       _errorMessage = e.toString();
       notifyListeners();
       rethrow; // Rethrow to handle in UI
+    }
+  }
+
+  // New method to ignore an emergency request
+  Future<bool> ignoreEmergencyRequest(String requestId) async {
+    if (_auth.currentUser == null) return false;
+
+    _isLoading = true;
+    _errorMessage = null;
+    notifyListeners();
+
+    try {
+      final userId = _auth.currentUser!.uid;
+
+      // Add to user's ignored requests in Firestore
+      await _firestore
+          .collection(Constants.usersCollection)
+          .doc(userId)
+          .update({
+        'ignoredEmergencyRequests': FieldValue.arrayUnion([requestId])
+      });
+
+      // Move the request from regular list to ignored list
+      final requestIndex = _emergencyRequests.indexWhere((req) => req.id == requestId);
+      if (requestIndex >= 0) {
+        final request = _emergencyRequests[requestIndex];
+        _ignoredRequests.add(request);
+        _emergencyRequests.removeAt(requestIndex);
+      }
+
+      _isLoading = false;
+      notifyListeners();
+      return true;
+    } catch (e) {
+      _isLoading = false;
+      _errorMessage = e.toString();
+      notifyListeners();
+      return false;
+    }
+  }
+
+  // New method to unignore an emergency request
+  Future<bool> unignoreEmergencyRequest(String requestId) async {
+    if (_auth.currentUser == null) return false;
+
+    _isLoading = true;
+    _errorMessage = null;
+    notifyListeners();
+
+    try {
+      final userId = _auth.currentUser!.uid;
+
+      // Remove from user's ignored requests in Firestore
+      await _firestore
+          .collection(Constants.usersCollection)
+          .doc(userId)
+          .update({
+        'ignoredEmergencyRequests': FieldValue.arrayRemove([requestId])
+      });
+
+      // Move the request from ignored list to regular list
+      final requestIndex = _ignoredRequests.indexWhere((req) => req.id == requestId);
+      if (requestIndex >= 0) {
+        final request = _ignoredRequests[requestIndex];
+        _emergencyRequests.add(request);
+        _ignoredRequests.removeAt(requestIndex);
+
+        // Sort the list after adding the request back
+        _emergencyRequests.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+      }
+
+      _isLoading = false;
+      notifyListeners();
+      return true;
+    } catch (e) {
+      _isLoading = false;
+      _errorMessage = e.toString();
+      notifyListeners();
+      return false;
     }
   }
 
@@ -362,6 +473,19 @@ class EmergencyProvider with ChangeNotifier {
         _emergencyRequests[allIndex] = updatedRequest;
       }
 
+      // Also update in ignored list if present
+      final ignoredIndex = _ignoredRequests.indexWhere((r) => r.id == requestId);
+      if (ignoredIndex != -1) {
+        final updatedRequest = EmergencyRequestModel.fromJson({
+          ..._ignoredRequests[ignoredIndex].toJson(),
+          'title': title,
+          'description': description,
+          'requiredSkills': requiredSkills,
+          'deadline': deadline.toIso8601String(),
+        });
+        _ignoredRequests[ignoredIndex] = updatedRequest;
+      }
+
       _isLoading = false;
       notifyListeners();
       return true;
@@ -404,6 +528,17 @@ class EmergencyProvider with ChangeNotifier {
       if (allIndex != -1) {
         _emergencyRequests[allIndex] = EmergencyRequestModel.fromJson({
           ..._emergencyRequests[allIndex].toJson(),
+          'isResolved': true,
+          'resolvedBy': userId,
+          'resolvedAt': now.toIso8601String(),
+        });
+      }
+
+      // Also update in ignored list if present
+      final ignoredIndex = _ignoredRequests.indexWhere((r) => r.id == requestId);
+      if (ignoredIndex != -1) {
+        _ignoredRequests[ignoredIndex] = EmergencyRequestModel.fromJson({
+          ..._ignoredRequests[ignoredIndex].toJson(),
           'isResolved': true,
           'resolvedBy': userId,
           'resolvedAt': now.toIso8601String(),
@@ -475,6 +610,7 @@ class EmergencyProvider with ChangeNotifier {
       // Remove from local lists
       _myEmergencyRequests.removeWhere((r) => r.id == requestId);
       _emergencyRequests.removeWhere((r) => r.id == requestId);
+      _ignoredRequests.removeWhere((r) => r.id == requestId);
 
       notifyListeners();
       return true;

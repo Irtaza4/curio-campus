@@ -1,0 +1,2 @@
+D:/curio_campus/android/app/.cxx/Debug/194c3o1f/x86_64/CMakeFiles/edit_cache.dir
+D:/curio_campus/android/app/.cxx/Debug/194c3o1f/x86_64/CMakeFiles/rebuild_cache.dir
