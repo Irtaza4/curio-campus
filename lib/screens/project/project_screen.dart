@@ -153,6 +153,9 @@ class _ProjectsScreenState extends State<ProjectsScreen> {
             const SizedBox(height: 16),
             ElevatedButton(
               onPressed: _navigateToCreateProject,
+              style: ElevatedButton.styleFrom(
+                minimumSize: const Size(200, 48), // width: 200, height: 48
+              ),
               child: const Text('Create Project'),
             ),
           ],

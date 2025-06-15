@@ -60,21 +60,6 @@ class _CreateEmergencyRequestScreenState extends State<CreateEmergencyRequestScr
       });
 
       if (requestId != null && mounted) {
-        // Send FCM notification for each selected skill
-        for (String skill in _requiredSkills) {
-          await notificationService.sendFCMNotificationToTopic(
-            topic: 'skill_${skill.toLowerCase()}',
-            title: 'Emergency Alert!',
-            body: 'An emergency requires your skill: $skill',
-            data: {
-              'screen': 'emergency',
-              'userId': '123456', // Replace with actual user ID if needed
-              'requestId': requestId,
-            },
-            useLocal: true, // Set to true for local testing
-          );
-        }
-
         Navigator.pop(context);
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(

@@ -7,6 +7,9 @@ import 'package:curio_campus/utils/constants.dart';
 import 'package:curio_campus/services/notification_service.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
+import '../services/cloud_functions_services.dart';
+
+
 class EmergencyProvider with ChangeNotifier {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final FirebaseAuth _auth = FirebaseAuth.instance;
@@ -249,49 +252,41 @@ class EmergencyProvider with ChangeNotifier {
         deadline: deadline,
         createdAt: now,
         isResolved: false,
-        responses: [], // Initialize with empty list
+        responses: [],
       );
 
+      print('🔥 About to save emergency request to Firestore:');
+      print('  - Collection: ${Constants.emergencyRequestsCollection}');
+      print('  - Document ID: $requestId');
+      print('  - Required Skills: $requiredSkills');
+      print('  - Requester: $userName');
+
+      // Save to Firestore - this should trigger the Cloud Function
       await _firestore
           .collection(Constants.emergencyRequestsCollection)
           .doc(requestId)
           .set(request.toJson());
 
-      // Send notifications to users with matching skills
-      await NotificationService().sendEmergencyRequestNotification(
-        requiredSkills: requiredSkills,
-        requesterId: userId,
-        requesterName: userName,
-        requestId: requestId,
-        title: title,
-      );
-
-      // Show a local notification for testing
-      await NotificationService().showLocalNotification(
-        id: DateTime.now().millisecondsSinceEpoch.remainder(100000),
-        title: 'Emergency Request Created',
-        body: 'Your request "$title" has been created and shared with peers',
-        channelId: 'emergency_channel',
-        channelName: 'Emergency Requests',
-        channelDescription: 'Notifications for emergency requests',
-        color: Colors.orange,
-      );
+      print('✅ Emergency request saved - Cloud Function will handle notifications');
+      print('🔍 Check Firebase Functions logs to see if trigger fired');
+      print('   Command: firebase functions:log --project curiocampus-c8f79');
 
       // Add request to local lists
       _myEmergencyRequests.insert(0, request);
-      _emergencyRequests.insert(0, request);
 
       _isLoading = false;
       notifyListeners();
 
       return requestId;
     } catch (e) {
+      print('❌ Error creating emergency request: $e');
       _isLoading = false;
       _errorMessage = e.toString();
       notifyListeners();
       return null;
     }
   }
+
 
   // Add method to create an emergency request that matches user skills
   Future<String?> createEmergencyRequestWithSkillMatching({

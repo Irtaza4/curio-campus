@@ -432,7 +432,9 @@ class _EmergencyScreenState extends State<EmergencyScreen> with SingleTickerProv
               radius: 24,
               backgroundColor: isIgnored ? Colors.grey : AppTheme.primaryColor,
               child: ImageUtils.getUserPlaceholder(
-                initial: request.requesterName.isNotEmpty ? request.requesterName[0].toUpperCase() : '?',
+                initial: request.requesterName.isNotEmpty
+                    ? request.requesterName[0].toUpperCase()
+                    : '?',
               ),
             ),
             const SizedBox(width: 16),
@@ -440,6 +442,7 @@ class _EmergencyScreenState extends State<EmergencyScreen> with SingleTickerProv
             // Request info
             Expanded(
               child: Column(
+                mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Row(
@@ -453,9 +456,10 @@ class _EmergencyScreenState extends State<EmergencyScreen> with SingleTickerProv
                           color: isIgnored ? Colors.grey : AppTheme.primaryColor,
                         ),
                       ),
-                      Row(
+                      Wrap(
+                        crossAxisAlignment: WrapCrossAlignment.start,
+                        // spacing: ,
                         children: [
-                          // Ignore/Unignore button for other's requests
                           if (!isOwnRequest) ...[
                             if (isIgnored)
                               TextButton.icon(
@@ -464,7 +468,7 @@ class _EmergencyScreenState extends State<EmergencyScreen> with SingleTickerProv
                                 label: const Text('Restore'),
                                 style: TextButton.styleFrom(
                                   foregroundColor: Colors.blue,
-                                  padding: const EdgeInsets.symmetric(horizontal: 8),
+                                  // padding: const EdgeInsets.symmetric(horizontal: 8),
                                   minimumSize: const Size(0, 30),
                                 ),
                               )
@@ -475,34 +479,44 @@ class _EmergencyScreenState extends State<EmergencyScreen> with SingleTickerProv
                                 label: const Text('Ignore'),
                                 style: TextButton.styleFrom(
                                   foregroundColor: Colors.grey,
-                                  padding: const EdgeInsets.symmetric(horizontal: 8),
+                                  // padding: const EdgeInsets.symmetric(horizontal: 8),
                                   minimumSize: const Size(0, 30),
                                 ),
                               ),
                           ],
 
-                          // Edit and Delete buttons for own requests
                           if (isOwnRequest && !request.isResolved) ...[
-                            IconButton(
-                              icon: const Icon(Icons.edit, size: 20),
-                              color: AppTheme.primaryColor,
-                              onPressed: () => _navigateToEditEmergencyRequest(request),
-                              padding: EdgeInsets.zero,
-                              constraints: const BoxConstraints(),
-                              tooltip: 'Edit',
-                            ),
-                            IconButton(
-                              icon: const Icon(Icons.delete, size: 20),
-                              color: Colors.red,
-                              onPressed: onDelete,
-                              padding: EdgeInsets.zero,
-                              constraints: const BoxConstraints(),
-                              tooltip: 'Delete',
-                            ),
-                            const SizedBox(width: 8),
+                            Wrap(
+                              crossAxisAlignment: WrapCrossAlignment.center,
+                              spacing: 4,
+                              children: [
+                                Padding(
+                                  padding: EdgeInsets.only(top: 2),
+                                  child: IconButton(
+                                    icon: const Icon(Icons.edit, size: 20),
+                                    color: AppTheme.primaryColor,
+                                    onPressed: () => _navigateToEditEmergencyRequest(request),
+                                    constraints: const BoxConstraints(),
+                                    padding: EdgeInsets.zero,
+                                    visualDensity: VisualDensity.compact,
+                                    tooltip: 'Edit',
+                                  ),
+                                ),
+                                IconButton(
+                                  icon: const Icon(Icons.delete, size: 20),
+                                  color: Colors.red,
+                                  onPressed: onDelete,
+                                  constraints: const BoxConstraints(),
+                                  padding: EdgeInsets.zero,
+                                  visualDensity: VisualDensity.compact,
+                                  tooltip: 'Delete',
+                                ),
+                              ],
+                            )
+
+
                           ],
 
-                          // View button
                           ElevatedButton(
                             onPressed: () {
                               Navigator.push(
@@ -516,15 +530,17 @@ class _EmergencyScreenState extends State<EmergencyScreen> with SingleTickerProv
                               );
                             },
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: isIgnored ? Colors.grey : AppTheme.primaryColor,
+                              backgroundColor: isIgnored
+                                  ? Colors.grey
+                                  : AppTheme.primaryColor,
                               foregroundColor: Colors.white,
                               padding: const EdgeInsets.symmetric(
-                                horizontal: 16,
+                                horizontal: 12,
                                 vertical: 8,
                               ),
-                              minimumSize: const Size(60, 30),
+                              minimumSize: const Size(30, 10),
                             ),
-                            child: const Text('View'),
+                            child: const Text('View',style: TextStyle(fontSize: 10),),
                           ),
                         ],
                       ),
@@ -641,5 +657,6 @@ class _EmergencyScreenState extends State<EmergencyScreen> with SingleTickerProv
         ),
       ),
     );
+
   }
 }

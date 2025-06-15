@@ -222,7 +222,7 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
 
       final notificationDetails = NotificationDetails(
         android: androidPlatformChannelSpecifics,
-      );
+      );print('Firebase Project ID: ${Firebase.app().options.projectId}');
 
       await flutterLocalNotificationsPlugin.show(
         message.hashCode % 100000, // Ensure ID is within 32-bit integer range
@@ -241,6 +241,7 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
 
+  print('Firebase Project ID: ${Firebase.app().options.projectId}');
   // Register background message handler
   FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
 

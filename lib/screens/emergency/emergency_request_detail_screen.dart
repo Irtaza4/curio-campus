@@ -479,7 +479,7 @@ class _EmergencyRequestDetailScreenState extends State<EmergencyRequestDetailScr
                     Expanded(
                       child: ElevatedButton.icon(
                         onPressed: _resolveRequest,
-                        icon: const Icon(Icons.check_circle),
+                        icon: const Icon(Icons.check_circle,color: Colors.white,),
                         label: const Text('Mark as Resolved'),
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.green,
@@ -495,7 +495,7 @@ class _EmergencyRequestDetailScreenState extends State<EmergencyRequestDetailScr
                     Expanded(
                       child: ElevatedButton.icon(
                         onPressed: _contactRequester,
-                        icon: const Icon(Icons.chat),
+                        icon: const Icon(Icons.chat,color: Colors.white),
                         label: const Text('Contact Requester'),
                         style: ElevatedButton.styleFrom(
                           padding: const EdgeInsets.symmetric(vertical: 12),
@@ -506,7 +506,7 @@ class _EmergencyRequestDetailScreenState extends State<EmergencyRequestDetailScr
                     Expanded(
                       child: ElevatedButton.icon(
                         onPressed: _resolveRequest,
-                        icon: const Icon(Icons.check_circle),
+                        icon: const Icon(Icons.check_circle,color: Colors.white,),
                         label: const Text('Mark as Resolved'),
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.green,
@@ -521,7 +521,7 @@ class _EmergencyRequestDetailScreenState extends State<EmergencyRequestDetailScr
               if (!widget.isOwnRequest) ...[
                 ElevatedButton.icon(
                   onPressed: _contactRequester,
-                  icon: const Icon(Icons.chat),
+                  icon: const Icon(Icons.chat,color: Colors.white,),
                   label: const Text('Contact Requester'),
                   style: ElevatedButton.styleFrom(
                     padding: const EdgeInsets.symmetric(vertical: 12),
