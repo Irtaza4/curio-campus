@@ -218,6 +218,7 @@ class _EmergencyRequestDetailScreenState extends State<EmergencyRequestDetailScr
 
   @override
   Widget build(BuildContext context) {
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.isOwnRequest ? 'Your Emergency Request' : 'Emergency Request'),
@@ -249,6 +250,8 @@ class _EmergencyRequestDetailScreenState extends State<EmergencyRequestDetailScr
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12),
               ),
+              // Fix: Add theme-aware card color
+              color: isDarkMode ? Theme.of(context).cardColor : Colors.white,
               child: Padding(
                 padding: const EdgeInsets.all(16),
                 child: Column(
@@ -306,7 +309,10 @@ class _EmergencyRequestDetailScreenState extends State<EmergencyRequestDetailScr
                                 style: TextStyle(
                                   fontSize: 18,
                                   fontWeight: FontWeight.bold,
-                                  color: widget.isOwnRequest ? AppTheme.primaryColor : Colors.black,
+                                  // Fix: Use theme-aware color for name
+                                  color: widget.isOwnRequest
+                                      ? AppTheme.primaryColor
+                                      : (isDarkMode ? Colors.white : Colors.black),
                                 ),
                               ),
                               const SizedBox(height: 4),
@@ -315,14 +321,16 @@ class _EmergencyRequestDetailScreenState extends State<EmergencyRequestDetailScr
                                   Icon(
                                     Icons.access_time,
                                     size: 14,
-                                    color: Colors.grey[600],
+                                    // Fix: Use theme-aware icon color
+                                    color: isDarkMode ? Colors.grey[400] : Colors.grey[600],
                                   ),
                                   const SizedBox(width: 4),
                                   Text(
                                     'Posted ${DateFormat('MMM d, h:mm a').format(_request!.createdAt)}',
                                     style: TextStyle(
                                       fontSize: 12,
-                                      color: Colors.grey[600],
+                                      // Fix: Use theme-aware text color
+                                      color: isDarkMode ? Colors.grey[400] : Colors.grey[600],
                                     ),
                                   ),
                                 ],
@@ -337,9 +345,11 @@ class _EmergencyRequestDetailScreenState extends State<EmergencyRequestDetailScr
                     // Request title
                     Text(
                       _request!.title,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.bold,
+                        // Fix: Use theme-aware text color
+                        color: isDarkMode ? Colors.white : Colors.black,
                       ),
                     ),
                     const SizedBox(height: 8),
@@ -347,8 +357,10 @@ class _EmergencyRequestDetailScreenState extends State<EmergencyRequestDetailScr
                     // Request description
                     Text(
                       _request!.description,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 16,
+                        // Fix: Use theme-aware text color
+                        color: isDarkMode ? Colors.white70 : Colors.black,
                       ),
                     ),
                     const SizedBox(height: 16),

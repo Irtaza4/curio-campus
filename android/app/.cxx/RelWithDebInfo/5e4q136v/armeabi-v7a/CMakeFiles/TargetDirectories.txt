@@ -1,0 +1,2 @@
+D:/curio_campus/android/app/.cxx/RelWithDebInfo/5e4q136v/armeabi-v7a/CMakeFiles/edit_cache.dir
+D:/curio_campus/android/app/.cxx/RelWithDebInfo/5e4q136v/armeabi-v7a/CMakeFiles/rebuild_cache.dir

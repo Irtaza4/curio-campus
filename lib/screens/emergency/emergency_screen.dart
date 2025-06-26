@@ -267,6 +267,7 @@ class _EmergencyScreenState extends State<EmergencyScreen> with SingleTickerProv
     final currentUserId = authProvider.firebaseUser?.uid;
     final unreadCount = notificationProvider.unreadCount;
 
+
     return Scaffold(
       // Remove the appBar here
       body: Column(
@@ -306,6 +307,8 @@ class _EmergencyScreenState extends State<EmergencyScreen> with SingleTickerProv
   }
 
   Widget _buildAllRequestsTab(String? currentUserId) {
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+
     return Consumer<EmergencyProvider>(
       builder: (context, emergencyProvider, child) {
         final activeRequests = emergencyProvider.emergencyRequests;
@@ -314,8 +317,13 @@ class _EmergencyScreenState extends State<EmergencyScreen> with SingleTickerProv
         return _isLoading
             ? const Center(child: CircularProgressIndicator())
             : (activeRequests.isEmpty && ignoredRequests.isEmpty)
-            ? const Center(
-          child: Text('No emergency requests available'),
+            ? Center(
+          child: Text(
+            'No emergency requests available',
+            style: TextStyle(
+              color: isDarkMode ? Colors.white70 : Colors.black87,
+            ),
+          ),
         )
             : RefreshIndicator(
           onRefresh: _fetchAllEmergencyRequests,
@@ -324,12 +332,13 @@ class _EmergencyScreenState extends State<EmergencyScreen> with SingleTickerProv
             children: [
               // Active requests section
               if (activeRequests.isNotEmpty) ...[
-                const Text(
+                Text(
                   'Active Requests',
                   style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
-                    color: Colors.black87,
+                    // Fix: Use theme-aware text color
+                    color: isDarkMode ? Colors.white : Colors.black87,
                   ),
                 ),
                 const SizedBox(height: 8),
@@ -344,12 +353,13 @@ class _EmergencyScreenState extends State<EmergencyScreen> with SingleTickerProv
               // Ignored requests section
               if (ignoredRequests.isNotEmpty) ...[
                 const SizedBox(height: 24),
-                const Text(
+                Text(
                   'Ignored Requests',
                   style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
-                    color: Colors.black54,
+                    // Fix: Use theme-aware text color for ignored section
+                    color: isDarkMode ? Colors.grey[400] : Colors.black54,
                   ),
                 ),
                 const SizedBox(height: 8),
@@ -366,7 +376,6 @@ class _EmergencyScreenState extends State<EmergencyScreen> with SingleTickerProv
       },
     );
   }
-
   Widget _buildMyRequestsTab() {
     return Consumer<EmergencyProvider>(
       builder: (context, emergencyProvider, child) {
@@ -415,13 +424,18 @@ class _EmergencyScreenState extends State<EmergencyScreen> with SingleTickerProv
         Function()? onUnignore,
         Function()? onDelete,
       }) {
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+
     return Card(
       margin: const EdgeInsets.only(bottom: 16),
       elevation: 2,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
       ),
-      color: isIgnored ? Colors.grey.shade100 : Colors.white,
+      // Fix: Use theme-aware colors instead of hardcoded colors
+      color: isIgnored
+          ? (isDarkMode ? Colors.grey.shade800 : Colors.grey.shade100)
+          : (isDarkMode ? Theme.of(context).cardColor : Colors.white),
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Row(
@@ -453,12 +467,13 @@ class _EmergencyScreenState extends State<EmergencyScreen> with SingleTickerProv
                         style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
-                          color: isIgnored ? Colors.grey : AppTheme.primaryColor,
+                          color: isIgnored
+                              ? Colors.grey
+                              : (isDarkMode ? Colors.white : AppTheme.primaryColor),
                         ),
                       ),
                       Wrap(
                         crossAxisAlignment: WrapCrossAlignment.start,
-                        // spacing: ,
                         children: [
                           if (!isOwnRequest) ...[
                             if (isIgnored)
@@ -468,7 +483,6 @@ class _EmergencyScreenState extends State<EmergencyScreen> with SingleTickerProv
                                 label: const Text('Restore'),
                                 style: TextButton.styleFrom(
                                   foregroundColor: Colors.blue,
-                                  // padding: const EdgeInsets.symmetric(horizontal: 8),
                                   minimumSize: const Size(0, 30),
                                 ),
                               )
@@ -479,7 +493,6 @@ class _EmergencyScreenState extends State<EmergencyScreen> with SingleTickerProv
                                 label: const Text('Ignore'),
                                 style: TextButton.styleFrom(
                                   foregroundColor: Colors.grey,
-                                  // padding: const EdgeInsets.symmetric(horizontal: 8),
                                   minimumSize: const Size(0, 30),
                                 ),
                               ),
@@ -513,8 +526,6 @@ class _EmergencyScreenState extends State<EmergencyScreen> with SingleTickerProv
                                 ),
                               ],
                             )
-
-
                           ],
 
                           ElevatedButton(
@@ -540,7 +551,7 @@ class _EmergencyScreenState extends State<EmergencyScreen> with SingleTickerProv
                               ),
                               minimumSize: const Size(30, 10),
                             ),
-                            child: const Text('View',style: TextStyle(fontSize: 10),),
+                            child: const Text('View', style: TextStyle(fontSize: 10)),
                           ),
                         ],
                       ),
@@ -552,7 +563,10 @@ class _EmergencyScreenState extends State<EmergencyScreen> with SingleTickerProv
                     style: TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w500,
-                      color: isIgnored ? Colors.grey.shade700 : Colors.black,
+                      // Fix: Use theme-aware text color
+                      color: isIgnored
+                          ? Colors.grey.shade700
+                          : (isDarkMode ? Colors.white70 : Colors.black),
                     ),
                   ),
                   const SizedBox(height: 4),
@@ -560,7 +574,8 @@ class _EmergencyScreenState extends State<EmergencyScreen> with SingleTickerProv
                     'Skills',
                     style: TextStyle(
                       fontSize: 12,
-                      color: Colors.grey[600],
+                      // Fix: Use theme-aware text color
+                      color: isDarkMode ? Colors.grey[400] : Colors.grey[600],
                       fontWeight: FontWeight.w500,
                     ),
                   ),
@@ -596,14 +611,16 @@ class _EmergencyScreenState extends State<EmergencyScreen> with SingleTickerProv
                       Icon(
                         Icons.access_time,
                         size: 12,
-                        color: Colors.grey[600],
+                        // Fix: Use theme-aware icon color
+                        color: isDarkMode ? Colors.grey[400] : Colors.grey[600],
                       ),
                       const SizedBox(width: 4),
                       Text(
                         'Deadline: ${DateFormat('MMM d, h:mm a').format(request.deadline)}',
                         style: TextStyle(
                           fontSize: 12,
-                          color: Colors.grey[600],
+                          // Fix: Use theme-aware text color
+                          color: isDarkMode ? Colors.grey[400] : Colors.grey[600],
                         ),
                       ),
                     ],
@@ -657,6 +674,5 @@ class _EmergencyScreenState extends State<EmergencyScreen> with SingleTickerProv
         ),
       ),
     );
-
   }
 }
