@@ -63,7 +63,7 @@ class EmergencyProvider with ChangeNotifier {
           ...doc.data(),
         });
 
-        // Skip requests created by the current user (they go in myEmergencyRequests)
+        // Skip requests created by the current usr (they go in myEmergencyRequests)
         if (request.requesterId == userId) continue;
 
         // Check if this request is in the ignored list
