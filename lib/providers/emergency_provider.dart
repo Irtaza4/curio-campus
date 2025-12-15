@@ -47,7 +47,7 @@ class EmergencyProvider with ChangeNotifier {
         ignoredRequestIds = List<String>.from(userDoc.data()!['ignoredEmergencyRequests']);
       }
 
-      // Create a composite index for this query
+
       final querySnapshot = await _firestore
           .collection(Constants.emergencyRequestsCollection)
           .where('isResolved', isEqualTo: false)
