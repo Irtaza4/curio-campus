@@ -112,7 +112,6 @@ class EmergencyProvider with ChangeNotifier {
         ...doc.data(),
       }))
           .toList();
-
       // Sort the list after fetching
       _myEmergencyRequests.sort((a, b) => b.createdAt.compareTo(a.createdAt));
 
