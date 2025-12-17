@@ -124,7 +124,6 @@ class EmergencyProvider with ChangeNotifier {
       rethrow; // Rethrow to handle in UI
     }
   }
-
   // New method to ignore an emergency request
   Future<bool> ignoreEmergencyRequest(String requestId) async {
     if (_auth.currentUser == null) return false;
