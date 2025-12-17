@@ -52,6 +52,7 @@ class EmergencyProvider with ChangeNotifier {
           .collection(Constants.emergencyRequestsCollection)
           .where('isResolved', isEqualTo: false)
       // Use orderBy with a field that has an index
+
           .get();
 
       final List<EmergencyRequestModel> loadedRequests = [];
