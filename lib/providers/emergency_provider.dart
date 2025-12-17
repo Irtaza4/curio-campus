@@ -101,7 +101,6 @@ class EmergencyProvider with ChangeNotifier {
 
     try {
       final userId = _auth.currentUser!.uid;
-
       final querySnapshot = await _firestore
           .collection(Constants.emergencyRequestsCollection)
           .where('requesterId', isEqualTo: userId)
