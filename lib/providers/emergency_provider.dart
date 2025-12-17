@@ -134,7 +134,6 @@ class EmergencyProvider with ChangeNotifier {
 
     try {
       final userId = _auth.currentUser!.uid;
-
       // Add to user's ignored requests in Firestore
       await _firestore
           .collection(Constants.usersCollection)
