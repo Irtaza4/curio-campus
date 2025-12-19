@@ -97,6 +97,7 @@ class _CallScreenState extends State<CallScreen> with SingleTickerProviderStateM
     final chatRoomId = chatId.join('_');
 
     // Listen for new messages
+    
     _chatSubscription = FirebaseFirestore.instance
         .collection('chats')
         .doc(chatRoomId)
