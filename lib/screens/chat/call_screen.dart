@@ -81,10 +81,7 @@ class _CallScreenState extends State<CallScreen> with SingleTickerProviderStateM
 
     _listenForChatMessages();
   }
-
-
-
-
+  
   void _listenForChatMessages() async {
     // Get the current user ID
     final prefs = await SharedPreferences.getInstance();
