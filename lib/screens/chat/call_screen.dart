@@ -63,7 +63,6 @@ class _CallScreenState extends State<CallScreen> with SingleTickerProviderStateM
   bool _showMessageBanner = false;
   Timer? _messageBannerTimer;
   final List<int> _remoteUids = [];
-
   @override
   void initState() {
     super.initState();
@@ -81,7 +80,7 @@ class _CallScreenState extends State<CallScreen> with SingleTickerProviderStateM
 
     _listenForChatMessages();
   }
-  
+
   void _listenForChatMessages() async {
     // Get the current user ID
     final prefs = await SharedPreferences.getInstance();
