@@ -11,6 +11,8 @@ class Constants {
 
   // Navigation routes
   static const String splashRoute = '/splash';
+  static const String splashScreen = '/splash';
+
   static const String loginRoute = '/login';
   static const String registerRoute = '/register';
   static const String homeRoute = '/home';
@@ -36,4 +38,3 @@ class Constants {
   // image key
   static const String userImageKey = 'user_image_key';
 }
-
