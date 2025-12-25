@@ -17,10 +17,12 @@ class EditEmergencyRequestScreen extends StatefulWidget {
   }) : super(key: key);
 
   @override
-  State<EditEmergencyRequestScreen> createState() => _EditEmergencyRequestScreenState();
+  State<EditEmergencyRequestScreen> createState() =>
+      _EditEmergencyRequestScreenState();
 }
 
-class _EditEmergencyRequestScreenState extends State<EditEmergencyRequestScreen> {
+class _EditEmergencyRequestScreenState
+    extends State<EditEmergencyRequestScreen> {
   final _formKey = GlobalKey<FormState>();
   late TextEditingController _titleController;
   late TextEditingController _descriptionController;
@@ -32,7 +34,8 @@ class _EditEmergencyRequestScreenState extends State<EditEmergencyRequestScreen>
   void initState() {
     super.initState();
     _titleController = TextEditingController(text: widget.request.title);
-    _descriptionController = TextEditingController(text: widget.request.description);
+    _descriptionController =
+        TextEditingController(text: widget.request.description);
     _deadline = widget.request.deadline;
     _requiredSkills = List<String>.from(widget.request.requiredSkills);
   }
@@ -112,7 +115,8 @@ class _EditEmergencyRequestScreenState extends State<EditEmergencyRequestScreen>
         _isLoading = true;
       });
 
-      final emergencyProvider = Provider.of<EmergencyProvider>(context, listen: false);
+      final emergencyProvider =
+          Provider.of<EmergencyProvider>(context, listen: false);
 
       final success = await emergencyProvider.updateEmergencyRequest(
         requestId: widget.request.id,
@@ -137,7 +141,8 @@ class _EditEmergencyRequestScreenState extends State<EditEmergencyRequestScreen>
       } else if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(emergencyProvider.errorMessage ?? 'Failed to update emergency request'),
+            content: Text(emergencyProvider.errorMessage ??
+                'Failed to update emergency request'),
             backgroundColor: Colors.red,
           ),
         );
@@ -217,7 +222,8 @@ class _EditEmergencyRequestScreenState extends State<EditEmergencyRequestScreen>
                 borderRadius: BorderRadius.circular(8),
                 child: Builder(
                   builder: (context) {
-                    final isDark = Theme.of(context).brightness == Brightness.dark;
+                    final isDark =
+                        Theme.of(context).brightness == Brightness.dark;
 
                     return Container(
                       width: double.infinity,
@@ -226,17 +232,24 @@ class _EditEmergencyRequestScreenState extends State<EditEmergencyRequestScreen>
                         vertical: 16,
                       ),
                       decoration: BoxDecoration(
-                        color: isDark ? AppTheme.darkMediumGrayColor : AppTheme.lightGrayColor, // Change container color based on theme
+                        color: isDark
+                            ? AppTheme.darkMediumGrayColor
+                            : AppTheme
+                                .lightGrayColor, // Change container color based on theme
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Text(
-                            DateFormat('MMMM dd, yyyy - h:mm a').format(_deadline),
+                            DateFormat('MMMM dd, yyyy - h:mm a')
+                                .format(_deadline),
                             style: TextStyle(
                               fontSize: 16,
-                              color: isDark ? Colors.white70 : Colors.black87, // Change text color based on theme
+                              color: isDark
+                                  ? Colors.white70
+                                  : Colors
+                                      .black87, // Change text color based on theme
                             ),
                           ),
                           Icon(
@@ -250,7 +263,6 @@ class _EditEmergencyRequestScreenState extends State<EditEmergencyRequestScreen>
                   },
                 ),
               ),
-
 
               const SizedBox(height: 24),
 
@@ -287,4 +299,3 @@ class _EditEmergencyRequestScreenState extends State<EditEmergencyRequestScreen>
     );
   }
 }
-
