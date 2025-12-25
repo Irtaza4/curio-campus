@@ -71,8 +71,10 @@ class _ChatScreenState extends State<ChatScreen> {
           .fetchMessages(widget.chatId);
 
       // Get the sender's name from the first message
-      final messages = Provider.of<ChatProvider>(context, listen: false).messages;
-      final currentUserId = Provider.of<AuthProvider>(context, listen: false).firebaseUser?.uid;
+      final messages =
+          Provider.of<ChatProvider>(context, listen: false).messages;
+      final currentUserId =
+          Provider.of<AuthProvider>(context, listen: false).firebaseUser?.uid;
 
       if (messages.isNotEmpty) {
         // Find the first message from the other person
@@ -92,7 +94,7 @@ class _ChatScreenState extends State<ChatScreen> {
         // Try to get the other participant's name from the chat
         final chatProvider = Provider.of<ChatProvider>(context, listen: false);
         final chat = chatProvider.chats.firstWhere(
-              (c) => c.id == widget.chatId,
+          (c) => c.id == widget.chatId,
           orElse: () => ChatModel(
             id: widget.chatId,
             name: widget.chatName,
@@ -106,14 +108,15 @@ class _ChatScreenState extends State<ChatScreen> {
         if (chat.type == ChatType.individual && currentUserId != null) {
           // Get the other participant's ID
           final otherParticipantId = chat.participants.firstWhere(
-                (id) => id != currentUserId,
+            (id) => id != currentUserId,
             orElse: () => '',
           );
 
           if (otherParticipantId.isNotEmpty) {
             // Fetch the user's name
-            final user = await Provider.of<ProjectProvider>(context, listen: false)
-                .fetchUserById(otherParticipantId);
+            final user =
+                await Provider.of<ProjectProvider>(context, listen: false)
+                    .fetchUserById(otherParticipantId);
 
             if (user != null && mounted) {
               setState(() {
@@ -188,7 +191,6 @@ class _ChatScreenState extends State<ChatScreen> {
     );
   }
 
-
   void _showMoreOptions() {
     final theme = Theme.of(context);
     final isDarkMode = theme.brightness == Brightness.dark;
@@ -206,9 +208,12 @@ class _ChatScreenState extends State<ChatScreen> {
             children: [
               ListTile(
                 leading: Icon(Icons.call, color: AppTheme.primaryColor),
-                title: Text('Voice Call',
+                title: Text(
+                  'Voice Call',
                   style: TextStyle(
-                    color: isDarkMode ? AppTheme.darkTextColor : AppTheme.textColor,
+                    color: isDarkMode
+                        ? AppTheme.darkTextColor
+                        : AppTheme.textColor,
                   ),
                 ),
                 onTap: () {
@@ -218,9 +223,12 @@ class _ChatScreenState extends State<ChatScreen> {
               ),
               ListTile(
                 leading: Icon(Icons.videocam, color: AppTheme.primaryColor),
-                title: Text('Video Call',
+                title: Text(
+                  'Video Call',
                   style: TextStyle(
-                    color: isDarkMode ? AppTheme.darkTextColor : AppTheme.textColor,
+                    color: isDarkMode
+                        ? AppTheme.darkTextColor
+                        : AppTheme.textColor,
                   ),
                 ),
                 onTap: () {
@@ -231,22 +239,28 @@ class _ChatScreenState extends State<ChatScreen> {
               const Divider(),
               ListTile(
                 leading: const Icon(Icons.logout, color: Colors.red),
-                title: const Text('Logout', style: TextStyle(color: Colors.red)),
+                title:
+                    const Text('Logout', style: TextStyle(color: Colors.red)),
                 onTap: () async {
                   Navigator.pop(context);
                   final confirm = await showDialog<bool>(
                     context: context,
                     builder: (context) => AlertDialog(
-                      backgroundColor: isDarkMode ? AppTheme.darkSurfaceColor : Colors.white,
-                      title: Text('Logout',
+                      backgroundColor:
+                          isDarkMode ? AppTheme.darkSurfaceColor : Colors.white,
+                      title: Text(
+                        'Logout',
                         style: TextStyle(
-                            color: isDarkMode ? AppTheme.darkTextColor : AppTheme.textColor
-                        ),
+                            color: isDarkMode
+                                ? AppTheme.darkTextColor
+                                : AppTheme.textColor),
                       ),
-                      content: Text('Are you sure you want to logout?',
+                      content: Text(
+                        'Are you sure you want to logout?',
                         style: TextStyle(
-                            color: isDarkMode ? AppTheme.darkTextColor : AppTheme.textColor
-                        ),
+                            color: isDarkMode
+                                ? AppTheme.darkTextColor
+                                : AppTheme.textColor),
                       ),
                       actions: [
                         TextButton(
@@ -255,14 +269,16 @@ class _ChatScreenState extends State<ChatScreen> {
                         ),
                         TextButton(
                           onPressed: () => Navigator.pop(context, true),
-                          child: const Text('Logout', style: TextStyle(color: Colors.red)),
+                          child: const Text('Logout',
+                              style: TextStyle(color: Colors.red)),
                         ),
                       ],
                     ),
                   );
 
                   if (confirm == true && mounted) {
-                    await Provider.of<AuthProvider>(context, listen: false).logout();
+                    await Provider.of<AuthProvider>(context, listen: false)
+                        .logout();
                     if (mounted) {
                       Navigator.of(context).pushReplacementNamed('/login');
                     }
@@ -295,7 +311,8 @@ class _ChatScreenState extends State<ChatScreen> {
         final bytes = await File(pickedFile.path).readAsBytes();
 
         // Check file size - if too large, compress further
-        if (bytes.length > 500 * 1024) { // If larger than 500KB
+        if (bytes.length > 500 * 1024) {
+          // If larger than 500KB
           // Further reduce quality
           final compressedFile = await picker.pickImage(
             source: ImageSource.camera,
@@ -305,12 +322,14 @@ class _ChatScreenState extends State<ChatScreen> {
           );
 
           if (compressedFile != null) {
-            final compressedBytes = await File(compressedFile.path).readAsBytes();
+            final compressedBytes =
+                await File(compressedFile.path).readAsBytes();
             // Convert to base64
             final base64Image = base64Encode(compressedBytes);
             final fileName = compressedFile.name;
 
-            await Provider.of<ChatProvider>(context, listen: false).sendImageMessage(
+            await Provider.of<ChatProvider>(context, listen: false)
+                .sendImageMessage(
               chatId: widget.chatId,
               imageBase64: base64Image,
               fileName: fileName,
@@ -321,7 +340,8 @@ class _ChatScreenState extends State<ChatScreen> {
           final base64Image = base64Encode(bytes);
           final fileName = pickedFile.name;
 
-          await Provider.of<ChatProvider>(context, listen: false).sendImageMessage(
+          await Provider.of<ChatProvider>(context, listen: false)
+              .sendImageMessage(
             chatId: widget.chatId,
             imageBase64: base64Image,
             fileName: fileName,
@@ -475,7 +495,7 @@ class _ChatScreenState extends State<ChatScreen> {
 
     // Get the current chat
     final currentChat = chatProvider.chats.firstWhere(
-          (chat) => chat.id == widget.chatId,
+      (chat) => chat.id == widget.chatId,
       orElse: () => ChatModel(
         id: widget.chatId,
         name: widget.chatName,
@@ -520,7 +540,6 @@ class _ChatScreenState extends State<ChatScreen> {
           ),
         ],
       ),
-
       body: Column(
         children: [
           // Chat messages
@@ -528,30 +547,33 @@ class _ChatScreenState extends State<ChatScreen> {
             child: _isLoading
                 ? const Center(child: CircularProgressIndicator())
                 : chatProvider.messages.isEmpty
-                ? Center(
-              child: Text(
-                'No messages yet',
-                style: TextStyle(
-                  color: isDarkMode ? AppTheme.darkTextColor : AppTheme.textColor,
-                ),
-              ),
-            )
-                : ListView.builder(
-              controller: _scrollController,
-              reverse: true,
-              physics: const BouncingScrollPhysics(),
-              padding: const EdgeInsets.all(16),
-              itemCount: chatProvider.messages.length,
-              itemBuilder: (context, index) {
-                final message = chatProvider.messages[index];
-                final isCurrentUser = message.senderId == currentUserId;
+                    ? Center(
+                        child: Text(
+                          'No messages yet',
+                          style: TextStyle(
+                            color: isDarkMode
+                                ? AppTheme.darkTextColor
+                                : AppTheme.textColor,
+                          ),
+                        ),
+                      )
+                    : ListView.builder(
+                        controller: _scrollController,
+                        reverse: true,
+                        physics: const BouncingScrollPhysics(),
+                        padding: const EdgeInsets.all(16),
+                        itemCount: chatProvider.messages.length,
+                        itemBuilder: (context, index) {
+                          final message = chatProvider.messages[index];
+                          final isCurrentUser =
+                              message.senderId == currentUserId;
 
-                return _buildMessageBubble(
-                  message: message,
-                  isCurrentUser: isCurrentUser,
-                );
-              },
-            ),
+                          return _buildMessageBubble(
+                            message: message,
+                            isCurrentUser: isCurrentUser,
+                          );
+                        },
+                      ),
           ),
 
           // Voice recorder (when active)
@@ -601,21 +623,27 @@ class _ChatScreenState extends State<ChatScreen> {
                       decoration: InputDecoration(
                         hintText: 'Write your message here',
                         hintStyle: TextStyle(
-                          color: isDarkMode ? AppTheme.darkDarkGrayColor : Colors.grey[600],
+                          color: isDarkMode
+                              ? AppTheme.darkDarkGrayColor
+                              : Colors.grey[600],
                         ),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(24),
                           borderSide: BorderSide.none,
                         ),
                         filled: true,
-                        fillColor: isDarkMode ? AppTheme.darkInputBackgroundColor : Colors.grey[100],
+                        fillColor: isDarkMode
+                            ? AppTheme.darkInputBackgroundColor
+                            : Colors.grey[100],
                         contentPadding: const EdgeInsets.symmetric(
                           horizontal: 16,
                           vertical: 8,
                         ),
                       ),
                       style: TextStyle(
-                        color: isDarkMode ? AppTheme.darkInputTextColor : AppTheme.textColor,
+                        color: isDarkMode
+                            ? AppTheme.darkInputTextColor
+                            : AppTheme.textColor,
                       ),
                       textInputAction: TextInputAction.send,
                       onSubmitted: (_) => _sendMessage(),
@@ -649,7 +677,7 @@ class _ChatScreenState extends State<ChatScreen> {
       padding: const EdgeInsets.symmetric(vertical: 4),
       child: Row(
         mainAxisAlignment:
-        isCurrentUser ? MainAxisAlignment.end : MainAxisAlignment.start,
+            isCurrentUser ? MainAxisAlignment.end : MainAxisAlignment.start,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           if (!isCurrentUser) ...[
@@ -667,66 +695,82 @@ class _ChatScreenState extends State<ChatScreen> {
           ],
           Flexible(
             child: Column(
-              crossAxisAlignment:
-              isCurrentUser ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+              crossAxisAlignment: isCurrentUser
+                  ? CrossAxisAlignment.end
+                  : CrossAxisAlignment.start,
               children: [
                 if (!isCurrentUser)
                   Padding(
                     padding: const EdgeInsets.only(left: 8, bottom: 4),
                     child: Text(
-                      message.senderName, // Use sender name instead of chat name
+                      message
+                          .senderName, // Use sender name instead of chat name
                       style: TextStyle(
                         fontSize: 12,
-                        color: isDarkMode ? AppTheme.darkDarkGrayColor : Colors.grey[600],
+                        color: isDarkMode
+                            ? AppTheme.darkDarkGrayColor
+                            : Colors.grey[600],
                       ),
                     ),
                   ),
                 GestureDetector(
-                  onLongPress: isCurrentUser && !isBeingDeleted ? () => _deleteMessage(message.id) : null,
+                  onLongPress: isCurrentUser && !isBeingDeleted
+                      ? () => _deleteMessage(message.id)
+                      : null,
                   child: Container(
                     padding: message.type == MessageType.image
                         ? const EdgeInsets.all(2)
                         : const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 10,
-                    ),
+                            horizontal: 16,
+                            vertical: 10,
+                          ),
                     decoration: BoxDecoration(
                       color: isCurrentUser
-                          ? (isDarkMode ? AppTheme.darkOutgoingMessageBubbleColor : AppTheme.primaryColor)
-                          : (isDarkMode ? AppTheme.darkMessageBubbleColor : Colors.grey[200]),
+                          ? (isDarkMode
+                              ? AppTheme.darkOutgoingMessageBubbleColor
+                              : AppTheme.primaryColor)
+                          : (isDarkMode
+                              ? AppTheme.darkMessageBubbleColor
+                              : Colors.grey[200]),
                       borderRadius: BorderRadius.circular(16),
                       border: isDarkMode && !isCurrentUser
-                          ? Border.all(color: AppTheme.darkMediumGrayColor, width: 1)
+                          ? Border.all(
+                              color: AppTheme.darkMediumGrayColor, width: 1)
                           : null,
                     ),
                     child: isBeingDeleted
                         ? SizedBox(
-                      width: 100,
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          SizedBox(
-                            width: 16,
-                            height: 16,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2,
-                              valueColor: AlwaysStoppedAnimation<Color>(
-                                isCurrentUser ? Colors.white : AppTheme.primaryColor,
-                              ),
+                            width: 100,
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                SizedBox(
+                                  width: 16,
+                                  height: 16,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                    valueColor: AlwaysStoppedAnimation<Color>(
+                                      isCurrentUser
+                                          ? Colors.white
+                                          : AppTheme.primaryColor,
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(width: 8),
+                                Text(
+                                  'Deleting...',
+                                  style: TextStyle(
+                                    color: isCurrentUser
+                                        ? Colors.white
+                                        : Colors.grey[600],
+                                    fontSize: 12,
+                                  ),
+                                ),
+                              ],
                             ),
-                          ),
-                          const SizedBox(width: 8),
-                          Text(
-                            'Deleting...',
-                            style: TextStyle(
-                              color: isCurrentUser ? Colors.white : Colors.grey[600],
-                              fontSize: 12,
-                            ),
-                          ),
-                        ],
-                      ),
-                    )
-                        : _buildMessageContent(message, isCurrentUser, isDarkMode),
+                          )
+                        : _buildMessageContent(
+                            message, isCurrentUser, isDarkMode),
                   ),
                 ),
                 Padding(
@@ -735,7 +779,9 @@ class _ChatScreenState extends State<ChatScreen> {
                     _formatMessageTime(message.timestamp),
                     style: TextStyle(
                       fontSize: 10,
-                      color: isDarkMode ? AppTheme.darkDarkGrayColor : Colors.grey[600],
+                      color: isDarkMode
+                          ? AppTheme.darkDarkGrayColor
+                          : Colors.grey[600],
                     ),
                   ),
                 ),
@@ -748,7 +794,8 @@ class _ChatScreenState extends State<ChatScreen> {
     );
   }
 
-  Widget _buildMessageContent(MessageModel message, bool isCurrentUser, bool isDarkMode) {
+  Widget _buildMessageContent(
+      MessageModel message, bool isCurrentUser, bool isDarkMode) {
     switch (message.type) {
       case MessageType.call_event:
         return CallMessageBubble(
@@ -773,10 +820,12 @@ class _ChatScreenState extends State<ChatScreen> {
                 context,
                 MaterialPageRoute(
                   builder: (_) => ImageViewerScreen(
-                    imageUrl: message.fileUrl != null && message.fileUrl!.startsWith('http')
+                    imageUrl: message.fileUrl != null &&
+                            message.fileUrl!.startsWith('http')
                         ? message.fileUrl
                         : null,
-                    imageBase64: message.fileUrl != null && !message.fileUrl!.startsWith('http')
+                    imageBase64: message.fileUrl != null &&
+                            !message.fileUrl!.startsWith('http')
                         ? message.fileUrl
                         : null,
                     title: 'Image from ${message.senderName}',
@@ -807,7 +856,9 @@ class _ChatScreenState extends State<ChatScreen> {
               style: TextStyle(
                 color: isCurrentUser
                     ? Colors.white
-                    : (isDarkMode ? AppTheme.darkMessageTextColor : Colors.black87),
+                    : (isDarkMode
+                        ? AppTheme.darkMessageTextColor
+                        : Colors.black87),
               ),
             ),
           ],
@@ -827,7 +878,9 @@ class _ChatScreenState extends State<ChatScreen> {
               style: TextStyle(
                 color: isCurrentUser
                     ? Colors.white
-                    : (isDarkMode ? AppTheme.darkMessageTextColor : Colors.black87),
+                    : (isDarkMode
+                        ? AppTheme.darkMessageTextColor
+                        : Colors.black87),
               ),
             ),
           ],
@@ -838,7 +891,9 @@ class _ChatScreenState extends State<ChatScreen> {
           style: TextStyle(
             color: isCurrentUser
                 ? Colors.white70
-                : (isDarkMode ? AppTheme.darkMessageTextColor.withOpacity(0.7) : Colors.black54),
+                : (isDarkMode
+                    ? AppTheme.darkMessageTextColor.withOpacity(0.7)
+                    : Colors.black54),
             fontStyle: FontStyle.italic,
           ),
           textAlign: TextAlign.center,
