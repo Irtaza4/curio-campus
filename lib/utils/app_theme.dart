@@ -13,22 +13,30 @@ class AppTheme {
   static const Color successColor = Color(0xFF2ECC71);
 
   // Dark theme colors
-  static const Color darkPrimaryColor = Color(0xFF00A0B0); // Keep the same for brand consistency
-  static const Color darkSecondaryColor = Color(0xFF6ECACB); // Keep the same for brand consistency
+  static const Color darkPrimaryColor =
+      Color(0xFF00A0B0); // Keep the same for brand consistency
+  static const Color darkSecondaryColor =
+      Color(0xFF6ECACB); // Keep the same for brand consistency
   static const Color darkBackgroundColor = Color(0xFF121219);
   static const Color darkSurfaceColor = Color(0xFF1E1E1E);
-  static const Color darkAppBarColor = Color(0xFF00828F); // Slightly darker than primary for app bar
+  static const Color darkAppBarColor =
+      Color(0xFF00828F); // Slightly darker than primary for app bar
   static const Color darkTextColor = Colors.white;
   static const Color darkLightGrayColor = Color(0xFF2C2C2C);
   static const Color darkMediumGrayColor = Color(0xFF3C3C3C);
   static const Color darkDarkGrayColor = Color(0xFFAAAAAA);
   static const Color darkErrorColor = Color(0xFFE57373);
   static const Color darkSuccessColor = Color(0xFF81C784);
-  static const Color darkInputBackgroundColor = Color(0xFF2C2C2C); // For input fields
-  static const Color darkInputTextColor = Colors.white; // For text in input fields
-  static const Color darkMessageBubbleColor = Color(0xFF1E1E1E); // For message bubbles
-  static const Color darkMessageTextColor = Colors.white; // For text in message bubbles
-  static const Color darkOutgoingMessageBubbleColor = Color(0xFF00828F); // For outgoing message bubbles
+  static const Color darkInputBackgroundColor =
+      Color(0xFF2C2C2C); // For input fields
+  static const Color darkInputTextColor =
+      Colors.white; // For text in input fields
+  static const Color darkMessageBubbleColor =
+      Color(0xFF1E1E1E); // For message bubbles
+  static const Color darkMessageTextColor =
+      Colors.white; // For text in message bubbles
+  static const Color darkOutgoingMessageBubbleColor =
+      Color(0xFF00828F); // For outgoing message bubbles
 
   // Text styles - Light Theme
   static const TextStyle headingStyle = TextStyle(
@@ -190,7 +198,7 @@ class AppTheme {
       primary: primaryColor,
       secondary: secondaryColor,
     ),
-    cardTheme: CardTheme(
+    cardTheme: CardThemeData(
       color: Colors.white,
       elevation: 2,
       shape: RoundedRectangleBorder(
@@ -257,10 +265,9 @@ class AppTheme {
     ).copyWith(
       primary: darkPrimaryColor,
       secondary: darkSecondaryColor,
-      background: darkBackgroundColor,
       surface: darkSurfaceColor,
     ),
-    cardTheme: CardTheme(
+    cardTheme: CardThemeData(
       color: darkSurfaceColor,
       elevation: 2,
       shape: RoundedRectangleBorder(
@@ -281,17 +288,19 @@ class AppTheme {
       bodySmall: darkCaptionStyle,
     ),
     switchTheme: SwitchThemeData(
-      thumbColor: MaterialStateProperty.resolveWith<Color>((Set<MaterialState> states) {
-        if (states.contains(MaterialState.selected)) {
+      thumbColor:
+          WidgetStateProperty.resolveWith<Color>((Set<WidgetState> states) {
+        if (states.contains(WidgetState.selected)) {
           return darkSecondaryColor;
         }
         return darkMediumGrayColor;
       }),
-      trackColor: MaterialStateProperty.resolveWith<Color>((Set<MaterialState> states) {
-        if (states.contains(MaterialState.selected)) {
-          return darkSecondaryColor.withOpacity(0.5);
+      trackColor:
+          WidgetStateProperty.resolveWith<Color>((Set<WidgetState> states) {
+        if (states.contains(WidgetState.selected)) {
+          return darkSecondaryColor.withValues(alpha: 0.5);
         }
-        return darkMediumGrayColor.withOpacity(0.5);
+        return darkMediumGrayColor.withValues(alpha: 0.5);
       }),
     ),
     brightness: Brightness.dark,
