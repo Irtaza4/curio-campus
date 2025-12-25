@@ -12,10 +12,12 @@ class CreateEmergencyRequestScreen extends StatefulWidget {
   const CreateEmergencyRequestScreen({Key? key}) : super(key: key);
 
   @override
-  State<CreateEmergencyRequestScreen> createState() => _CreateEmergencyRequestScreenState();
+  State<CreateEmergencyRequestScreen> createState() =>
+      _CreateEmergencyRequestScreenState();
 }
 
-class _CreateEmergencyRequestScreenState extends State<CreateEmergencyRequestScreen> {
+class _CreateEmergencyRequestScreenState
+    extends State<CreateEmergencyRequestScreen> {
   final _formKey = GlobalKey<FormState>();
   final _titleController = TextEditingController();
   final _descriptionController = TextEditingController();
@@ -46,7 +48,8 @@ class _CreateEmergencyRequestScreenState extends State<CreateEmergencyRequestScr
         _isLoading = true;
       });
 
-      final emergencyProvider = Provider.of<EmergencyProvider>(context, listen: false);
+      final emergencyProvider =
+          Provider.of<EmergencyProvider>(context, listen: false);
 
       final requestId = await emergencyProvider.createEmergencyRequest(
         title: _titleController.text.trim(),
@@ -70,14 +73,14 @@ class _CreateEmergencyRequestScreenState extends State<CreateEmergencyRequestScr
       } else if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(emergencyProvider.errorMessage ?? 'Failed to create emergency request'),
+            content: Text(emergencyProvider.errorMessage ??
+                'Failed to create emergency request'),
             backgroundColor: Colors.red,
           ),
         );
       }
     }
   }
-
 
   Future<void> _selectDateTime(BuildContext context) async {
     final DateTime? pickedDate = await showDatePicker(
@@ -200,36 +203,40 @@ class _CreateEmergencyRequestScreenState extends State<CreateEmergencyRequestScr
                 ),
               ),
               const SizedBox(height: 8),
-             InkWell(
-            onTap: () => _selectDateTime(context),
-      borderRadius: BorderRadius.circular(8),
-      child: Container(
-        width: double.infinity,
-        padding: const EdgeInsets.symmetric(
-          horizontal: 16,
-          vertical: 16,
-        ),
-        decoration: BoxDecoration(
-          color: isDark ? Colors.grey[800] : Colors.grey[300], // background
-          borderRadius: BorderRadius.circular(8),
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(
-              DateFormat('MMMM dd, yyyy - h:mm a').format(_deadline),
-              style: TextStyle(
-                fontSize: 16,
-                color: isDark ? Colors.white : Colors.black87,
-              ),
-            ),
-            Icon(
-              Icons.calendar_today,
-              color: theme.colorScheme.primary,
-              size: 20,
-            ),
-          ],
-        ),)),
+              InkWell(
+                  onTap: () => _selectDateTime(context),
+                  borderRadius: BorderRadius.circular(8),
+                  child: Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 16,
+                    ),
+                    decoration: BoxDecoration(
+                      color: isDark
+                          ? Colors.grey[800]
+                          : Colors.grey[300], // background
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          DateFormat('MMMM dd, yyyy - h:mm a')
+                              .format(_deadline),
+                          style: TextStyle(
+                            fontSize: 16,
+                            color: isDark ? Colors.white : Colors.black87,
+                          ),
+                        ),
+                        Icon(
+                          Icons.calendar_today,
+                          color: theme.colorScheme.primary,
+                          size: 20,
+                        ),
+                      ],
+                    ),
+                  )),
 
               const SizedBox(height: 24),
 
@@ -266,4 +273,3 @@ class _CreateEmergencyRequestScreenState extends State<CreateEmergencyRequestScr
     );
   }
 }
-
