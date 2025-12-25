@@ -51,7 +51,8 @@ class _EditGroupChatScreenState extends State<EditGroupChatScreen> {
 
     // Check if current user is the creator
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      final currentUserId = Provider.of<AuthProvider>(context, listen: false).firebaseUser?.uid;
+      final currentUserId =
+          Provider.of<AuthProvider>(context, listen: false).firebaseUser?.uid;
       if (currentUserId != null) {
         setState(() {
           _isCurrentUserCreator = widget.creatorId == currentUserId;
@@ -79,7 +80,8 @@ class _EditGroupChatScreenState extends State<EditGroupChatScreen> {
         final bytes = await File(pickedFile.path).readAsBytes();
 
         // Check file size - if too large, compress further
-        if (bytes.length > 500 * 1024) { // If larger than 500KB
+        if (bytes.length > 500 * 1024) {
+          // If larger than 500KB
           final compressedFile = await _picker.pickImage(
             source: ImageSource.gallery,
             maxWidth: 600,
@@ -88,7 +90,8 @@ class _EditGroupChatScreenState extends State<EditGroupChatScreen> {
           );
 
           if (compressedFile != null) {
-            final compressedBytes = await File(compressedFile.path).readAsBytes();
+            final compressedBytes =
+                await File(compressedFile.path).readAsBytes();
             setState(() {
               _groupImageBase64 = base64Encode(compressedBytes);
             });
@@ -130,7 +133,8 @@ class _EditGroupChatScreenState extends State<EditGroupChatScreen> {
         });
 
         if (mounted) {
-          Navigator.pop(context, true); // Return true to indicate successful update
+          Navigator.pop(
+              context, true); // Return true to indicate successful update
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
               content: Text('Group chat updated successfully'),
@@ -170,7 +174,8 @@ class _EditGroupChatScreenState extends State<EditGroupChatScreen> {
     final users = await chatProvider.getUsers();
 
     // Filter out users who are already in the group
-    final filteredUsers = users.where((user) => !_participants.contains(user.id)).toList();
+    final filteredUsers =
+        users.where((user) => !_participants.contains(user.id)).toList();
 
     if (filteredUsers.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -193,7 +198,8 @@ class _EditGroupChatScreenState extends State<EditGroupChatScreen> {
         final isDarkMode = theme.brightness == Brightness.dark;
 
         return AlertDialog(
-          backgroundColor: isDarkMode ? AppTheme.darkSurfaceColor : Colors.white,
+          backgroundColor:
+              isDarkMode ? AppTheme.darkSurfaceColor : Colors.white,
           title: Text(
             'Add Participants',
             style: TextStyle(
@@ -210,7 +216,9 @@ class _EditGroupChatScreenState extends State<EditGroupChatScreen> {
                   child: Text(
                     'Select users to add to the group',
                     style: TextStyle(
-                      color: isDarkMode ? AppTheme.darkDarkGrayColor : AppTheme.darkGrayColor,
+                      color: isDarkMode
+                          ? AppTheme.darkDarkGrayColor
+                          : AppTheme.darkGrayColor,
                     ),
                   ),
                 ),
@@ -226,13 +234,17 @@ class _EditGroupChatScreenState extends State<EditGroupChatScreen> {
                         title: Text(
                           user.name,
                           style: TextStyle(
-                            color: isDarkMode ? AppTheme.darkTextColor : AppTheme.textColor,
+                            color: isDarkMode
+                                ? AppTheme.darkTextColor
+                                : AppTheme.textColor,
                           ),
                         ),
                         subtitle: Text(
                           user.email,
                           style: TextStyle(
-                            color: isDarkMode ? AppTheme.darkDarkGrayColor : AppTheme.darkGrayColor,
+                            color: isDarkMode
+                                ? AppTheme.darkDarkGrayColor
+                                : AppTheme.darkGrayColor,
                           ),
                         ),
                         value: false,
@@ -249,7 +261,9 @@ class _EditGroupChatScreenState extends State<EditGroupChatScreen> {
                         secondary: CircleAvatar(
                           backgroundColor: AppTheme.primaryColor,
                           child: Text(
-                            user.name.isNotEmpty ? user.name[0].toUpperCase() : '?',
+                            user.name.isNotEmpty
+                                ? user.name[0].toUpperCase()
+                                : '?',
                             style: const TextStyle(color: Colors.white),
                           ),
                         ),
@@ -268,7 +282,9 @@ class _EditGroupChatScreenState extends State<EditGroupChatScreen> {
               child: Text(
                 'Cancel',
                 style: TextStyle(
-                  color: isDarkMode ? AppTheme.darkDarkGrayColor : AppTheme.darkGrayColor,
+                  color: isDarkMode
+                      ? AppTheme.darkDarkGrayColor
+                      : AppTheme.darkGrayColor,
                 ),
               ),
             ),
@@ -302,29 +318,36 @@ class _EditGroupChatScreenState extends State<EditGroupChatScreen> {
                     children: [
                       _groupImageBase64 != null && _groupImageBase64!.isNotEmpty
                           ? ImageUtils.loadBase64Image(
-                        base64String: _groupImageBase64,
-                        width: 100,
-                        height: 100,
-
-                        placeholder: CircleAvatar(
-                          radius: 50,
-                          backgroundColor: isDarkMode ? AppTheme.darkLightGrayColor : AppTheme.lightGrayColor,
-                          child: Icon(
-                            Icons.group,
-                            size: 50,
-                            color: isDarkMode ? AppTheme.darkDarkGrayColor : AppTheme.darkGrayColor,
-                          ),
-                        ),
-                      )
+                              base64String: _groupImageBase64,
+                              width: 100,
+                              height: 100,
+                              placeholder: CircleAvatar(
+                                radius: 50,
+                                backgroundColor: isDarkMode
+                                    ? AppTheme.darkLightGrayColor
+                                    : AppTheme.lightGrayColor,
+                                child: Icon(
+                                  Icons.group,
+                                  size: 50,
+                                  color: isDarkMode
+                                      ? AppTheme.darkDarkGrayColor
+                                      : AppTheme.darkGrayColor,
+                                ),
+                              ),
+                            )
                           : CircleAvatar(
-                        radius: 50,
-                        backgroundColor: isDarkMode ? AppTheme.darkLightGrayColor : AppTheme.lightGrayColor,
-                        child: Icon(
-                          Icons.group,
-                          size: 50,
-                          color: isDarkMode ? AppTheme.darkDarkGrayColor : AppTheme.darkGrayColor,
-                        ),
-                      ),
+                              radius: 50,
+                              backgroundColor: isDarkMode
+                                  ? AppTheme.darkLightGrayColor
+                                  : AppTheme.lightGrayColor,
+                              child: Icon(
+                                Icons.group,
+                                size: 50,
+                                color: isDarkMode
+                                    ? AppTheme.darkDarkGrayColor
+                                    : AppTheme.darkGrayColor,
+                              ),
+                            ),
                       Positioned(
                         right: 0,
                         bottom: 0,
@@ -353,7 +376,8 @@ class _EditGroupChatScreenState extends State<EditGroupChatScreen> {
                 style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w500,
-                  color: isDarkMode ? AppTheme.darkTextColor : AppTheme.textColor,
+                  color:
+                      isDarkMode ? AppTheme.darkTextColor : AppTheme.textColor,
                 ),
               ),
               const SizedBox(height: 8),
@@ -379,7 +403,9 @@ class _EditGroupChatScreenState extends State<EditGroupChatScreen> {
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w500,
-                      color: isDarkMode ? AppTheme.darkTextColor : AppTheme.textColor,
+                      color: isDarkMode
+                          ? AppTheme.darkTextColor
+                          : AppTheme.textColor,
                     ),
                   ),
                   if (_isCurrentUserCreator)
@@ -440,7 +466,7 @@ class _EditGroupChatScreenState extends State<EditGroupChatScreen> {
           itemBuilder: (context, index) {
             final participantId = _participants[index];
             final user = users.firstWhere(
-                  (u) => u.id == participantId,
+              (u) => u.id == participantId,
               orElse: () => UserModel(
                 id: participantId,
                 name: 'Unknown User',
@@ -452,13 +478,18 @@ class _EditGroupChatScreenState extends State<EditGroupChatScreen> {
               ),
             );
 
-            final isCurrentUser = participantId == Provider.of<AuthProvider>(context, listen: false).firebaseUser?.uid;
+            final isCurrentUser = participantId ==
+                Provider.of<AuthProvider>(context, listen: false)
+                    .firebaseUser
+                    ?.uid;
             final isCreator = participantId == widget.creatorId;
 
             return Container(
               margin: const EdgeInsets.only(bottom: 8),
               decoration: BoxDecoration(
-                color: isDarkMode ? AppTheme.darkLightGrayColor : AppTheme.lightGrayColor,
+                color: isDarkMode
+                    ? AppTheme.darkLightGrayColor
+                    : AppTheme.lightGrayColor,
                 borderRadius: BorderRadius.circular(8),
               ),
               child: ListTile(
@@ -469,9 +500,11 @@ class _EditGroupChatScreenState extends State<EditGroupChatScreen> {
                       : null,
                   child: user.profileImageBase64 == null
                       ? Text(
-                    user.name.isNotEmpty ? user.name[0].toUpperCase() : '?',
-                    style: const TextStyle(color: Colors.white),
-                  )
+                          user.name.isNotEmpty
+                              ? user.name[0].toUpperCase()
+                              : '?',
+                          style: const TextStyle(color: Colors.white),
+                        )
                       : null,
                 ),
                 title: Row(
@@ -480,13 +513,16 @@ class _EditGroupChatScreenState extends State<EditGroupChatScreen> {
                       user.name,
                       style: TextStyle(
                         fontWeight: FontWeight.w500,
-                        color: isDarkMode ? AppTheme.darkTextColor : AppTheme.textColor,
+                        color: isDarkMode
+                            ? AppTheme.darkTextColor
+                            : AppTheme.textColor,
                       ),
                     ),
                     const SizedBox(width: 8),
                     if (isCreator)
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 6, vertical: 2),
                         decoration: BoxDecoration(
                           color: AppTheme.primaryColor.withOpacity(0.2),
                           borderRadius: BorderRadius.circular(4),
@@ -501,16 +537,21 @@ class _EditGroupChatScreenState extends State<EditGroupChatScreen> {
                       ),
                     if (isCurrentUser && !isCreator)
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 6, vertical: 2),
                         decoration: BoxDecoration(
-                          color: isDarkMode ? AppTheme.darkMediumGrayColor : AppTheme.mediumGrayColor,
+                          color: isDarkMode
+                              ? AppTheme.darkMediumGrayColor
+                              : AppTheme.mediumGrayColor,
                           borderRadius: BorderRadius.circular(4),
                         ),
                         child: Text(
                           'You',
                           style: TextStyle(
                             fontSize: 10,
-                            color: isDarkMode ? AppTheme.darkTextColor : AppTheme.textColor,
+                            color: isDarkMode
+                                ? AppTheme.darkTextColor
+                                : AppTheme.textColor,
                           ),
                         ),
                       ),
@@ -519,17 +560,19 @@ class _EditGroupChatScreenState extends State<EditGroupChatScreen> {
                 subtitle: Text(
                   user.email,
                   style: TextStyle(
-                    color: isDarkMode ? AppTheme.darkDarkGrayColor : AppTheme.darkGrayColor,
+                    color: isDarkMode
+                        ? AppTheme.darkDarkGrayColor
+                        : AppTheme.darkGrayColor,
                   ),
                 ),
                 trailing: _isCurrentUserCreator && !isCreator
                     ? IconButton(
-                  icon: Icon(
-                    Icons.remove_circle_outline,
-                    color: Colors.red,
-                  ),
-                  onPressed: () => _removeMember(participantId),
-                )
+                        icon: Icon(
+                          Icons.remove_circle_outline,
+                          color: Colors.red,
+                        ),
+                        onPressed: () => _removeMember(participantId),
+                      )
                     : null,
               ),
             );
