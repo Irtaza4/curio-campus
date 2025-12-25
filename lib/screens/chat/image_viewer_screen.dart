@@ -26,7 +26,8 @@ class _ImageViewerScreenState extends State<ImageViewerScreen> {
   bool _isLoading = true;
   bool _hasError = false;
   bool _isSaving = false;
-  final TransformationController _transformationController = TransformationController();
+  final TransformationController _transformationController =
+      TransformationController();
 
   @override
   void dispose() {
@@ -152,7 +153,8 @@ class _ImageViewerScreenState extends State<ImageViewerScreen> {
             IconButton(
               icon: const Icon(Icons.zoom_out, color: Colors.white),
               onPressed: () {
-                final Matrix4 currentTransform = _transformationController.value;
+                final Matrix4 currentTransform =
+                    _transformationController.value;
                 final Matrix4 newTransform = currentTransform.clone()
                   ..scale(0.8, 0.8);
                 _transformationController.value = newTransform;
@@ -161,7 +163,8 @@ class _ImageViewerScreenState extends State<ImageViewerScreen> {
             IconButton(
               icon: const Icon(Icons.zoom_in, color: Colors.white),
               onPressed: () {
-                final Matrix4 currentTransform = _transformationController.value;
+                final Matrix4 currentTransform =
+                    _transformationController.value;
                 final Matrix4 newTransform = currentTransform.clone()
                   ..scale(1.2, 1.2);
                 _transformationController.value = newTransform;
@@ -192,7 +195,8 @@ class _ImageViewerScreenState extends State<ImageViewerScreen> {
           return Center(
             child: CircularProgressIndicator(
               value: loadingProgress.expectedTotalBytes != null
-                  ? loadingProgress.cumulativeBytesLoaded / loadingProgress.expectedTotalBytes!
+                  ? loadingProgress.cumulativeBytesLoaded /
+                      loadingProgress.expectedTotalBytes!
                   : null,
               color: AppTheme.primaryColor,
             ),
@@ -219,7 +223,8 @@ class _ImageViewerScreenState extends State<ImageViewerScreen> {
           );
         },
       );
-    } else if (widget.imageBase64 != null || (widget.imageUrl != null && !widget.imageUrl!.startsWith('http'))) {
+    } else if (widget.imageBase64 != null ||
+        (widget.imageUrl != null && !widget.imageUrl!.startsWith('http'))) {
       // Base64 image
       final base64String = widget.imageBase64 ?? widget.imageUrl;
 
