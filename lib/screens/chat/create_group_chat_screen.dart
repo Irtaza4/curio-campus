@@ -46,7 +46,8 @@ class _CreateGroupChatScreenState extends State<CreateGroupChatScreen> {
         final bytes = await File(pickedFile.path).readAsBytes();
 
         // Check file size - if too large, compress further
-        if (bytes.length > 500 * 1024) { // If larger than 500KB
+        if (bytes.length > 500 * 1024) {
+          // If larger than 500KB
           final compressedFile = await _picker.pickImage(
             source: ImageSource.gallery,
             maxWidth: 600,
@@ -55,7 +56,8 @@ class _CreateGroupChatScreenState extends State<CreateGroupChatScreen> {
           );
 
           if (compressedFile != null) {
-            final compressedBytes = await File(compressedFile.path).readAsBytes();
+            final compressedBytes =
+                await File(compressedFile.path).readAsBytes();
             setState(() {
               _groupImageBase64 = base64Encode(compressedBytes);
             });
@@ -97,7 +99,8 @@ class _CreateGroupChatScreenState extends State<CreateGroupChatScreen> {
 
       // Add current user to participants if not already added
       final currentUserId = authProvider.firebaseUser?.uid;
-      if (currentUserId != null && !_selectedParticipants.contains(currentUserId)) {
+      if (currentUserId != null &&
+          !_selectedParticipants.contains(currentUserId)) {
         _selectedParticipants.add(currentUserId);
       }
 
@@ -122,7 +125,8 @@ class _CreateGroupChatScreenState extends State<CreateGroupChatScreen> {
       } else if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(chatProvider.errorMessage ?? 'Failed to create group chat'),
+            content: Text(
+                chatProvider.errorMessage ?? 'Failed to create group chat'),
             backgroundColor: Colors.red,
           ),
         );
@@ -154,20 +158,27 @@ class _CreateGroupChatScreenState extends State<CreateGroupChatScreen> {
                     children: [
                       _groupImageBase64 != null
                           ? CircleAvatar(
-                        radius: 50,
-                        backgroundColor: isDarkMode ? AppTheme.darkLightGrayColor : AppTheme.lightGrayColor,
-                        backgroundImage: MemoryImage(base64Decode(_groupImageBase64!)),
-                        onBackgroundImageError: (_, __) {},
-                      )
+                              radius: 50,
+                              backgroundColor: isDarkMode
+                                  ? AppTheme.darkLightGrayColor
+                                  : AppTheme.lightGrayColor,
+                              backgroundImage:
+                                  MemoryImage(base64Decode(_groupImageBase64!)),
+                              onBackgroundImageError: (_, __) {},
+                            )
                           : CircleAvatar(
-                        radius: 50,
-                        backgroundColor: isDarkMode ? AppTheme.darkLightGrayColor : AppTheme.lightGrayColor,
-                        child: Icon(
-                          Icons.group,
-                          size: 50,
-                          color: isDarkMode ? AppTheme.darkDarkGrayColor : AppTheme.darkGrayColor,
-                        ),
-                      ),
+                              radius: 50,
+                              backgroundColor: isDarkMode
+                                  ? AppTheme.darkLightGrayColor
+                                  : AppTheme.lightGrayColor,
+                              child: Icon(
+                                Icons.group,
+                                size: 50,
+                                color: isDarkMode
+                                    ? AppTheme.darkDarkGrayColor
+                                    : AppTheme.darkGrayColor,
+                              ),
+                            ),
                       Positioned(
                         right: 0,
                         bottom: 0,
@@ -240,7 +251,7 @@ class _CreateGroupChatScreenState extends State<CreateGroupChatScreen> {
 
   Widget _buildParticipantsSection() {
     return FutureBuilder<List<UserModel>>(
-      future: ChatProvider().getUsers(),  // Fetch users from Firestore
+      future: ChatProvider().getUsers(), // Fetch users from Firestore
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(child: CircularProgressIndicator());
@@ -262,7 +273,9 @@ class _CreateGroupChatScreenState extends State<CreateGroupChatScreen> {
                 width: double.infinity,
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: isDarkMode ? AppTheme.darkLightGrayColor : AppTheme.lightGrayColor,
+                  color: isDarkMode
+                      ? AppTheme.darkLightGrayColor
+                      : AppTheme.lightGrayColor,
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Wrap(
@@ -270,7 +283,7 @@ class _CreateGroupChatScreenState extends State<CreateGroupChatScreen> {
                   runSpacing: 8,
                   children: _selectedParticipants.map((userId) {
                     final user = users.firstWhere(
-                          (u) => u.id == userId,
+                      (u) => u.id == userId,
                       orElse: () => UserModel(
                           id: userId,
                           name: 'Unknown User',
@@ -278,8 +291,7 @@ class _CreateGroupChatScreenState extends State<CreateGroupChatScreen> {
                           majorSkills: [],
                           minorSkills: [],
                           createdAt: DateTime.now(),
-                          lastActive: DateTime.now()
-                      ),
+                          lastActive: DateTime.now()),
                     );
 
                     return Chip(
@@ -351,7 +363,8 @@ class _CreateGroupChatScreenState extends State<CreateGroupChatScreen> {
       context: context,
       builder: (context) {
         return AlertDialog(
-          backgroundColor: isDarkMode ? AppTheme.darkSurfaceColor : Colors.white,
+          backgroundColor:
+              isDarkMode ? AppTheme.darkSurfaceColor : Colors.white,
           title: Text(
             'Add Participants',
             style: TextStyle(
@@ -372,13 +385,17 @@ class _CreateGroupChatScreenState extends State<CreateGroupChatScreen> {
                   title: Text(
                     user['name'] as String,
                     style: TextStyle(
-                      color: isDarkMode ? AppTheme.darkTextColor : AppTheme.textColor,
+                      color: isDarkMode
+                          ? AppTheme.darkTextColor
+                          : AppTheme.textColor,
                     ),
                   ),
                   subtitle: Text(
                     user['email'] as String,
                     style: TextStyle(
-                      color: isDarkMode ? AppTheme.darkDarkGrayColor : AppTheme.darkGrayColor,
+                      color: isDarkMode
+                          ? AppTheme.darkDarkGrayColor
+                          : AppTheme.darkGrayColor,
                     ),
                   ),
                   value: isSelected,
