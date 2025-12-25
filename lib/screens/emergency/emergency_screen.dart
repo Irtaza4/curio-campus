@@ -22,7 +22,8 @@ class EmergencyScreen extends StatefulWidget {
   State<EmergencyScreen> createState() => _EmergencyScreenState();
 }
 
-class _EmergencyScreenState extends State<EmergencyScreen> with SingleTickerProviderStateMixin {
+class _EmergencyScreenState extends State<EmergencyScreen>
+    with SingleTickerProviderStateMixin {
   bool _isLoading = false;
   late TabController _tabController;
 
@@ -87,7 +88,8 @@ class _EmergencyScreenState extends State<EmergencyScreen> with SingleTickerProv
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Error fetching your emergency requests: ${e.toString()}'),
+            content:
+                Text('Error fetching your emergency requests: ${e.toString()}'),
             backgroundColor: Colors.red,
           ),
         );
@@ -133,8 +135,9 @@ class _EmergencyScreenState extends State<EmergencyScreen> with SingleTickerProv
     });
 
     try {
-      final success = await Provider.of<EmergencyProvider>(context, listen: false)
-          .ignoreEmergencyRequest(requestId);
+      final success =
+          await Provider.of<EmergencyProvider>(context, listen: false)
+              .ignoreEmergencyRequest(requestId);
 
       if (success && mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -168,8 +171,9 @@ class _EmergencyScreenState extends State<EmergencyScreen> with SingleTickerProv
     });
 
     try {
-      final success = await Provider.of<EmergencyProvider>(context, listen: false)
-          .unignoreEmergencyRequest(requestId);
+      final success =
+          await Provider.of<EmergencyProvider>(context, listen: false)
+              .unignoreEmergencyRequest(requestId);
 
       if (success && mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -228,8 +232,9 @@ class _EmergencyScreenState extends State<EmergencyScreen> with SingleTickerProv
     });
 
     try {
-      final success = await Provider.of<EmergencyProvider>(context, listen: false)
-          .deleteEmergencyRequest(request.id);
+      final success =
+          await Provider.of<EmergencyProvider>(context, listen: false)
+              .deleteEmergencyRequest(request.id);
 
       if (success && mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -266,7 +271,6 @@ class _EmergencyScreenState extends State<EmergencyScreen> with SingleTickerProv
     final notificationProvider = Provider.of<NotificationProvider>(context);
     final currentUserId = authProvider.firebaseUser?.uid;
     final unreadCount = notificationProvider.unreadCount;
-
 
     return Scaffold(
       // Remove the appBar here
@@ -317,65 +321,68 @@ class _EmergencyScreenState extends State<EmergencyScreen> with SingleTickerProv
         return _isLoading
             ? const Center(child: CircularProgressIndicator())
             : (activeRequests.isEmpty && ignoredRequests.isEmpty)
-            ? Center(
-          child: Text(
-            'No emergency requests available',
-            style: TextStyle(
-              color: isDarkMode ? Colors.white70 : Colors.black87,
-            ),
-          ),
-        )
-            : RefreshIndicator(
-          onRefresh: _fetchAllEmergencyRequests,
-          child: ListView(
-            padding: const EdgeInsets.all(16),
-            children: [
-              // Active requests section
-              if (activeRequests.isNotEmpty) ...[
-                Text(
-                  'Active Requests',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    // Fix: Use theme-aware text color
-                    color: isDarkMode ? Colors.white : Colors.black87,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                ...activeRequests.map((request) => _buildRequestCard(
-                  request,
-                  isOwnRequest: false,
-                  isIgnored: false,
-                  onIgnore: () => _ignoreRequest(request.id),
-                )),
-              ],
+                ? Center(
+                    child: Text(
+                      'No emergency requests available',
+                      style: TextStyle(
+                        color: isDarkMode ? Colors.white70 : Colors.black87,
+                      ),
+                    ),
+                  )
+                : RefreshIndicator(
+                    onRefresh: _fetchAllEmergencyRequests,
+                    child: ListView(
+                      padding: const EdgeInsets.all(16),
+                      children: [
+                        // Active requests section
+                        if (activeRequests.isNotEmpty) ...[
+                          Text(
+                            'Active Requests',
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              // Fix: Use theme-aware text color
+                              color: isDarkMode ? Colors.white : Colors.black87,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          ...activeRequests.map((request) => _buildRequestCard(
+                                request,
+                                isOwnRequest: false,
+                                isIgnored: false,
+                                onIgnore: () => _ignoreRequest(request.id),
+                              )),
+                        ],
 
-              // Ignored requests section
-              if (ignoredRequests.isNotEmpty) ...[
-                const SizedBox(height: 24),
-                Text(
-                  'Ignored Requests',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    // Fix: Use theme-aware text color for ignored section
-                    color: isDarkMode ? Colors.grey[400] : Colors.black54,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                ...ignoredRequests.map((request) => _buildRequestCard(
-                  request,
-                  isOwnRequest: false,
-                  isIgnored: true,
-                  onUnignore: () => _unignoreRequest(request.id),
-                )),
-              ],
-            ],
-          ),
-        );
+                        // Ignored requests section
+                        if (ignoredRequests.isNotEmpty) ...[
+                          const SizedBox(height: 24),
+                          Text(
+                            'Ignored Requests',
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              // Fix: Use theme-aware text color for ignored section
+                              color: isDarkMode
+                                  ? Colors.grey[400]
+                                  : Colors.black54,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          ...ignoredRequests.map((request) => _buildRequestCard(
+                                request,
+                                isOwnRequest: false,
+                                isIgnored: true,
+                                onUnignore: () => _unignoreRequest(request.id),
+                              )),
+                        ],
+                      ],
+                    ),
+                  );
       },
     );
   }
+
   Widget _buildMyRequestsTab() {
     return Consumer<EmergencyProvider>(
       builder: (context, emergencyProvider, child) {
@@ -384,46 +391,47 @@ class _EmergencyScreenState extends State<EmergencyScreen> with SingleTickerProv
         return _isLoading
             ? const Center(child: CircularProgressIndicator())
             : myRequests.isEmpty
-            ? Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const Text('You haven\'t created any emergency requests yet'),
-              const SizedBox(height: 16),
-              ElevatedButton(
-                onPressed: _navigateToCreateEmergencyRequest,
-                child: const Text('Create Request'),
-              ),
-            ],
-          ),
-        )
-            : RefreshIndicator(
-          onRefresh: _fetchMyEmergencyRequests,
-          child: ListView.builder(
-            padding: const EdgeInsets.all(16),
-            itemCount: myRequests.length,
-            itemBuilder: (context, index) {
-              final request = myRequests[index];
-              return _buildRequestCard(
-                request,
-                isOwnRequest: true,
-                onDelete: () => _deleteRequest(request),
-              );
-            },
-          ),
-        );
+                ? Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Text(
+                            'You haven\'t created any emergency requests yet'),
+                        const SizedBox(height: 16),
+                        ElevatedButton(
+                          onPressed: _navigateToCreateEmergencyRequest,
+                          child: const Text('Create Request'),
+                        ),
+                      ],
+                    ),
+                  )
+                : RefreshIndicator(
+                    onRefresh: _fetchMyEmergencyRequests,
+                    child: ListView.builder(
+                      padding: const EdgeInsets.all(16),
+                      itemCount: myRequests.length,
+                      itemBuilder: (context, index) {
+                        final request = myRequests[index];
+                        return _buildRequestCard(
+                          request,
+                          isOwnRequest: true,
+                          onDelete: () => _deleteRequest(request),
+                        );
+                      },
+                    ),
+                  );
       },
     );
   }
 
   Widget _buildRequestCard(
-      EmergencyRequestModel request, {
-        required bool isOwnRequest,
-        bool isIgnored = false,
-        Function()? onIgnore,
-        Function()? onUnignore,
-        Function()? onDelete,
-      }) {
+    EmergencyRequestModel request, {
+    required bool isOwnRequest,
+    bool isIgnored = false,
+    Function()? onIgnore,
+    Function()? onUnignore,
+    Function()? onDelete,
+  }) {
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
 
     return Card(
@@ -469,7 +477,9 @@ class _EmergencyScreenState extends State<EmergencyScreen> with SingleTickerProv
                           fontWeight: FontWeight.bold,
                           color: isIgnored
                               ? Colors.grey
-                              : (isDarkMode ? Colors.white : AppTheme.primaryColor),
+                              : (isDarkMode
+                                  ? Colors.white
+                                  : AppTheme.primaryColor),
                         ),
                       ),
                       Wrap(
@@ -489,7 +499,8 @@ class _EmergencyScreenState extends State<EmergencyScreen> with SingleTickerProv
                             else
                               TextButton.icon(
                                 onPressed: onIgnore,
-                                icon: const Icon(Icons.visibility_off, size: 18),
+                                icon:
+                                    const Icon(Icons.visibility_off, size: 18),
                                 label: const Text('Ignore'),
                                 style: TextButton.styleFrom(
                                   foregroundColor: Colors.grey,
@@ -497,7 +508,6 @@ class _EmergencyScreenState extends State<EmergencyScreen> with SingleTickerProv
                                 ),
                               ),
                           ],
-
                           if (isOwnRequest && !request.isResolved) ...[
                             Wrap(
                               crossAxisAlignment: WrapCrossAlignment.center,
@@ -508,7 +518,9 @@ class _EmergencyScreenState extends State<EmergencyScreen> with SingleTickerProv
                                   child: IconButton(
                                     icon: const Icon(Icons.edit, size: 20),
                                     color: AppTheme.primaryColor,
-                                    onPressed: () => _navigateToEditEmergencyRequest(request),
+                                    onPressed: () =>
+                                        _navigateToEditEmergencyRequest(
+                                            request),
                                     constraints: const BoxConstraints(),
                                     padding: EdgeInsets.zero,
                                     visualDensity: VisualDensity.compact,
@@ -527,7 +539,6 @@ class _EmergencyScreenState extends State<EmergencyScreen> with SingleTickerProv
                               ],
                             )
                           ],
-
                           ElevatedButton(
                             onPressed: () {
                               Navigator.push(
@@ -551,7 +562,8 @@ class _EmergencyScreenState extends State<EmergencyScreen> with SingleTickerProv
                               ),
                               minimumSize: const Size(30, 10),
                             ),
-                            child: const Text('View', style: TextStyle(fontSize: 10)),
+                            child: const Text('View',
+                                style: TextStyle(fontSize: 10)),
                           ),
                         ],
                       ),
@@ -599,7 +611,8 @@ class _EmergencyScreenState extends State<EmergencyScreen> with SingleTickerProv
                           skill,
                           style: TextStyle(
                             fontSize: 12,
-                            color: isIgnored ? Colors.grey : AppTheme.primaryColor,
+                            color:
+                                isIgnored ? Colors.grey : AppTheme.primaryColor,
                           ),
                         ),
                       );
@@ -620,7 +633,8 @@ class _EmergencyScreenState extends State<EmergencyScreen> with SingleTickerProv
                         style: TextStyle(
                           fontSize: 12,
                           // Fix: Use theme-aware text color
-                          color: isDarkMode ? Colors.grey[400] : Colors.grey[600],
+                          color:
+                              isDarkMode ? Colors.grey[400] : Colors.grey[600],
                         ),
                       ),
                     ],
