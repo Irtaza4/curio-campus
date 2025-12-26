@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:curio_campus/models/project_model.dart';
+
 import 'package:curio_campus/providers/project_provider.dart';
 import 'package:curio_campus/utils/app_theme.dart';
 import 'package:curio_campus/widgets/custom_button.dart';
@@ -17,10 +17,10 @@ class CreateTaskScreen extends StatefulWidget {
   final List<String> teamMembers;
 
   const CreateTaskScreen({
-    Key? key,
+    super.key,
     required this.projectId,
     required this.teamMembers,
-  }) : super(key: key);
+  });
 
   @override
   State<CreateTaskScreen> createState() => _CreateTaskScreenState();
@@ -66,7 +66,8 @@ class _CreateTaskScreenState extends State<CreateTaskScreen> {
         _isLoading = true;
       });
 
-      final projectProvider = Provider.of<ProjectProvider>(context, listen: false);
+      final projectProvider =
+          Provider.of<ProjectProvider>(context, listen: false);
 
       final taskId = await projectProvider.addTask(
         projectId: widget.projectId,
@@ -93,7 +94,8 @@ class _CreateTaskScreenState extends State<CreateTaskScreen> {
       } else if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(projectProvider.errorMessage ?? 'Failed to create task'),
+            content:
+                Text(projectProvider.errorMessage ?? 'Failed to create task'),
             backgroundColor: Colors.red,
           ),
         );
@@ -139,7 +141,8 @@ class _CreateTaskScreenState extends State<CreateTaskScreen> {
     if (currentUserId != null) {
       for (var chat in chatProvider.chats) {
         for (var participantId in chat.participants) {
-          if (participantId != currentUserId && !chatParticipants.contains(participantId)) {
+          if (participantId != currentUserId &&
+              !chatParticipants.contains(participantId)) {
             chatParticipants.add(participantId);
           }
         }
@@ -344,9 +347,12 @@ class _CreateTaskScreenState extends State<CreateTaskScreen> {
                       return DropdownMenuItem<String>(
                         value: userId,
                         child: FutureBuilder<UserModel?>(
-                          future: Provider.of<ProjectProvider>(context, listen: false).fetchUserById(userId),
+                          future: Provider.of<ProjectProvider>(context,
+                                  listen: false)
+                              .fetchUserById(userId),
                           builder: (context, snapshot) {
-                            if (snapshot.connectionState == ConnectionState.waiting) {
+                            if (snapshot.connectionState ==
+                                ConnectionState.waiting) {
                               return const Text('Loading...');
                             }
                             if (snapshot.hasData && snapshot.data != null) {
