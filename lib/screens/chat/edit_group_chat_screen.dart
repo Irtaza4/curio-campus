@@ -21,13 +21,13 @@ class EditGroupChatScreen extends StatefulWidget {
   final String creatorId;
 
   const EditGroupChatScreen({
-    Key? key,
+    super.key,
     required this.chatId,
     required this.chatName,
     this.groupImageBase64,
     required this.participants,
     required this.creatorId,
-  }) : super(key: key);
+  });
 
   @override
   State<EditGroupChatScreen> createState() => _EditGroupChatScreenState();
@@ -524,7 +524,7 @@ class _EditGroupChatScreenState extends State<EditGroupChatScreen> {
                         padding: const EdgeInsets.symmetric(
                             horizontal: 6, vertical: 2),
                         decoration: BoxDecoration(
-                          color: AppTheme.primaryColor.withOpacity(0.2),
+                          color: AppTheme.primaryColor.withValues(alpha: 0.2),
                           borderRadius: BorderRadius.circular(4),
                         ),
                         child: Text(

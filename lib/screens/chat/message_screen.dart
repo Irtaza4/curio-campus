@@ -8,7 +8,7 @@ import 'package:curio_campus/screens/chat/chat_screen.dart';
 import 'package:curio_campus/screens/chat/create_group_chat_screen.dart';
 import 'package:curio_campus/providers/project_provider.dart';
 import 'package:curio_campus/models/user_model.dart';
-import 'package:curio_campus/providers/notification_provider.dart';
+
 import 'package:curio_campus/utils/image_utils.dart';
 
 import '../../utils/app_theme.dart';
@@ -65,7 +65,7 @@ class _MessagesScreenState extends State<MessagesScreen> {
 
       if (currentUserId != null && chat.participants.contains(currentUserId)) {
         final otherParticipantId = chat.participants.firstWhere(
-              (id) => id != currentUserId,
+          (id) => id != currentUserId,
           orElse: () => '',
         );
 
@@ -77,8 +77,8 @@ class _MessagesScreenState extends State<MessagesScreen> {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (_) => ChatScreen(
-                      chatId: chat.id, chatName: user.name),
+                  builder: (_) =>
+                      ChatScreen(chatId: chat.id, chatName: user.name),
                 ),
               );
             } else {
@@ -112,7 +112,7 @@ class _MessagesScreenState extends State<MessagesScreen> {
   Widget build(BuildContext context) {
     final chatProvider = Provider.of<ChatProvider>(context);
     final authProvider = Provider.of<AuthProvider>(context);
-    final notificationProvider = Provider.of<NotificationProvider>(context);
+
     final currentUserId = authProvider.firebaseUser?.uid;
     final chats = chatProvider.chats;
     final theme = Theme.of(context);
@@ -122,18 +122,20 @@ class _MessagesScreenState extends State<MessagesScreen> {
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : RefreshIndicator(
-        onRefresh: _fetchChats,
-        child: chats.isEmpty
-            ? Center(
-          child: Text(
-            'No messages yet',
-            style: TextStyle(
-              color: isDarkMode ? AppTheme.darkTextColor : AppTheme.textColor,
+              onRefresh: _fetchChats,
+              child: chats.isEmpty
+                  ? Center(
+                      child: Text(
+                        'No messages yet',
+                        style: TextStyle(
+                          color: isDarkMode
+                              ? AppTheme.darkTextColor
+                              : AppTheme.textColor,
+                        ),
+                      ),
+                    )
+                  : _buildChatList(chats, currentUserId),
             ),
-          ),
-        )
-            : _buildChatList(chats, currentUserId),
-      ),
       floatingActionButton: FloatingActionButton(
         heroTag: 'messages_fab',
         onPressed: () {
@@ -158,7 +160,9 @@ class _MessagesScreenState extends State<MessagesScreen> {
       padding: const EdgeInsets.all(16),
       itemCount: chats.length,
       separatorBuilder: (context, index) => Divider(
-        color: isDarkMode ? AppTheme.darkMediumGrayColor : AppTheme.mediumGrayColor,
+        color: isDarkMode
+            ? AppTheme.darkMediumGrayColor
+            : AppTheme.mediumGrayColor,
       ),
       itemBuilder: (context, index) {
         final chat = chats[index];
@@ -169,7 +173,7 @@ class _MessagesScreenState extends State<MessagesScreen> {
 
         if (chat.type == ChatType.individual && currentUserId != null) {
           final otherParticipantId = chat.participants.firstWhere(
-                (id) => id != currentUserId,
+            (id) => id != currentUserId,
             orElse: () => '',
           );
 
@@ -255,7 +259,9 @@ class _MessagesScreenState extends State<MessagesScreen> {
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
             style: TextStyle(
-              color: isDarkMode ? AppTheme.darkDarkGrayColor : AppTheme.darkGrayColor,
+              color: isDarkMode
+                  ? AppTheme.darkDarkGrayColor
+                  : AppTheme.darkGrayColor,
             ),
           ),
           trailing: Column(
@@ -266,7 +272,9 @@ class _MessagesScreenState extends State<MessagesScreen> {
                 _formatTimestamp(chat.lastMessageAt),
                 style: TextStyle(
                   fontSize: 12,
-                  color: isDarkMode ? AppTheme.darkDarkGrayColor : Colors.grey[600],
+                  color: isDarkMode
+                      ? AppTheme.darkDarkGrayColor
+                      : Colors.grey[600],
                 ),
               ),
               const SizedBox(height: 4),
@@ -288,7 +296,8 @@ class _MessagesScreenState extends State<MessagesScreen> {
   }
 
 // Add this new helper method
-  Widget _buildChatAvatar(ChatModel chat, String displayName, String? profileImageBase64) {
+  Widget _buildChatAvatar(
+      ChatModel chat, String displayName, String? profileImageBase64) {
     const double avatarSize = 40;
 
     if (chat.type == ChatType.group) {
@@ -339,6 +348,7 @@ class _MessagesScreenState extends State<MessagesScreen> {
       }
     }
   }
+
   Widget _buildBase64CircleImage({
     required String base64String,
     required double size,
