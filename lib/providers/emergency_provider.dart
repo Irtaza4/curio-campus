@@ -3,12 +3,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:uuid/uuid.dart';
 import 'package:curio_campus/models/emergency_request_model.dart';
-import 'package:curio_campus/utils/constants.dart';
 import 'package:curio_campus/services/notification_service.dart';
-import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-
-import '../services/cloud_functions_services.dart';
-
+import 'package:curio_campus/utils/constants.dart';
 
 class EmergencyProvider with ChangeNotifier {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
@@ -16,13 +12,15 @@ class EmergencyProvider with ChangeNotifier {
 
   List<EmergencyRequestModel> _emergencyRequests = [];
   List<EmergencyRequestModel> _myEmergencyRequests = [];
-  List<EmergencyRequestModel> _ignoredRequests = []; // New list for ignored requests
+  List<EmergencyRequestModel> _ignoredRequests =
+      []; // New list for ignored requests
   bool _isLoading = false;
   String? _errorMessage;
 
   List<EmergencyRequestModel> get emergencyRequests => _emergencyRequests;
   List<EmergencyRequestModel> get myEmergencyRequests => _myEmergencyRequests;
-  List<EmergencyRequestModel> get ignoredRequests => _ignoredRequests; // Getter for ignored requests
+  List<EmergencyRequestModel> get ignoredRequests =>
+      _ignoredRequests; // Getter for ignored requests
   bool get isLoading => _isLoading;
   String? get errorMessage => _errorMessage;
 
@@ -43,8 +41,10 @@ class EmergencyProvider with ChangeNotifier {
           .get();
 
       List<String> ignoredRequestIds = [];
-      if (userDoc.exists && userDoc.data()!.containsKey('ignoredEmergencyRequests')) {
-        ignoredRequestIds = List<String>.from(userDoc.data()!['ignoredEmergencyRequests']);
+      if (userDoc.exists &&
+          userDoc.data()!.containsKey('ignoredEmergencyRequests')) {
+        ignoredRequestIds =
+            List<String>.from(userDoc.data()!['ignoredEmergencyRequests']);
       }
 
       // Create a composite index for this query
@@ -52,7 +52,7 @@ class EmergencyProvider with ChangeNotifier {
           .collection(Constants.emergencyRequestsCollection)
           .where('isResolved', isEqualTo: false)
 
-      // Use orderBy with a field that has an index
+          // Use orderBy with a field that has an index
           .get();
 
       final List<EmergencyRequestModel> loadedRequests = [];
@@ -108,9 +108,9 @@ class EmergencyProvider with ChangeNotifier {
 
       _myEmergencyRequests = querySnapshot.docs
           .map((doc) => EmergencyRequestModel.fromJson({
-        'id': doc.id,
-        ...doc.data(),
-      }))
+                'id': doc.id,
+                ...doc.data(),
+              }))
           .toList();
       // Sort the list after fetching
       _myEmergencyRequests.sort((a, b) => b.createdAt.compareTo(a.createdAt));
@@ -124,6 +124,7 @@ class EmergencyProvider with ChangeNotifier {
       rethrow; // Rethrow to handle in UI
     }
   }
+
   // New method to ignore an emergency request
   Future<bool> ignoreEmergencyRequest(String requestId) async {
     if (_auth.currentUser == null) return false;
@@ -143,7 +144,8 @@ class EmergencyProvider with ChangeNotifier {
       });
 
       // Move the request from regular list to ignored list
-      final requestIndex = _emergencyRequests.indexWhere((req) => req.id == requestId);
+      final requestIndex =
+          _emergencyRequests.indexWhere((req) => req.id == requestId);
       if (requestIndex >= 0) {
         final request = _emergencyRequests[requestIndex];
         _ignoredRequests.add(request);
@@ -181,7 +183,8 @@ class EmergencyProvider with ChangeNotifier {
       });
 
       // Move the request from ignored list to regular list
-      final requestIndex = _ignoredRequests.indexWhere((req) => req.id == requestId);
+      final requestIndex =
+          _ignoredRequests.indexWhere((req) => req.id == requestId);
       if (requestIndex >= 0) {
         final request = _ignoredRequests[requestIndex];
         _emergencyRequests.add(request);
@@ -264,7 +267,8 @@ class EmergencyProvider with ChangeNotifier {
           .doc(requestId)
           .set(request.toJson());
 
-      print('✅ Emergency request saved - Cloud Function will handle notifications');
+      print(
+          '✅ Emergency request saved - Cloud Function will handle notifications');
       print('🔍 Check Firebase Functions logs to see if trigger fired');
       print('   Command: firebase functions:log --project curiocampus-c8f79');
 
@@ -283,7 +287,6 @@ class EmergencyProvider with ChangeNotifier {
       return null;
     }
   }
-
 
   // Add method to create an emergency request that matches user skills
   Future<String?> createEmergencyRequestWithSkillMatching({
@@ -334,9 +337,8 @@ class EmergencyProvider with ChangeNotifier {
       _emergencyRequests.add(request);
 
       // Find users with matching skills and send notifications
-      final usersSnapshot = await _firestore
-          .collection(Constants.usersCollection)
-          .get();
+      final usersSnapshot =
+          await _firestore.collection(Constants.usersCollection).get();
 
       for (final userDoc in usersSnapshot.docs) {
         final userData = userDoc.data();
@@ -350,7 +352,8 @@ class EmergencyProvider with ChangeNotifier {
         final allSkills = [...majorSkills, ...minorSkills];
 
         // Check if any required skill matches the user's skills
-        final matchingSkills = requiredSkills.where((skill) => allSkills.contains(skill)).toList();
+        final matchingSkills =
+            requiredSkills.where((skill) => allSkills.contains(skill)).toList();
 
         if (matchingSkills.isNotEmpty) {
           // Create a notification for this user
@@ -364,7 +367,8 @@ class EmergencyProvider with ChangeNotifier {
               .set({
             'id': notificationId,
             'title': 'Emergency Request Matching Your Skills',
-            'message': '$userName needs help with ${matchingSkills.first}: $title',
+            'message':
+                '$userName needs help with ${matchingSkills.first}: $title',
             'timestamp': now.toIso8601String(),
             'type': 'emergency',
             'relatedId': requestId,
@@ -466,7 +470,8 @@ class EmergencyProvider with ChangeNotifier {
       }
 
       // Also update in ignored list if present
-      final ignoredIndex = _ignoredRequests.indexWhere((r) => r.id == requestId);
+      final ignoredIndex =
+          _ignoredRequests.indexWhere((r) => r.id == requestId);
       if (ignoredIndex != -1) {
         final updatedRequest = EmergencyRequestModel.fromJson({
           ..._ignoredRequests[ignoredIndex].toJson(),
@@ -527,7 +532,8 @@ class EmergencyProvider with ChangeNotifier {
       }
 
       // Also update in ignored list if present
-      final ignoredIndex = _ignoredRequests.indexWhere((r) => r.id == requestId);
+      final ignoredIndex =
+          _ignoredRequests.indexWhere((r) => r.id == requestId);
       if (ignoredIndex != -1) {
         _ignoredRequests[ignoredIndex] = EmergencyRequestModel.fromJson({
           ..._ignoredRequests[ignoredIndex].toJson(),
@@ -547,7 +553,8 @@ class EmergencyProvider with ChangeNotifier {
   }
 
   // Add a method to fetch a single emergency request by ID
-  Future<EmergencyRequestModel?> fetchEmergencyRequestById(String requestId) async {
+  Future<EmergencyRequestModel?> fetchEmergencyRequestById(
+      String requestId) async {
     try {
       final docSnapshot = await _firestore
           .collection(Constants.emergencyRequestsCollection)

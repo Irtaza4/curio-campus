@@ -1,4 +1,3 @@
-import 'package:curio_campus/utils/constants.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:curio_campus/screens/splash_screen.dart';
@@ -38,8 +37,9 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
       final flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
 
       // Create notification channel for Android
-      final androidPlugin = flutterLocalNotificationsPlugin
-          .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>();
+      final androidPlugin =
+          flutterLocalNotificationsPlugin.resolvePlatformSpecificImplementation<
+              AndroidFlutterLocalNotificationsPlugin>();
 
       if (androidPlugin != null) {
         await androidPlugin.createNotificationChannel(
@@ -65,8 +65,10 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
         playSound: true,
         enableVibration: true,
         actions: [
-          const AndroidNotificationAction('answer', 'Answer', showsUserInterface: true),
-          const AndroidNotificationAction('decline', 'Decline', showsUserInterface: true),
+          const AndroidNotificationAction('answer', 'Answer',
+              showsUserInterface: true),
+          const AndroidNotificationAction('decline', 'Decline',
+              showsUserInterface: true),
         ],
       );
 
@@ -87,7 +89,8 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
       final callType = message.data['callType'] ?? 'voice';
 
       // Convert the call ID to a valid notification ID (within 32-bit integer range)
-      final notificationId = callId % 100000; // Use modulo to get a smaller number
+      final notificationId =
+          callId % 100000; // Use modulo to get a smaller number
 
       await flutterLocalNotificationsPlugin.show(
         notificationId,
@@ -99,13 +102,15 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
 
       // Save call data to shared preferences for when app is opened
       final prefs = await SharedPreferences.getInstance();
-      await prefs.setString('pending_call', json.encode({
-        'callId': callId.toString(),
-        'callerId': message.data['callerId'],
-        'callerName': callerName,
-        'callType': callType,
-        'timestamp': DateTime.now().millisecondsSinceEpoch,
-      }));
+      await prefs.setString(
+          'pending_call',
+          json.encode({
+            'callId': callId.toString(),
+            'callerId': message.data['callerId'],
+            'callerName': callerName,
+            'callType': callType,
+            'timestamp': DateTime.now().millisecondsSinceEpoch,
+          }));
     } catch (e) {
       debugPrint('Error handling call notification in background: $e');
     }
@@ -115,8 +120,9 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
       final flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
 
       // Create notification channel for Android
-      final androidPlugin = flutterLocalNotificationsPlugin
-          .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>();
+      final androidPlugin =
+          flutterLocalNotificationsPlugin.resolvePlatformSpecificImplementation<
+              AndroidFlutterLocalNotificationsPlugin>();
 
       if (androidPlugin != null) {
         await androidPlugin.createNotificationChannel(
@@ -132,7 +138,9 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
       }
 
       final senderName = message.data['senderName'] ?? 'Someone';
-      final messageContent = message.notification?.body ?? message.data['content'] ?? 'New message';
+      final messageContent = message.notification?.body ??
+          message.data['content'] ??
+          'New message';
       final chatId = message.data['chatId'];
       final chatName = message.data['chatName'] ?? 'Chat';
 
@@ -197,8 +205,9 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
       final flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
 
       // Create notification channel for Android
-      final androidPlugin = flutterLocalNotificationsPlugin
-          .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>();
+      final androidPlugin =
+          flutterLocalNotificationsPlugin.resolvePlatformSpecificImplementation<
+              AndroidFlutterLocalNotificationsPlugin>();
 
       if (androidPlugin != null) {
         await androidPlugin.createNotificationChannel(
@@ -222,7 +231,8 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
 
       final notificationDetails = NotificationDetails(
         android: androidPlatformChannelSpecifics,
-      );print('Firebase Project ID: ${Firebase.app().options.projectId}');
+      );
+      print('Firebase Project ID: ${Firebase.app().options.projectId}');
 
       await flutterLocalNotificationsPlugin.show(
         message.hashCode % 100000, // Ensure ID is within 32-bit integer range
@@ -258,10 +268,13 @@ void main() async {
   await callService.initialize('c4a1309f72be434592965a29b64c1fd4');
 
   // Handle notification click when app is terminated
-  FirebaseMessaging.instance.getInitialMessage().then((RemoteMessage? message) async {
+  FirebaseMessaging.instance
+      .getInitialMessage()
+      .then((RemoteMessage? message) async {
     if (message != null) {
       // Handle the notification click based on the data
-      debugPrint('App opened from terminated state via notification: ${message.data}');
+      debugPrint(
+          'App opened from terminated state via notification: ${message.data}');
 
       // Store the notification data to handle it after app is initialized
       // This will be used in the first screen to navigate to the appropriate screen
@@ -301,7 +314,8 @@ class _MyAppState extends State<MyApp> {
       // Check for initial notification
       final initialNotificationJson = prefs.getString('initial_notification');
       if (initialNotificationJson != null) {
-        final initialNotification = json.decode(initialNotificationJson) as Map<String, dynamic>;
+        final initialNotification =
+            json.decode(initialNotificationJson) as Map<String, dynamic>;
 
         // Clear the stored notification
         await prefs.remove('initial_notification');
@@ -339,8 +353,8 @@ class _MyAppState extends State<MyApp> {
         // Process the most recent message after a delay
         if (recentMessages.isNotEmpty) {
           // Sort by timestamp (newest first)
-          recentMessages.sort((a, b) =>
-              (b['timestamp'] as int? ?? 0).compareTo(a['timestamp'] as int? ?? 0));
+          recentMessages.sort((a, b) => (b['timestamp'] as int? ?? 0)
+              .compareTo(a['timestamp'] as int? ?? 0));
 
           // Process the most recent message
           Future.delayed(const Duration(seconds: 2), () {
@@ -348,7 +362,9 @@ class _MyAppState extends State<MyApp> {
             final chatId = mostRecent['chatId'] as String?;
             final chatName = mostRecent['chatName'] as String?;
 
-            if (chatId != null && chatName != null && navigatorKey.currentContext != null) {
+            if (chatId != null &&
+                chatName != null &&
+                navigatorKey.currentContext != null) {
               Navigator.push(
                 navigatorKey.currentContext!,
                 MaterialPageRoute(
@@ -367,13 +383,13 @@ class _MyAppState extends State<MyApp> {
       final pendingCallJson = prefs.getString('pending_call');
       if (pendingCallJson != null) {
         try {
-          final pendingCall = json.decode(pendingCallJson) as Map<String, dynamic>;
+          final pendingCall =
+              json.decode(pendingCallJson) as Map<String, dynamic>;
           final timestamp = pendingCall['timestamp'] as int?;
 
           // Only process calls that are less than 60 seconds old
           if (timestamp != null &&
               DateTime.now().millisecondsSinceEpoch - timestamp < 60000) {
-
             // Handle the pending call after the app is fully initialized
             Future.delayed(const Duration(seconds: 2), () {
               final callId = pendingCall['callId'] as String?;
@@ -412,7 +428,8 @@ class _MyAppState extends State<MyApp> {
       debugPrint('Message data: ${message.data}');
 
       if (message.notification != null) {
-        debugPrint('Message also contained a notification: ${message.notification}');
+        debugPrint(
+            'Message also contained a notification: ${message.notification}');
         // Show local notification
         notificationService.handleForegroundMessage(message);
       }
@@ -420,7 +437,8 @@ class _MyAppState extends State<MyApp> {
 
     // Handle notification clicks when app is in background
     FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
-      debugPrint('A notification was clicked when the app was in the background!');
+      debugPrint(
+          'A notification was clicked when the app was in the background!');
       _handleNotificationData(message.data);
     });
   }
@@ -514,8 +532,11 @@ class _MyAppState extends State<MyApp> {
             home: const SplashScreen(),
             routes: {
               '/chat': (context) => const ChatScreen(chatId: '', chatName: ''),
-              '/emergency-detail': (context) => const EmergencyRequestDetailScreen(requestId: '', isOwnRequest: false),
-              '/project-detail': (context) => const ProjectDetailScreen(projectId: ''),
+              '/emergency-detail': (context) =>
+                  const EmergencyRequestDetailScreen(
+                      requestId: '', isOwnRequest: false),
+              '/project-detail': (context) =>
+                  const ProjectDetailScreen(projectId: ''),
             },
           );
         },
