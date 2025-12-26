@@ -3,7 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:curio_campus/providers/auth_provider.dart';
-import 'package:curio_campus/utils/app_theme.dart';
+
 import 'package:curio_campus/widgets/custom_button.dart';
 import 'package:curio_campus/widgets/custom_text_field.dart';
 import 'package:curio_campus/widgets/skill_selector.dart';
@@ -12,7 +12,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'dart:io';
 
 class EditProfileScreen extends StatefulWidget {
-  const EditProfileScreen({Key? key}) : super(key: key);
+  const EditProfileScreen({super.key});
 
   @override
   State<EditProfileScreen> createState() => _EditProfileScreenState();
@@ -63,12 +63,14 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         });
       }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Error picking image: ${e.toString()}'),
-          backgroundColor: Theme.of(context).colorScheme.error,
-        ),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error picking image: ${e.toString()}'),
+            backgroundColor: Theme.of(context).colorScheme.error,
+          ),
+        );
+      }
     }
   }
 
@@ -81,19 +83,22 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       final authProvider = Provider.of<AuthProvider>(context, listen: false);
       String? profileImageBase64;
       if (_profileImage != null) {
-        profileImageBase64 = await authProvider.convertImageToBase64(_profileImage!);
+        profileImageBase64 =
+            await authProvider.convertImageToBase64(_profileImage!);
 
-        if (profileImageBase64 == null && mounted) {
-          setState(() {
-            _isLoading = false;
-          });
+        if (profileImageBase64 == null) {
+          if (mounted) {
+            setState(() {
+              _isLoading = false;
+            });
 
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: const Text('Failed to upload profile image'),
-              backgroundColor: Theme.of(context).colorScheme.error,
-            ),
-          );
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: const Text('Failed to upload profile image'),
+                backgroundColor: Theme.of(context).colorScheme.error,
+              ),
+            );
+          }
           return;
         }
       }
@@ -105,9 +110,11 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         profileImageBase64: profileImageBase64,
       );
 
-      setState(() {
-        _isLoading = false;
-      });
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
 
       if (success && mounted) {
         Navigator.pop(context);
@@ -120,7 +127,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       } else if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(authProvider.errorMessage ?? 'Failed to update profile'),
+            content:
+                Text(authProvider.errorMessage ?? 'Failed to update profile'),
             backgroundColor: Theme.of(context).colorScheme.error,
           ),
         );
@@ -156,45 +164,52 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                   children: [
                     _profileImage != null
                         ? CircleAvatar(
-                      radius: 60,
-                      backgroundColor: theme.colorScheme.surfaceVariant,
-                      backgroundImage: FileImage(_profileImage!),
-                    )
+                            radius: 60,
+                            backgroundColor:
+                                theme.colorScheme.surfaceContainerHighest,
+                            backgroundImage: FileImage(_profileImage!),
+                          )
                         : user.profileImageBase64 != null &&
-                        user.profileImageBase64!.isNotEmpty
-                        ? CachedNetworkImage(
-                      imageUrl: user.profileImageBase64!,
-                      imageBuilder: (context, imageProvider) => CircleAvatar(
-                        radius: 60,
-                        backgroundColor: theme.colorScheme.surfaceVariant,
-                        backgroundImage: imageProvider,
-                      ),
-                      placeholder: (context, url) => CircleAvatar(
-                        radius: 60,
-                        backgroundColor: theme.colorScheme.surfaceVariant,
-                        child: CircularProgressIndicator(
-                          color: theme.colorScheme.primary,
-                        ),
-                      ),
-                      errorWidget: (context, url, error) => CircleAvatar(
-                        radius: 60,
-                        backgroundColor: theme.colorScheme.surfaceVariant,
-                        child: Icon(
-                          Icons.person,
-                          size: 60,
-                          color: theme.colorScheme.primary,
-                        ),
-                      ),
-                    )
-                        : CircleAvatar(
-                      radius: 60,
-                      backgroundColor: theme.colorScheme.surfaceVariant,
-                      child: Icon(
-                        Icons.person,
-                        size: 60,
-                        color: theme.colorScheme.primary,
-                      ),
-                    ),
+                                user.profileImageBase64!.isNotEmpty
+                            ? CachedNetworkImage(
+                                imageUrl: user.profileImageBase64!,
+                                imageBuilder: (context, imageProvider) =>
+                                    CircleAvatar(
+                                  radius: 60,
+                                  backgroundColor:
+                                      theme.colorScheme.surfaceVariant,
+                                  backgroundImage: imageProvider,
+                                ),
+                                placeholder: (context, url) => CircleAvatar(
+                                  radius: 60,
+                                  backgroundColor:
+                                      theme.colorScheme.surfaceVariant,
+                                  child: CircularProgressIndicator(
+                                    color: theme.colorScheme.primary,
+                                  ),
+                                ),
+                                errorWidget: (context, url, error) =>
+                                    CircleAvatar(
+                                  radius: 60,
+                                  backgroundColor:
+                                      theme.colorScheme.surfaceVariant,
+                                  child: Icon(
+                                    Icons.person,
+                                    size: 60,
+                                    color: theme.colorScheme.primary,
+                                  ),
+                                ),
+                              )
+                            : CircleAvatar(
+                                radius: 60,
+                                backgroundColor:
+                                    theme.colorScheme.surfaceVariant,
+                                child: Icon(
+                                  Icons.person,
+                                  size: 60,
+                                  color: theme.colorScheme.primary,
+                                ),
+                              ),
                     Positioned(
                       bottom: 0,
                       right: 0,

@@ -16,14 +16,13 @@ import '../../models/project_model.dart';
 import '../../models/user_model.dart';
 
 class ProfileScreen extends StatefulWidget {
-  const ProfileScreen({Key? key}) : super(key: key);
+  const ProfileScreen({super.key});
 
   @override
   State<ProfileScreen> createState() => _ProfileScreenState();
 }
 
 class _ProfileScreenState extends State<ProfileScreen> {
-  final ImagePicker _picker = ImagePicker();
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
   List<UserModel> _teamMembers = [];
@@ -37,7 +36,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       final bytes = await File(image.path).readAsBytes();
       return base64Encode(bytes);
     } catch (e) {
-      print("Failed to convert image to base64: $e");
+      debugPrint("Failed to convert image to base64: $e");
       return null;
     }
   }
@@ -52,7 +51,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
       user.profileImageBase64 = base64Image;
 
       // Save the updated profile in Firestore
-      await _firestore.collection(Constants.usersCollection).doc(user.id).update({
+      await _firestore
+          .collection(Constants.usersCollection)
+          .doc(user.id)
+          .update({
         'profileImageBase64': base64Image,
       });
 
@@ -70,7 +72,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
   // Fetch real team members and projects data
   Future<void> _loadTeamMembersAndProjects() async {
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
-    final projectProvider = Provider.of<ProjectProvider>(context, listen: false);
+    final projectProvider =
+        Provider.of<ProjectProvider>(context, listen: false);
     final user = authProvider.userModel;
 
     if (user != null) {
@@ -91,7 +94,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
         // Add team members from all projects
         for (var project in projectProvider.projects) {
           for (var memberId in project.teamMembers) {
-            if (memberId != user.id) { // Don't include the current user
+            if (memberId != user.id) {
+              // Don't include the current user
               teamMemberIds.add(memberId);
             }
           }
@@ -111,7 +115,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           _isLoadingTeamMembers = false;
         });
       } catch (e) {
-        print("Error fetching team members: $e");
+        debugPrint("Error fetching team members: $e");
         setState(() {
           _isLoadingTeamMembers = false;
         });
@@ -133,7 +137,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           _isLoadingProjects = false;
         });
       } catch (e) {
-        print("Error fetching completed projects: $e");
+        debugPrint("Error fetching completed projects: $e");
         setState(() {
           _isLoadingProjects = false;
         });
@@ -143,7 +147,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   // Method to refresh data
   Future<void> _refreshData() async {
-    final projectProvider = Provider.of<ProjectProvider>(context, listen: false);
+    final projectProvider =
+        Provider.of<ProjectProvider>(context, listen: false);
 
     // Refresh projects from Firestore
     await projectProvider.fetchProjects();
@@ -163,106 +168,110 @@ class _ProfileScreenState extends State<ProfileScreen> {
       body: user == null
           ? const Center(child: CircularProgressIndicator())
           : RefreshIndicator(
-        onRefresh: _refreshData,
-        child: SingleChildScrollView(
-          physics: const AlwaysScrollableScrollPhysics(),
-          child: Column(
-            children: [
-              // Profile header
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(24),
-                color: AppTheme.primaryColor,
-                child: Center(
-                  child: Column(
-                    children: [
-                      _buildProfileAvatar(user.profileImageBase64),
-                      const SizedBox(height: 16),
-                      Text(
-                        user.name,
-                        style: const TextStyle(
-                          fontSize: 24,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-
-              // Profile sections
-              Padding(
-                padding: const EdgeInsets.all(16),
+              onRefresh: _refreshData,
+              child: SingleChildScrollView(
+                physics: const AlwaysScrollableScrollPhysics(),
                 child: Column(
                   children: [
-                    _buildProfileSection(
-                      title: 'MY SKILLS',
-                      content: 'No skills added yet',
-                      items: [...user.majorSkills, ...user.minorSkills],
-                    ),
-                    const SizedBox(height: 16),
-                    _buildProfileSection(
-                      title: 'MY TEAM',
-                      content: 'No team members yet',
-                      teamMembers: _teamMembers,
-                      isLoading: _isLoadingTeamMembers,
-                    ),
-                    const SizedBox(height: 16),
-                    _buildProfileSection(
-                      title: 'MY COMPLETED PROJECTS',
-                      content: 'No completed projects yet',
-                      projects: _completedProjects,
-                      isLoading: _isLoadingProjects,
-                    ),
-                    const SizedBox(height: 24),
-                    _buildActionButton(
-                      icon: Icons.settings,
-                      label: 'Settings',
-                      onTap: () {
-                        // Navigate to settings screen
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => const SettingsScreen(),
-                          ),
-                        );
-                      },
-                    ),
-                    const SizedBox(height: 16),
-
-                    const SizedBox(height: 24),
-                    SizedBox(
+                    // Profile header
+                    Container(
                       width: double.infinity,
-                      child: ElevatedButton(
-                        onPressed: () async {
-                          await authProvider.logout();
-                          if (context.mounted) {
-                            Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (_)=>LoginScreen()));
-                          }
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: isDarkMode ? AppTheme.darkSurfaceColor : Colors.white,
-                          foregroundColor: AppTheme.errorColor,
-                          side: BorderSide(color: AppTheme.errorColor),
-                          padding: const EdgeInsets.symmetric(vertical: 16),
+                      padding: const EdgeInsets.all(24),
+                      color: AppTheme.primaryColor,
+                      child: Center(
+                        child: Column(
+                          children: [
+                            _buildProfileAvatar(user.profileImageBase64),
+                            const SizedBox(height: 16),
+                            Text(
+                              user.name,
+                              style: const TextStyle(
+                                fontSize: 24,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white,
+                              ),
+                            ),
+                          ],
                         ),
-                        child: const Text(
-                          'Sign Out',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
+                      ),
+                    ),
+
+                    // Profile sections
+                    Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Column(
+                        children: [
+                          _buildProfileSection(
+                            title: 'MY SKILLS',
+                            content: 'No skills added yet',
+                            items: [...user.majorSkills, ...user.minorSkills],
                           ),
-                        ),
+                          const SizedBox(height: 16),
+                          _buildProfileSection(
+                            title: 'MY TEAM',
+                            content: 'No team members yet',
+                            teamMembers: _teamMembers,
+                            isLoading: _isLoadingTeamMembers,
+                          ),
+                          const SizedBox(height: 16),
+                          _buildProfileSection(
+                            title: 'MY COMPLETED PROJECTS',
+                            content: 'No completed projects yet',
+                            projects: _completedProjects,
+                            isLoading: _isLoadingProjects,
+                          ),
+                          const SizedBox(height: 24),
+                          _buildActionButton(
+                            icon: Icons.settings,
+                            label: 'Settings',
+                            onTap: () {
+                              // Navigate to settings screen
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) => const SettingsScreen(),
+                                ),
+                              );
+                            },
+                          ),
+                          const SizedBox(height: 16),
+                          const SizedBox(height: 24),
+                          SizedBox(
+                            width: double.infinity,
+                            child: ElevatedButton(
+                              onPressed: () async {
+                                await authProvider.logout();
+                                if (context.mounted) {
+                                  Navigator.of(context).pushReplacement(
+                                      MaterialPageRoute(
+                                          builder: (_) => LoginScreen()));
+                                }
+                              },
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: isDarkMode
+                                    ? AppTheme.darkSurfaceColor
+                                    : Colors.white,
+                                foregroundColor: AppTheme.errorColor,
+                                side: BorderSide(color: AppTheme.errorColor),
+                                padding:
+                                    const EdgeInsets.symmetric(vertical: 16),
+                              ),
+                              child: const Text(
+                                'Sign Out',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   ],
                 ),
               ),
-            ],
-          ),
-        ),
-      ),
+            ),
       floatingActionButton: FloatingActionButton(
         heroTag: 'profile_fab',
         onPressed: () {
@@ -271,7 +280,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
             MaterialPageRoute(
               builder: (_) => const EditProfileScreen(),
             ),
-          ).then((_) => _loadTeamMembersAndProjects()); // Reload data when returning from edit screen
+          ).then((_) =>
+              _loadTeamMembersAndProjects()); // Reload data when returning from edit screen
         },
         backgroundColor: AppTheme.primaryColor,
         child: const Icon(Icons.edit, color: Colors.white),
@@ -301,7 +311,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         backgroundImage: image,
       );
     } catch (e) {
-      print("Error decoding base64 image: $e");
+      debugPrint("Error decoding base64 image: $e");
       return CircleAvatar(
         radius: 50,
         backgroundColor: Colors.white,
@@ -329,7 +339,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
       width: double.infinity,
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: isDarkMode ? AppTheme.darkLightGrayColor : AppTheme.lightGrayColor,
+        color:
+            isDarkMode ? AppTheme.darkLightGrayColor : AppTheme.lightGrayColor,
         borderRadius: BorderRadius.circular(8),
       ),
       child: Column(
@@ -340,7 +351,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
             style: TextStyle(
               fontSize: 14,
               fontWeight: FontWeight.bold,
-              color: isDarkMode ? AppTheme.darkDarkGrayColor : AppTheme.darkGrayColor,
+              color: isDarkMode
+                  ? AppTheme.darkDarkGrayColor
+                  : AppTheme.darkGrayColor,
             ),
           ),
           const SizedBox(height: 8),
@@ -351,18 +364,27 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 child: CircularProgressIndicator(),
               ),
             )
-          else if (title.contains("TEAM") && teamMembers != null && teamMembers.isNotEmpty)
+          else if (title.contains("TEAM") &&
+              teamMembers != null &&
+              teamMembers.isNotEmpty)
             _buildTeamMembersList(teamMembers)
-          else if (title.contains("COMPLETED PROJECTS") && projects != null && projects.isNotEmpty)
-              _buildCompletedProjectsList(projects)
-            else if (items != null && items.isNotEmpty)
-                _buildSimpleList(items, title.contains("SKILLS") ? Icons.check_circle :
-                title.contains("TEAM") ? Icons.person : Icons.task_alt)
-              else
-                Text(
-                  content,
-                  style: isDarkMode ? AppTheme.darkBodyStyle : AppTheme.bodyStyle,
-                ),
+          else if (title.contains("COMPLETED PROJECTS") &&
+              projects != null &&
+              projects.isNotEmpty)
+            _buildCompletedProjectsList(projects)
+          else if (items != null && items.isNotEmpty)
+            _buildSimpleList(
+                items,
+                title.contains("SKILLS")
+                    ? Icons.check_circle
+                    : title.contains("TEAM")
+                        ? Icons.person
+                        : Icons.task_alt)
+          else
+            Text(
+              content,
+              style: isDarkMode ? AppTheme.darkBodyStyle : AppTheme.bodyStyle,
+            ),
         ],
       ),
     );
@@ -374,25 +396,29 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
-      children: items.map((item) => Padding(
-        padding: const EdgeInsets.only(bottom: 4),
-        child: Row(
-          children: [
-            Icon(
-              icon,
-              size: 16,
-              color: AppTheme.primaryColor,
-            ),
-            const SizedBox(width: 8),
-            Expanded(
-              child: Text(
-                item,
-                style: isDarkMode ? AppTheme.darkBodyStyle : AppTheme.bodyStyle,
-              ),
-            ),
-          ],
-        ),
-      )).toList(),
+      children: items
+          .map((item) => Padding(
+                padding: const EdgeInsets.only(bottom: 4),
+                child: Row(
+                  children: [
+                    Icon(
+                      icon,
+                      size: 16,
+                      color: AppTheme.primaryColor,
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        item,
+                        style: isDarkMode
+                            ? AppTheme.darkBodyStyle
+                            : AppTheme.bodyStyle,
+                      ),
+                    ),
+                  ],
+                ),
+              ))
+          .toList(),
     );
   }
 
@@ -412,23 +438,24 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 height: 32,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: AppTheme.primaryColor.withOpacity(0.2),
+                  color: AppTheme.primaryColor.withValues(alpha: 0.2),
                 ),
-                child: member.profileImageBase64 != null && member.profileImageBase64!.isNotEmpty
+                child: member.profileImageBase64 != null &&
+                        member.profileImageBase64!.isNotEmpty
                     ? ClipRRect(
-                  borderRadius: BorderRadius.circular(16),
-                  child: Image.memory(
-                    base64Decode(member.profileImageBase64!),
-                    fit: BoxFit.cover,
-                    width: 32,
-                    height: 32,
-                  ),
-                )
+                        borderRadius: BorderRadius.circular(16),
+                        child: Image.memory(
+                          base64Decode(member.profileImageBase64!),
+                          fit: BoxFit.cover,
+                          width: 32,
+                          height: 32,
+                        ),
+                      )
                     : Icon(
-                  Icons.person,
-                  size: 16,
-                  color: AppTheme.primaryColor,
-                ),
+                        Icons.person,
+                        size: 16,
+                        color: AppTheme.primaryColor,
+                      ),
               ),
               const SizedBox(width: 8),
               Expanded(
@@ -438,8 +465,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     Text(
                       member.name,
                       style: isDarkMode
-                          ? AppTheme.darkBodyStyle.copyWith(fontWeight: FontWeight.bold)
-                          : AppTheme.bodyStyle.copyWith(fontWeight: FontWeight.bold),
+                          ? AppTheme.darkBodyStyle
+                              .copyWith(fontWeight: FontWeight.bold)
+                          : AppTheme.bodyStyle
+                              .copyWith(fontWeight: FontWeight.bold),
                     ),
                     if (member.majorSkills.isNotEmpty)
                       Text(
@@ -474,7 +503,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 height: 32,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: AppTheme.primaryColor.withOpacity(0.2),
+                  color: AppTheme.primaryColor.withValues(alpha: 0.2),
                 ),
                 child: Icon(
                   Icons.task_alt,
@@ -490,8 +519,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     Text(
                       project.name,
                       style: isDarkMode
-                          ? AppTheme.darkBodyStyle.copyWith(fontWeight: FontWeight.bold)
-                          : AppTheme.bodyStyle.copyWith(fontWeight: FontWeight.bold),
+                          ? AppTheme.darkBodyStyle
+                              .copyWith(fontWeight: FontWeight.bold)
+                          : AppTheme.bodyStyle
+                              .copyWith(fontWeight: FontWeight.bold),
                     ),
                     Text(
                       'Completed on ${_formatDate(project.createdAt)}',
@@ -531,7 +562,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
           vertical: 12,
         ),
         decoration: BoxDecoration(
-          color: isDarkMode ? AppTheme.darkLightGrayColor : AppTheme.lightGrayColor,
+          color: isDarkMode
+              ? AppTheme.darkLightGrayColor
+              : AppTheme.lightGrayColor,
           borderRadius: BorderRadius.circular(8),
         ),
         child: Row(
@@ -539,7 +572,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
             Icon(
               icon,
               size: 24,
-              color: isDarkMode ? AppTheme.darkDarkGrayColor : AppTheme.darkGrayColor,
+              color: isDarkMode
+                  ? AppTheme.darkDarkGrayColor
+                  : AppTheme.darkGrayColor,
             ),
             const SizedBox(width: 16),
             Text(
