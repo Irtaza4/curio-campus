@@ -4,7 +4,7 @@ import 'package:curio_campus/models/project_model.dart';
 import 'package:curio_campus/providers/project_provider.dart';
 import 'package:curio_campus/utils/app_theme.dart';
 import 'package:intl/intl.dart';
-import 'package:curio_campus/providers/auth_provider.dart';
+
 import 'package:curio_campus/screens/project/create_task_screen.dart';
 import 'package:curio_campus/screens/project/edit_project_screen.dart';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -16,9 +16,9 @@ class ProjectDetailScreen extends StatefulWidget {
   final String projectId;
 
   const ProjectDetailScreen({
-    Key? key,
+    super.key,
     required this.projectId,
-  }) : super(key: key);
+  });
 
   @override
   State<ProjectDetailScreen> createState() => _ProjectDetailScreenState();
@@ -60,7 +60,8 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
   }
 
   Future<void> _addTask() async {
-    final projectProvider = Provider.of<ProjectProvider>(context, listen: false);
+    final projectProvider =
+        Provider.of<ProjectProvider>(context, listen: false);
     final project = projectProvider.currentProject;
 
     if (project != null) {
@@ -82,7 +83,8 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
   }
 
   Future<void> _editProject() async {
-    final projectProvider = Provider.of<ProjectProvider>(context, listen: false);
+    final projectProvider =
+        Provider.of<ProjectProvider>(context, listen: false);
     final project = projectProvider.currentProject;
 
     if (project != null) {
@@ -114,34 +116,41 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
             mainAxisSize: MainAxisSize.min,
             children: [
               ListTile(
-                leading: const Icon(Icons.logout, color: Colors.red),
-                title: const Text('Logout', style: TextStyle(color: Colors.red)),
+                leading: Icon(Icons.share, color: AppTheme.primaryColor),
+                title: const Text('Share Project'),
+                onTap: () {
+                  Navigator.pop(context);
+                  // Share functionality
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.delete, color: Colors.red),
+                title: const Text('Delete Project',
+                    style: TextStyle(color: Colors.red)),
                 onTap: () async {
                   Navigator.pop(context);
-                  final confirm = await showDialog<bool>(
-                    context: context,
-                    builder: (context) => AlertDialog(
-                      title: const Text('Logout'),
-                      content: const Text('Are you sure you want to logout?'),
-                      actions: [
-                        TextButton(
-                          onPressed: () => Navigator.pop(context, false),
-                          child: const Text('Cancel'),
-                        ),
-                        TextButton(
-                          onPressed: () => Navigator.pop(context, true),
-                          child: const Text('Logout', style: TextStyle(color: Colors.red)),
-                        ),
-                      ],
-                    ),
-                  );
-
-                  if (confirm == true && mounted) {
-                    await Provider.of<AuthProvider>(context, listen: false).logout();
-                    if (mounted) {
-                      Navigator.of(context).pushReplacementNamed('/login');
-                    }
+                  final projectProvider =
+                      Provider.of<ProjectProvider>(context, listen: false);
+                  final project = projectProvider.currentProject;
+                  if (project != null) {
+                    _showDeleteProjectDialog(project);
                   }
+                },
+              ),
+              ListTile(
+                leading: Icon(Icons.archive, color: AppTheme.primaryColor),
+                title: const Text('Archive Project'),
+                onTap: () {
+                  Navigator.pop(context);
+                  // Archive functionality
+                },
+              ),
+              ListTile(
+                leading: Icon(Icons.help_outline, color: AppTheme.primaryColor),
+                title: const Text('Project Help'),
+                onTap: () {
+                  Navigator.pop(context);
+                  // Show help info
                 },
               ),
             ],
@@ -177,7 +186,8 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
               child: const Text('Delete', style: TextStyle(color: Colors.red)),
               onPressed: () async {
                 Navigator.of(context).pop();
-                await Provider.of<ProjectProvider>(context, listen: false).deleteProject(project.id);
+                await Provider.of<ProjectProvider>(context, listen: false)
+                    .deleteProject(project.id);
                 if (mounted) {
                   Navigator.of(context).pop();
                 }
@@ -204,350 +214,326 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
           ),
           IconButton(
             icon: const Icon(Icons.more_vert),
-            onPressed: () {
-              showModalBottomSheet(
-                context: context,
-                shape: const RoundedRectangleBorder(
-                  borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-                ),
-                builder: (context) {
-                  return SafeArea(
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        ListTile(
-                          leading: Icon(Icons.share, color: AppTheme.primaryColor),
-                          title: const Text('Share Project'),
-                          onTap: () {
-                            Navigator.pop(context);
-                            // Share functionality
-                          },
-                        ),
-                        ListTile(
-                          leading: Icon(Icons.delete, color: Colors.red),
-                          title: const Text('Delete Project', style: TextStyle(color: Colors.red)),
-                          onTap: () async {
-                            Navigator.pop(context);
-                            _showDeleteProjectDialog(project!);
-                          },
-                        ),
-                        ListTile(
-                          leading: Icon(Icons.archive, color: AppTheme.primaryColor),
-                          title: const Text('Archive Project'),
-                          onTap: () {
-                            Navigator.pop(context);
-                            // Archive functionality
-                          },
-                        ),
-                        ListTile(
-                          leading: Icon(Icons.help_outline, color: AppTheme.primaryColor),
-                          title: const Text('Project Help'),
-                          onTap: () {
-                            Navigator.pop(context);
-                            // Show help info
-                          },
-                        ),
-                      ],
-                    ),
-                  );
-                },
-              );
-            },
+            onPressed: _showMoreOptions,
           ),
         ],
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : project == null
-          ? const Center(child: Text('Project not found'))
-          : RefreshIndicator(
-        onRefresh: _fetchProjectDetails,
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Project header
-              Card(
-                elevation: 2,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Expanded(
-                            child: Text(
-                              project.name,
-                              style: const TextStyle(
-                                fontSize: 20,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
+              ? const Center(child: Text('Project not found'))
+              : RefreshIndicator(
+                  onRefresh: _fetchProjectDetails,
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Project header
+                        Card(
+                          elevation: 2,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
                           ),
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 8,
-                              vertical: 4,
-                            ),
-                            decoration: BoxDecoration(
-                              color: _getDeadlineColor(project.deadline),
-                              borderRadius: BorderRadius.circular(16),
-                            ),
-                            child: Text(
-                              _formatDeadline(project.deadline),
-                              style: const TextStyle(
-                                fontSize: 12,
-                                color: Colors.white,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        project.description,
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: Colors.grey[600],
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-                      const Text(
-                        'Your Target',
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        'One step at a time. You\'ll get there.',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                          color: AppTheme.primaryColor,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      LinearProgressIndicator(
-                        value: project.progress / 100,
-                        backgroundColor: Colors.grey[200],
-                        valueColor: AlwaysStoppedAnimation<Color>(
-                            AppTheme.primaryColor),
-                        minHeight: 8,
-                        borderRadius: BorderRadius.circular(4),
-                      ),
-                      const SizedBox(height: 4),
-                      Align(
-                        alignment: Alignment.centerRight,
-                        child: Text(
-                          '${project.progress}%',
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: AppTheme.primaryColor,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-
-              const SizedBox(height: 24),
-
-              // Team members section
-              if (project.teamMembers.isNotEmpty) ...[
-                const Text(
-                  'Team Members',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                SizedBox(
-                  height: 80,
-                  child: ListView.builder(
-                    scrollDirection: Axis.horizontal,
-                    itemCount: project.teamMembers.length,
-                    itemBuilder: (context, index) {
-                      return FutureBuilder<UserModel?>(
-                        future: Provider.of<ProjectProvider>(context, listen: false)
-                            .fetchUserById(project.teamMembers[index]),
-                        builder: (context, snapshot) {
-                          if (snapshot.connectionState == ConnectionState.waiting) {
-                            return const Padding(
-                              padding: EdgeInsets.all(8.0),
-                              child: CircularProgressIndicator(),
-                            );
-                          }
-
-                          final user = snapshot.data;
-                          if (user == null) {
-                            return const SizedBox.shrink();
-                          }
-
-                          return Padding(
-                            padding: const EdgeInsets.only(right: 16),
+                          child: Padding(
+                            padding: const EdgeInsets.all(16),
                             child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                user.profileImageBase64 != null && user.profileImageBase64!.isNotEmpty
-                                    ? CachedNetworkImage(
-                                  imageUrl: user.profileImageBase64!,
-                                  imageBuilder: (context, imageProvider) => CircleAvatar(
-                                    radius: 24,
-                                    backgroundImage: imageProvider,
-                                    backgroundColor: AppTheme.primaryColor,
-                                  ),
-                                  placeholder: (context, url) => CircleAvatar(
-                                    radius: 24,
-                                    backgroundColor: AppTheme.primaryColor,
-                                    child: const CircularProgressIndicator(
-                                      color: Colors.white,
-                                      strokeWidth: 2,
+                                Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Expanded(
+                                      child: Text(
+                                        project.name,
+                                        style: const TextStyle(
+                                          fontSize: 20,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
                                     ),
-                                  ),
-                                  errorWidget: (context, url, error) => CircleAvatar(
-                                    radius: 24,
-                                    backgroundColor: AppTheme.primaryColor,
-                                    child: Text(
-                                      user.name[0].toUpperCase(),
-                                      style: const TextStyle(color: Colors.white),
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 8,
+                                        vertical: 4,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color:
+                                            _getDeadlineColor(project.deadline),
+                                        borderRadius: BorderRadius.circular(16),
+                                      ),
+                                      child: Text(
+                                        _formatDeadline(project.deadline),
+                                        style: const TextStyle(
+                                          fontSize: 12,
+                                          color: Colors.white,
+                                        ),
+                                      ),
                                     ),
-                                  ),
-                                )
-                                    : CircleAvatar(
-                                  radius: 24,
-                                  backgroundColor: AppTheme.primaryColor,
-                                  child: Text(
-                                    user.name[0].toUpperCase(),
-                                    style: const TextStyle(color: Colors.white),
+                                  ],
+                                ),
+                                const SizedBox(height: 8),
+                                Text(
+                                  project.description,
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    color: Colors.grey[600],
                                   ),
                                 ),
-                                const SizedBox(height: 4),
+                                const SizedBox(height: 16),
+                                const Text(
+                                  'Your Target',
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                                const SizedBox(height: 8),
                                 Text(
-                                  user.name.split(' ')[0],
-                                  style: const TextStyle(fontSize: 12),
+                                  'One step at a time. You\'ll get there.',
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.bold,
+                                    color: AppTheme.primaryColor,
+                                  ),
+                                ),
+                                const SizedBox(height: 8),
+                                LinearProgressIndicator(
+                                  value: project.progress / 100,
+                                  backgroundColor: Colors.grey[200],
+                                  valueColor: AlwaysStoppedAnimation<Color>(
+                                      AppTheme.primaryColor),
+                                  minHeight: 8,
+                                  borderRadius: BorderRadius.circular(4),
+                                ),
+                                const SizedBox(height: 4),
+                                Align(
+                                  alignment: Alignment.centerRight,
+                                  child: Text(
+                                    '${project.progress}%',
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      color: AppTheme.primaryColor,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
                                 ),
                               ],
                             ),
-                          );
-                        },
-                      );
-                    },
-                  ),
-                ),
-                const SizedBox(height: 16),
-              ],
-
-              // Task list
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  const Text(
-                    'Task List',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  IconButton(
-                    icon: Icon(
-                      Icons.filter_list,
-                      color: AppTheme.primaryColor,
-                    ),
-                    onPressed: () {
-                      // Show filter options
-                    },
-                  ),
-                ],
-              ),
-
-              const SizedBox(height: 8),
-
-              // Task priority section
-              const Text(
-                'Task Priority',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-
-              const SizedBox(height: 8),
-
-              // Task status
-              Card(
-                elevation: 2,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        'TASK STATUS',
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.bold,
+                          ),
                         ),
-                      ),
-                      const SizedBox(height: 16),
-                      ...project.tasks.map((task) => _buildTaskItem(task)).toList(),
 
-                      const SizedBox(height: 16),
+                        const SizedBox(height: 24),
 
-                      // Add new task button
-                      InkWell(
-                        onTap: _addTask,
-                        borderRadius: BorderRadius.circular(8),
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 16,
-                            vertical: 12,
-                          ),
-                          decoration: BoxDecoration(
-                            border: Border.all(
-                              color: Colors.grey[300]!,
+                        // Team members section
+                        if (project.teamMembers.isNotEmpty) ...[
+                          const Text(
+                            'Team Members',
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
                             ),
-                            borderRadius: BorderRadius.circular(8),
                           ),
-                          child: Row(
-                            children: [
-                              Icon(
-                                Icons.add,
-                                size: 20,
+                          const SizedBox(height: 8),
+                          SizedBox(
+                            height: 80,
+                            child: ListView.builder(
+                              scrollDirection: Axis.horizontal,
+                              itemCount: project.teamMembers.length,
+                              itemBuilder: (context, index) {
+                                return FutureBuilder<UserModel?>(
+                                  future: Provider.of<ProjectProvider>(context,
+                                          listen: false)
+                                      .fetchUserById(
+                                          project.teamMembers[index]),
+                                  builder: (context, snapshot) {
+                                    if (snapshot.connectionState ==
+                                        ConnectionState.waiting) {
+                                      return const Padding(
+                                        padding: EdgeInsets.all(8.0),
+                                        child: CircularProgressIndicator(),
+                                      );
+                                    }
+
+                                    final user = snapshot.data;
+                                    if (user == null) {
+                                      return const SizedBox.shrink();
+                                    }
+
+                                    return Padding(
+                                      padding: const EdgeInsets.only(right: 16),
+                                      child: Column(
+                                        children: [
+                                          user.profileImageBase64 != null &&
+                                                  user.profileImageBase64!
+                                                      .isNotEmpty
+                                              ? CachedNetworkImage(
+                                                  imageUrl:
+                                                      user.profileImageBase64!,
+                                                  imageBuilder: (context,
+                                                          imageProvider) =>
+                                                      CircleAvatar(
+                                                    radius: 24,
+                                                    backgroundImage:
+                                                        imageProvider,
+                                                    backgroundColor:
+                                                        AppTheme.primaryColor,
+                                                  ),
+                                                  placeholder: (context, url) =>
+                                                      CircleAvatar(
+                                                    radius: 24,
+                                                    backgroundColor:
+                                                        AppTheme.primaryColor,
+                                                    child:
+                                                        const CircularProgressIndicator(
+                                                      color: Colors.white,
+                                                      strokeWidth: 2,
+                                                    ),
+                                                  ),
+                                                  errorWidget:
+                                                      (context, url, error) =>
+                                                          CircleAvatar(
+                                                    radius: 24,
+                                                    backgroundColor:
+                                                        AppTheme.primaryColor,
+                                                    child: Text(
+                                                      user.name[0]
+                                                          .toUpperCase(),
+                                                      style: const TextStyle(
+                                                          color: Colors.white),
+                                                    ),
+                                                  ),
+                                                )
+                                              : CircleAvatar(
+                                                  radius: 24,
+                                                  backgroundColor:
+                                                      AppTheme.primaryColor,
+                                                  child: Text(
+                                                    user.name[0].toUpperCase(),
+                                                    style: const TextStyle(
+                                                        color: Colors.white),
+                                                  ),
+                                                ),
+                                          const SizedBox(height: 4),
+                                          Text(
+                                            user.name.split(' ')[0],
+                                            style:
+                                                const TextStyle(fontSize: 12),
+                                          ),
+                                        ],
+                                      ),
+                                    );
+                                  },
+                                );
+                              },
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                        ],
+
+                        // Task list
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            const Text(
+                              'Task List',
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            IconButton(
+                              icon: Icon(
+                                Icons.filter_list,
                                 color: AppTheme.primaryColor,
                               ),
-                              const SizedBox(width: 8),
-                              const Text(
-                                'Add new sub task',
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
-                            ],
+                              onPressed: () {
+                                // Show filter options
+                              },
+                            ),
+                          ],
+                        ),
+
+                        const SizedBox(height: 8),
+
+                        // Task priority section
+                        const Text(
+                          'Task Priority',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w500,
                           ),
                         ),
-                      ),
-                    ],
+
+                        const SizedBox(height: 8),
+
+                        // Task status
+                        Card(
+                          elevation: 2,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Padding(
+                            padding: const EdgeInsets.all(16),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Text(
+                                  'TASK STATUS',
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                const SizedBox(height: 16),
+                                ...project.tasks
+                                    .map((task) => _buildTaskItem(task)),
+
+                                const SizedBox(height: 16),
+
+                                // Add new task button
+                                InkWell(
+                                  onTap: _addTask,
+                                  borderRadius: BorderRadius.circular(8),
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 16,
+                                      vertical: 12,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      border: Border.all(
+                                        color: Colors.grey[300]!,
+                                      ),
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
+                                    child: Row(
+                                      children: [
+                                        Icon(
+                                          Icons.add,
+                                          size: 20,
+                                          color: AppTheme.primaryColor,
+                                        ),
+                                        const SizedBox(width: 8),
+                                        const Text(
+                                          'Add new sub task',
+                                          style: TextStyle(
+                                            fontSize: 14,
+                                            fontWeight: FontWeight.w500,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
-              ),
-            ],
-          ),
-        ),
-      ),
     );
   }
 
