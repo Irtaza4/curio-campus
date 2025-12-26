@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:curio_campus/models/project_model.dart';
-import 'package:curio_campus/providers/auth_provider.dart';
+
 import 'package:curio_campus/providers/chat_provider.dart';
 import 'package:curio_campus/providers/matchmaking_provider.dart';
 import 'package:curio_campus/providers/project_provider.dart';
@@ -11,7 +11,7 @@ import 'package:curio_campus/utils/app_theme.dart';
 import '../../models/match_making_model.dart';
 
 class MatchmakingScreen extends StatefulWidget {
-  const MatchmakingScreen({Key? key}) : super(key: key);
+  const MatchmakingScreen({super.key});
 
   @override
   State<MatchmakingScreen> createState() => _MatchmakingScreenState();
@@ -37,7 +37,8 @@ class _MatchmakingScreenState extends State<MatchmakingScreen> {
     });
 
     try {
-      final projectProvider = Provider.of<ProjectProvider>(context, listen: false);
+      final projectProvider =
+          Provider.of<ProjectProvider>(context, listen: false);
       await projectProvider.fetchProjects();
 
       setState(() {
@@ -73,12 +74,14 @@ class _MatchmakingScreenState extends State<MatchmakingScreen> {
 
     try {
       // If a project is selected, use its required skills for matching
-      if (_selectedProject != null && _selectedProject!.requiredSkills.isNotEmpty) {
+      if (_selectedProject != null &&
+          _selectedProject!.requiredSkills.isNotEmpty) {
         await Provider.of<MatchmakingProvider>(context, listen: false)
             .findMatches(requiredSkills: _selectedProject!.requiredSkills);
       } else {
         // Otherwise, use the user's skills
-        await Provider.of<MatchmakingProvider>(context, listen: false).findMatches();
+        await Provider.of<MatchmakingProvider>(context, listen: false)
+            .findMatches();
       }
     } catch (e) {
       if (mounted) {
@@ -151,7 +154,8 @@ class _MatchmakingScreenState extends State<MatchmakingScreen> {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         ListTile(
-                          leading: Icon(Icons.filter_list, color: AppTheme.primaryColor),
+                          leading: Icon(Icons.filter_list,
+                              color: AppTheme.primaryColor),
                           title: const Text('Filter Options'),
                           onTap: () {
                             Navigator.pop(context);
@@ -159,7 +163,8 @@ class _MatchmakingScreenState extends State<MatchmakingScreen> {
                           },
                         ),
                         ListTile(
-                          leading: Icon(Icons.sort, color: AppTheme.primaryColor),
+                          leading:
+                              Icon(Icons.sort, color: AppTheme.primaryColor),
                           title: const Text('Sort By'),
                           onTap: () {
                             Navigator.pop(context);
@@ -167,7 +172,8 @@ class _MatchmakingScreenState extends State<MatchmakingScreen> {
                           },
                         ),
                         ListTile(
-                          leading: Icon(Icons.help_outline, color: AppTheme.primaryColor),
+                          leading: Icon(Icons.help_outline,
+                              color: AppTheme.primaryColor),
                           title: const Text('How Matchmaking Works'),
                           onTap: () {
                             Navigator.pop(context);
@@ -221,21 +227,22 @@ class _MatchmakingScreenState extends State<MatchmakingScreen> {
                           value: project.id,
                           child: Text(project.name),
                         );
-                      }).toList(),
+                      }),
                     ],
                     onChanged: (value) {
                       if (value == null) {
                         _selectProject(null);
                       } else {
                         final project = _userProjects.firstWhere(
-                              (p) => p.id == value,
+                          (p) => p.id == value,
                           orElse: () => _userProjects.first,
                         );
                         _selectProject(project);
                       }
                     },
                   ),
-                  if (_selectedProject != null && _selectedProject!.requiredSkills.isNotEmpty) ...[
+                  if (_selectedProject != null &&
+                      _selectedProject!.requiredSkills.isNotEmpty) ...[
                     const SizedBox(height: 8),
                     Wrap(
                       spacing: 8,
@@ -247,7 +254,7 @@ class _MatchmakingScreenState extends State<MatchmakingScreen> {
                             vertical: 4,
                           ),
                           decoration: BoxDecoration(
-                            color: AppTheme.primaryColor.withOpacity(0.1),
+                            color: AppTheme.primaryColor.withValues(alpha: 0.1),
                             borderRadius: BorderRadius.circular(16),
                           ),
                           child: Text(
@@ -272,33 +279,33 @@ class _MatchmakingScreenState extends State<MatchmakingScreen> {
             child: _isLoading
                 ? const Center(child: CircularProgressIndicator())
                 : matches.isEmpty
-                ? Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Text(
-                    'No matches found',
-                    style: TextStyle(fontSize: 18),
-                  ),
-                  const SizedBox(height: 16),
-                  ElevatedButton(
-                    onPressed: _findMatches,
-                    child: const Text('Refresh'),
-                  ),
-                ],
-              ),
-            )
-                : RefreshIndicator(
-              onRefresh: _findMatches,
-              child: ListView.builder(
-                padding: const EdgeInsets.all(16),
-                itemCount: matches.length,
-                itemBuilder: (context, index) {
-                  final match = matches[index];
-                  return _buildMatchCard(match);
-                },
-              ),
-            ),
+                    ? Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            const Text(
+                              'No matches found',
+                              style: TextStyle(fontSize: 18),
+                            ),
+                            const SizedBox(height: 16),
+                            ElevatedButton(
+                              onPressed: _findMatches,
+                              child: const Text('Refresh'),
+                            ),
+                          ],
+                        ),
+                      )
+                    : RefreshIndicator(
+                        onRefresh: _findMatches,
+                        child: ListView.builder(
+                          padding: const EdgeInsets.all(16),
+                          itemCount: matches.length,
+                          itemBuilder: (context, index) {
+                            final match = matches[index];
+                            return _buildMatchCard(match);
+                          },
+                        ),
+                      ),
           ),
         ],
       ),
@@ -321,16 +328,17 @@ class _MatchmakingScreenState extends State<MatchmakingScreen> {
             CircleAvatar(
               radius: 30,
               backgroundColor: AppTheme.primaryColor,
-              backgroundImage:
-              match.avatarUrl != null ? NetworkImage(match.avatarUrl!) : null,
+              backgroundImage: match.avatarUrl != null
+                  ? NetworkImage(match.avatarUrl!)
+                  : null,
               child: match.avatarUrl == null
                   ? Text(
-                match.name.isNotEmpty ? match.name[0].toUpperCase() : '?',
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 24,
-                ),
-              )
+                      match.name.isNotEmpty ? match.name[0].toUpperCase() : '?',
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 24,
+                      ),
+                    )
                   : null,
             ),
             const SizedBox(width: 16),
@@ -402,8 +410,8 @@ class _MatchmakingScreenState extends State<MatchmakingScreen> {
                         ),
                         decoration: BoxDecoration(
                           color: isMatchingSkill
-                              ? AppTheme.primaryColor.withOpacity(0.2)
-                              : AppTheme.primaryColor.withOpacity(0.1),
+                              ? AppTheme.primaryColor.withValues(alpha: 0.2)
+                              : AppTheme.primaryColor.withValues(alpha: 0.1),
                           borderRadius: BorderRadius.circular(16),
                           border: isMatchingSkill
                               ? Border.all(color: AppTheme.primaryColor)
