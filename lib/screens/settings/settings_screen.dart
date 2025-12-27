@@ -10,7 +10,7 @@ import 'package:android_intent_plus/android_intent.dart';
 import 'package:device_info_plus/device_info_plus.dart';
 
 class SettingsScreen extends StatefulWidget {
-  const SettingsScreen({Key? key}) : super(key: key);
+  const SettingsScreen({super.key});
 
   @override
   State<SettingsScreen> createState() => _SettingsScreenState();
@@ -36,7 +36,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               title: 'Dark Mode',
               trailing: Switch(
                 value: isDarkMode,
-                activeColor: AppTheme.primaryColor,
+                activeThumbColor: AppTheme.primaryColor,
                 onChanged: (value) async {
                   await themeProvider.setDarkMode(value);
                 },
@@ -45,9 +45,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 await themeProvider.toggleTheme();
               },
             ),
-
             const Divider(),
-
             _buildSettingItem(
               icon: Icons.battery_alert,
               title: 'Background Activity',
@@ -58,8 +56,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   builder: (context) => AlertDialog(
                     title: const Text('Background Activity'),
                     content: const Text(
-                        'To ensure you receive calls and messages while the app is in the background, please allow background activity. Do you want to continue?'
-                    ),
+                        'To ensure you receive calls and messages while the app is in the background, please allow background activity. Do you want to continue?'),
                     actions: [
                       TextButton(
                         onPressed: () => Navigator.pop(context, false),
@@ -77,16 +74,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   final androidInfo = await DeviceInfoPlugin().androidInfo;
                   if (Platform.isAndroid && androidInfo.version.sdkInt >= 23) {
                     const intent = AndroidIntent(
-                      action: 'android.settings.IGNORE_BATTERY_OPTIMIZATION_SETTINGS',
+                      action:
+                          'android.settings.IGNORE_BATTERY_OPTIMIZATION_SETTINGS',
                     );
                     await intent.launch();
                   }
                 }
               },
             ),
-
             const Divider(),
-
             _buildSettingItem(
               icon: Icons.edit,
               title: 'Edit Profile',
@@ -100,15 +96,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 );
               },
             ),
-
             const Divider(),
-
             _buildSettingItem(
               icon: Icons.logout,
               title: 'Logout',
               titleColor: AppTheme.errorColor,
               iconColor: AppTheme.errorColor,
-              trailing: Icon(Icons.arrow_forward_ios, size: 16, color: AppTheme.errorColor),
+              trailing: Icon(Icons.arrow_forward_ios,
+                  size: 16, color: AppTheme.errorColor),
               onTap: () async {
                 final confirm = await showDialog<bool>(
                   context: context,
@@ -122,7 +117,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       ),
                       TextButton(
                         onPressed: () => Navigator.pop(context, true),
-                        child: Text('Logout', style: TextStyle(color: AppTheme.errorColor)),
+                        child: Text('Logout',
+                            style: TextStyle(color: AppTheme.errorColor)),
                       ),
                     ],
                   ),
@@ -133,7 +129,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   if (context.mounted) {
                     Navigator.of(context).pushAndRemoveUntil(
                       MaterialPageRoute(builder: (_) => const LoginScreen()),
-                          (route) => false,
+                      (route) => false,
                     );
                   }
                 }
@@ -159,14 +155,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
     return ListTile(
       leading: Icon(
         icon,
-        color: iconColor ?? (isDarkMode ? AppTheme.darkDarkGrayColor : AppTheme.darkGrayColor),
+        color: iconColor ??
+            (isDarkMode ? AppTheme.darkDarkGrayColor : AppTheme.darkGrayColor),
       ),
       title: Text(
         title,
         style: TextStyle(
           fontSize: 16,
           fontWeight: FontWeight.w500,
-          color: titleColor ?? (isDarkMode ? AppTheme.darkTextColor : AppTheme.textColor),
+          color: titleColor ??
+              (isDarkMode ? AppTheme.darkTextColor : AppTheme.textColor),
         ),
       ),
       trailing: trailing,

@@ -6,15 +6,9 @@ import 'package:curio_campus/screens/project/project_detail_screen.dart';
 import 'package:curio_campus/screens/project/create_project_screen.dart';
 import 'package:curio_campus/utils/app_theme.dart';
 import 'package:intl/intl.dart';
-import 'package:curio_campus/providers/auth_provider.dart';
-import 'package:cached_network_image/cached_network_image.dart';
-import 'package:curio_campus/widgets/notification_badge.dart';
-import 'package:curio_campus/providers/notification_provider.dart';
-import 'package:curio_campus/widgets/notification_drawer.dart';
-import 'package:curio_campus/models/notification_model.dart';
 
 class ProjectsScreen extends StatefulWidget {
-  const ProjectsScreen({Key? key}) : super(key: key);
+  const ProjectsScreen({super.key});
 
   @override
   State<ProjectsScreen> createState() => _ProjectsScreenState();
@@ -38,7 +32,8 @@ class _ProjectsScreenState extends State<ProjectsScreen> {
 
     try {
       // First try to load from shared preferences for immediate display
-      final projectProvider = Provider.of<ProjectProvider>(context, listen: false);
+      final projectProvider =
+          Provider.of<ProjectProvider>(context, listen: false);
       await projectProvider.initProjects();
 
       // Then fetch from Firebase to ensure data is up-to-date
@@ -104,8 +99,9 @@ class _ProjectsScreenState extends State<ProjectsScreen> {
                 _isLoading = true;
               });
 
-              final success = await Provider.of<ProjectProvider>(context, listen: false)
-                  .deleteProject(project.id);
+              final success =
+                  await Provider.of<ProjectProvider>(context, listen: false)
+                      .deleteProject(project.id);
 
               setState(() {
                 _isLoading = false;
@@ -129,70 +125,71 @@ class _ProjectsScreenState extends State<ProjectsScreen> {
   @override
   Widget build(BuildContext context) {
     final projectProvider = Provider.of<ProjectProvider>(context);
-    final notificationProvider = Provider.of<NotificationProvider>(context);
     final allProjects = projectProvider.projects;
-    final unreadCount = notificationProvider.unreadCount;
 
     // Separate projects into active and completed
     final activeProjects = allProjects.where((p) => p.progress < 100).toList();
-    final completedProjects = allProjects.where((p) => p.progress == 100).toList();
+    final completedProjects =
+        allProjects.where((p) => p.progress == 100).toList();
 
     return Scaffold(
       // Remove the appBar here
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : allProjects.isEmpty
-          ? Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Text(
-              'No projects yet',
-              style: TextStyle(fontSize: 18),
-            ),
-            const SizedBox(height: 16),
-            ElevatedButton(
-              onPressed: _navigateToCreateProject,
-              style: ElevatedButton.styleFrom(
-                minimumSize: const Size(200, 48), // width: 200, height: 48
-              ),
-              child: const Text('Create Project'),
-            ),
-          ],
-        ),
-      )
-          : RefreshIndicator(
-        onRefresh: _fetchProjects,
-        child: ListView(
-          padding: const EdgeInsets.all(16),
-          children: [
-            if (activeProjects.isNotEmpty) ...[
-              const Text(
-                'Active Projects',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
+              ? Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Text(
+                        'No projects yet',
+                        style: TextStyle(fontSize: 18),
+                      ),
+                      const SizedBox(height: 16),
+                      ElevatedButton(
+                        onPressed: _navigateToCreateProject,
+                        style: ElevatedButton.styleFrom(
+                          minimumSize:
+                              const Size(200, 48), // width: 200, height: 48
+                        ),
+                        child: const Text('Create Project'),
+                      ),
+                    ],
+                  ),
+                )
+              : RefreshIndicator(
+                  onRefresh: _fetchProjects,
+                  child: ListView(
+                    padding: const EdgeInsets.all(16),
+                    children: [
+                      if (activeProjects.isNotEmpty) ...[
+                        const Text(
+                          'Active Projects',
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        ...activeProjects
+                            .map((project) => _buildProjectCard(project)),
+                      ],
+                      if (completedProjects.isNotEmpty) ...[
+                        const SizedBox(height: 24),
+                        const Text(
+                          'Completed Projects',
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        ...completedProjects
+                            .map((project) => _buildProjectCard(project)),
+                      ],
+                    ],
+                  ),
                 ),
-              ),
-              const SizedBox(height: 8),
-              ...activeProjects.map((project) => _buildProjectCard(project)),
-            ],
-
-            if (completedProjects.isNotEmpty) ...[
-              const SizedBox(height: 24),
-              const Text(
-                'Completed Projects',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              const SizedBox(height: 8),
-              ...completedProjects.map((project) => _buildProjectCard(project)),
-            ],
-          ],
-        ),
-      ),
       floatingActionButton: FloatingActionButton(
         heroTag: 'projects_fab',
         onPressed: _navigateToCreateProject,
@@ -309,7 +306,9 @@ class _ProjectsScreenState extends State<ProjectsScreen> {
                 style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
-                  color: project.progress == 100 ? Colors.green : AppTheme.primaryColor,
+                  color: project.progress == 100
+                      ? Colors.green
+                      : AppTheme.primaryColor,
                 ),
               ),
               const SizedBox(height: 8),
@@ -317,7 +316,9 @@ class _ProjectsScreenState extends State<ProjectsScreen> {
                 value: project.progress / 100,
                 backgroundColor: Colors.grey[200],
                 valueColor: AlwaysStoppedAnimation<Color>(
-                  project.progress == 100 ? Colors.green : AppTheme.primaryColor,
+                  project.progress == 100
+                      ? Colors.green
+                      : AppTheme.primaryColor,
                 ),
                 minHeight: 8,
                 borderRadius: BorderRadius.circular(4),
@@ -329,7 +330,9 @@ class _ProjectsScreenState extends State<ProjectsScreen> {
                   '${project.progress}%',
                   style: TextStyle(
                     fontSize: 12,
-                    color: project.progress == 100 ? Colors.green : AppTheme.primaryColor,
+                    color: project.progress == 100
+                        ? Colors.green
+                        : AppTheme.primaryColor,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
