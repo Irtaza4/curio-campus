@@ -2,6 +2,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:curio_campus/models/user_model.dart';
 import 'package:curio_campus/utils/constants.dart';
 
+import 'package:flutter/material.dart';
+
 class TeamMemberService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
@@ -20,7 +22,7 @@ class TeamMemberService {
       }
       return null;
     } catch (e) {
-      print('Error fetching team member: $e');
+      debugPrint('Error fetching team member: $e');
       return null;
     }
   }
