@@ -148,11 +148,11 @@ class ImageUtils {
     return Container(
       width: width,
       height: height,
-      color: color.withOpacity(0.3),
+      color: color.withValues(alpha: 0.3),
       child: Center(
         child: Icon(
           Icons.image,
-          color: color.withOpacity(0.7),
+          color: color.withValues(alpha: 0.7),
           size: (width != null && height != null)
               ? (width < height ? width / 3 : height / 3)
               : 24,
@@ -162,7 +162,8 @@ class ImageUtils {
   }
 
   // Save image to device
-  static Future<String?> saveImageToDevice(String? base64String, String fileName) async {
+  static Future<String?> saveImageToDevice(
+      String? base64String, String fileName) async {
     try {
       if (!isValidBase64(base64String)) {
         return null;
