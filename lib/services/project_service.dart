@@ -2,6 +2,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:curio_campus/models/project_model.dart';
 import 'package:curio_campus/utils/constants.dart';
 
+import 'package:flutter/material.dart';
+
 class ProjectService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
@@ -20,7 +22,7 @@ class ProjectService {
       }
       return null;
     } catch (e) {
-      print('Error fetching project: $e');
+      debugPrint('Error fetching project: $e');
       return null;
     }
   }
