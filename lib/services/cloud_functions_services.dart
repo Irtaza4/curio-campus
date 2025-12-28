@@ -1,11 +1,12 @@
 import 'package:cloud_functions/cloud_functions.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/foundation.dart';
 
 class CloudFunctionsService {
   static final FirebaseFunctions _functions = FirebaseFunctions.instance;
 
   // Add debug mode for testing
-  static bool _debugMode = true;
+  static const bool _debugMode = true;
 
   static Future<bool> sendEmergencyNotification({
     required List<String> requiredSkills,
@@ -16,17 +17,17 @@ class CloudFunctionsService {
   }) async {
     try {
       if (_debugMode) {
-        print('🔥 Calling sendEmergencyNotification with:');
-        print('  - Skills: $requiredSkills');
-        print('  - Requester: $requesterName');
-        print('  - Request ID: $requestId');
-        print('  - Title: $title');
+        debugPrint('🔥 Calling sendEmergencyNotification with:');
+        debugPrint('  - Skills: $requiredSkills');
+        debugPrint('  - Requester: $requesterName');
+        debugPrint('  - Request ID: $requestId');
+        debugPrint('  - Title: $title');
       }
 
       // Check if user is authenticated
       final user = FirebaseAuth.instance.currentUser;
       if (user == null) {
-        print('❌ User not authenticated');
+        debugPrint('❌ User not authenticated');
         return false;
       }
 
@@ -41,16 +42,16 @@ class CloudFunctionsService {
       });
 
       if (_debugMode) {
-        print('✅ Function result: ${result.data}');
+        debugPrint('✅ Function result: ${result.data}');
       }
 
       return result.data['success'] == true;
     } catch (e) {
-      print('❌ Error calling sendEmergencyNotification: $e');
+      debugPrint('❌ Error calling sendEmergencyNotification: $e');
 
       // If function not found, fall back to Firestore trigger
       if (e.toString().contains('NOT_FOUND')) {
-        print('🔄 Function not found, relying on Firestore trigger...');
+        debugPrint('🔄 Function not found, relying on Firestore trigger...');
         return true; // Let the Firestore trigger handle it
       }
 
@@ -79,7 +80,7 @@ class CloudFunctionsService {
 
       return result.data['success'] == true;
     } catch (e) {
-      print('Error calling sendChatNotification: $e');
+      debugPrint('Error calling sendChatNotification: $e');
       return false;
     }
   }
@@ -107,7 +108,7 @@ class CloudFunctionsService {
 
       return result.data['success'] == true;
     } catch (e) {
-      print('Error calling sendCallNotification: $e');
+      debugPrint('Error calling sendCallNotification: $e');
       return false;
     }
   }
@@ -131,7 +132,7 @@ class CloudFunctionsService {
 
       return result.data['success'] == true;
     } catch (e) {
-      print('Error calling sendTopicNotification: $e');
+      debugPrint('Error calling sendTopicNotification: $e');
       return false;
     }
   }
@@ -152,7 +153,7 @@ class CloudFunctionsService {
 
       return true;
     } catch (e) {
-      print('❌ Connection test failed: $e');
+      debugPrint('❌ Connection test failed: $e');
       return false;
     }
   }
