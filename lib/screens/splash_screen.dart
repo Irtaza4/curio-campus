@@ -20,7 +20,8 @@ class SplashScreen extends StatefulWidget {
   State<SplashScreen> createState() => _SplashScreenState();
 }
 
-class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderStateMixin {
+class _SplashScreenState extends State<SplashScreen>
+    with SingleTickerProviderStateMixin {
   late AnimationController _controller;
   late Animation<double> _opacityAnimation;
   late Animation<double> _scaleAnimation;
@@ -53,9 +54,9 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
     // ✅ Print the FCM token to console
     FirebaseMessaging.instance.getToken().then((token) {
       if (token != null) {
-        print('🔥 FCM Token: $token');
+        debugPrint('🔥 FCM Token: $token');
       } else {
-        print('❌ Failed to get FCM token');
+        debugPrint('❌ Failed to get FCM token');
       }
     });
 
@@ -78,7 +79,8 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
       final initialNotificationJson = prefs.getString('initial_notification');
 
       if (authProvider.isAuthenticated) {
-        await Provider.of<ProjectProvider>(context, listen: false).initProjects();
+        await Provider.of<ProjectProvider>(context, listen: false)
+            .initProjects();
 
         if (mounted) {
           Navigator.of(context).pushReplacement(
@@ -86,7 +88,8 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
           );
 
           if (initialNotificationJson != null) {
-            final notificationData = jsonDecode(initialNotificationJson) as Map<String, dynamic>;
+            final notificationData =
+                jsonDecode(initialNotificationJson) as Map<String, dynamic>;
             _handleInitialNotification(notificationData);
             prefs.remove('initial_notification');
           }
@@ -201,11 +204,18 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
                       ),
                     ),
                     const SizedBox(height: 16),
-                    const Text('. Collaborate .', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w500)),
-                    const Text('. Learn .', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w500)),
-                    const Text('. Achieve .', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w500)),
+                    const Text('. Collaborate .',
+                        style: TextStyle(
+                            fontSize: 18, fontWeight: FontWeight.w500)),
+                    const Text('. Learn .',
+                        style: TextStyle(
+                            fontSize: 18, fontWeight: FontWeight.w500)),
+                    const Text('. Achieve .',
+                        style: TextStyle(
+                            fontSize: 18, fontWeight: FontWeight.w500)),
                     const SizedBox(height: 48),
-                    const Text('LOADING ...', style: TextStyle(fontSize: 14, color: Colors.black54)),
+                    const Text('LOADING ...',
+                        style: TextStyle(fontSize: 14, color: Colors.black54)),
                     const SizedBox(height: 8),
                     SizedBox(
                       width: 200,
@@ -214,7 +224,8 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
                         child: LinearProgressIndicator(
                           value: _controller.value,
                           backgroundColor: Colors.grey[300],
-                          valueColor: AlwaysStoppedAnimation<Color>(AppTheme.primaryColor),
+                          valueColor: AlwaysStoppedAnimation<Color>(
+                              AppTheme.primaryColor),
                           minHeight: 8,
                         ),
                       ),
