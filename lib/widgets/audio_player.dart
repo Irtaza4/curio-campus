@@ -1,5 +1,5 @@
 import 'dart:async';
-import 'dart:convert';
+
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
@@ -12,10 +12,10 @@ class AudioMessagePlayer extends StatefulWidget {
   final int? duration;
 
   const AudioMessagePlayer({
-    Key? key,
+    super.key,
     required this.audioBase64,
     this.duration,
-  }) : super(key: key);
+  });
 
   @override
   State<AudioMessagePlayer> createState() => _AudioMessagePlayerState();
@@ -29,7 +29,6 @@ class _AudioMessagePlayerState extends State<AudioMessagePlayer> {
   String? _audioPath;
   bool _isLoading = true;
   bool _isError = false;
-  bool _isInitialized = false;
 
   @override
   void initState() {
@@ -82,9 +81,6 @@ class _AudioMessagePlayerState extends State<AudioMessagePlayer> {
 
       // Decode and save base64 audio to a temporary file
       await _prepareAudioFile();
-
-      // Mark as initialized
-      _isInitialized = true;
     } catch (e) {
       debugPrint('Error initializing audio player: $e');
       if (mounted) {
@@ -114,7 +110,8 @@ class _AudioMessagePlayerState extends State<AudioMessagePlayer> {
       }
 
       final tempDir = await getTemporaryDirectory();
-      _audioPath = '${tempDir.path}/audio_${DateTime.now().millisecondsSinceEpoch}.m4a';
+      _audioPath =
+          '${tempDir.path}/audio_${DateTime.now().millisecondsSinceEpoch}.m4a';
 
       final file = File(_audioPath!);
       await file.writeAsBytes(bytes);
@@ -271,17 +268,26 @@ class _AudioMessagePlayerState extends State<AudioMessagePlayer> {
                 SliderTheme(
                   data: SliderThemeData(
                     trackHeight: 4,
-                    thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 6),
-                    overlayShape: const RoundSliderOverlayShape(overlayRadius: 14),
+                    thumbShape:
+                        const RoundSliderThumbShape(enabledThumbRadius: 6),
+                    overlayShape:
+                        const RoundSliderOverlayShape(overlayRadius: 14),
                     activeTrackColor: AppTheme.primaryColor,
-                    inactiveTrackColor: isDarkMode ? Colors.grey[600] : Colors.grey[300],
+                    inactiveTrackColor:
+                        isDarkMode ? Colors.grey[600] : Colors.grey[300],
                     thumbColor: AppTheme.primaryColor,
-                    overlayColor: AppTheme.primaryColor.withOpacity(0.2),
+                    overlayColor: AppTheme.primaryColor.withValues(alpha: 0.2),
                   ),
                   child: Slider(
                     min: 0,
-                    max: _duration.inMilliseconds > 0 ? _duration.inMilliseconds.toDouble() : 1.0,
-                    value: _position.inMilliseconds.toDouble().clamp(0, _duration.inMilliseconds > 0 ? _duration.inMilliseconds.toDouble() : 1.0),
+                    max: _duration.inMilliseconds > 0
+                        ? _duration.inMilliseconds.toDouble()
+                        : 1.0,
+                    value: _position.inMilliseconds.toDouble().clamp(
+                        0,
+                        _duration.inMilliseconds > 0
+                            ? _duration.inMilliseconds.toDouble()
+                            : 1.0),
                     onChanged: (value) async {
                       final position = Duration(milliseconds: value.toInt());
                       await _audioPlayer.seek(position);
@@ -297,14 +303,16 @@ class _AudioMessagePlayerState extends State<AudioMessagePlayer> {
                         _formatDuration(_position),
                         style: TextStyle(
                           fontSize: 10,
-                          color: isDarkMode ? Colors.grey[400] : Colors.grey[600],
+                          color:
+                              isDarkMode ? Colors.grey[400] : Colors.grey[600],
                         ),
                       ),
                       Text(
                         _formatDuration(_duration),
                         style: TextStyle(
                           fontSize: 10,
-                          color: isDarkMode ? Colors.grey[400] : Colors.grey[600],
+                          color:
+                              isDarkMode ? Colors.grey[400] : Colors.grey[600],
                         ),
                       ),
                     ],
