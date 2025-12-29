@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
+
 import 'package:curio_campus/utils/app_theme.dart';
 
 class CallMessageBubble extends StatelessWidget {
@@ -7,10 +7,10 @@ class CallMessageBubble extends StatelessWidget {
   final bool isCurrentUser;
 
   const CallMessageBubble({
-    Key? key,
+    super.key,
     required this.message,
     required this.isCurrentUser,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -20,15 +20,7 @@ class CallMessageBubble extends StatelessWidget {
     final callType = message['callType'] == 'video' ? 'Video' : 'Voice';
     final status = message['status'] ?? 'unknown';
     final duration = message['duration'] ?? 0;
-    final timestamp = message['timestamp'] != null
-        ? (message['timestamp'] is DateTime
-        ? message['timestamp']
-        : DateTime.now())
-        : DateTime.now();
     final isOutgoing = message['isOutgoing'] ?? isCurrentUser;
-
-    // Format the timestamp
-    final timeString = DateFormat('h:mm a').format(timestamp);
 
     // Format the duration
     String durationString = '';
@@ -94,7 +86,9 @@ class CallMessageBubble extends StatelessWidget {
                   fontSize: 14,
                   color: isCurrentUser
                       ? Colors.white
-                      : (isDarkMode ? AppTheme.darkMessageTextColor : Colors.black87),
+                      : (isDarkMode
+                          ? AppTheme.darkMessageTextColor
+                          : Colors.black87),
                 ),
               ),
               Row(
@@ -104,7 +98,10 @@ class CallMessageBubble extends StatelessWidget {
                     style: TextStyle(
                       color: isCurrentUser
                           ? Colors.white70
-                          : (isDarkMode ? AppTheme.darkMessageTextColor.withOpacity(0.7) : Colors.grey[600]),
+                          : (isDarkMode
+                              ? AppTheme.darkMessageTextColor
+                                  .withValues(alpha: 0.7)
+                              : Colors.grey[600]),
                       fontSize: 12,
                     ),
                   ),
@@ -115,7 +112,10 @@ class CallMessageBubble extends StatelessWidget {
                       style: TextStyle(
                         color: isCurrentUser
                             ? Colors.white70
-                            : (isDarkMode ? AppTheme.darkMessageTextColor.withOpacity(0.7) : Colors.grey[600]),
+                            : (isDarkMode
+                                ? AppTheme.darkMessageTextColor
+                                    .withValues(alpha: 0.7)
+                                : Colors.grey[600]),
                         fontSize: 12,
                       ),
                     ),
