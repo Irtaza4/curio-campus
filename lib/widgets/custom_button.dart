@@ -14,7 +14,7 @@ class CustomButton extends StatelessWidget {
   final EdgeInsetsGeometry padding;
 
   const CustomButton({
-    Key? key,
+    super.key,
     required this.text,
     required this.onPressed,
     this.isLoading = false,
@@ -25,7 +25,7 @@ class CustomButton extends StatelessWidget {
     this.height = 50,
     this.borderRadius = 8,
     this.padding = const EdgeInsets.symmetric(horizontal: 16),
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -51,34 +51,33 @@ class CustomButton extends StatelessWidget {
           ),
           disabledBackgroundColor: isOutlined
               ? Colors.transparent
-              : AppTheme.primaryColor.withOpacity(0.7),
+              : AppTheme.primaryColor.withValues(alpha: 0.7),
           disabledForegroundColor: isOutlined
-              ? AppTheme.primaryColor.withOpacity(0.7)
-              : Colors.white.withOpacity(0.7),
+              ? AppTheme.primaryColor.withValues(alpha: 0.7)
+              : Colors.white.withValues(alpha: 0.7),
         ),
         child: isLoading
             ? SizedBox(
-          width: 24,
-          height: 24,
-          child: CircularProgressIndicator(
-            strokeWidth: 2,
-            valueColor: AlwaysStoppedAnimation<Color>(
-              isOutlined ? AppTheme.primaryColor : Colors.white,
-            ),
-          ),
-        )
+                width: 24,
+                height: 24,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  valueColor: AlwaysStoppedAnimation<Color>(
+                    isOutlined ? AppTheme.primaryColor : Colors.white,
+                  ),
+                ),
+              )
             : Text(
-          text,
-          style: TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.bold,
-            color: isOutlined
-                ? textColor ?? AppTheme.primaryColor
-                : textColor ?? Colors.white,
-          ),
-        ),
+                text,
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: isOutlined
+                      ? textColor ?? AppTheme.primaryColor
+                      : textColor ?? Colors.white,
+                ),
+              ),
       ),
     );
   }
 }
-
