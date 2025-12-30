@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:curio_campus/models/notification_model.dart';
 import 'package:curio_campus/providers/notification_provider.dart';
-import 'package:curio_campus/utils/app_theme.dart';
+
 import 'package:curio_campus/screens/chat/chat_screen.dart';
 import 'package:curio_campus/screens/emergency/emergency_request_detail_screen.dart';
 import 'package:curio_campus/screens/project/project_detail_screen.dart';
@@ -16,10 +16,10 @@ class NotificationDrawer extends StatelessWidget {
   final String title;
 
   const NotificationDrawer({
-    Key? key,
+    super.key,
     this.filterType,
     required this.title,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -70,33 +70,34 @@ class NotificationDrawer extends StatelessWidget {
               child: notificationProvider.isLoading
                   ? const Center(child: CircularProgressIndicator())
                   : notifications.isEmpty
-                  ? const Center(
-                child: Padding(
-                  padding: EdgeInsets.all(16.0),
-                  child: Text(
-                    'No notifications',
-                    style: TextStyle(
-                      fontSize: 16,
-                      color: Colors.grey,
-                    ),
-                  ),
-                ),
-              )
-                  : RefreshIndicator(
-                onRefresh: () => notificationProvider.fetchNotifications(),
-                child: ListView.builder(
-                  controller: scrollController,
-                  itemCount: notifications.length,
-                  itemBuilder: (context, index) {
-                    final notification = notifications[index];
-                    return _buildNotificationItem(
-                      context,
-                      notification,
-                      notificationProvider,
-                    );
-                  },
-                ),
-              ),
+                      ? const Center(
+                          child: Padding(
+                            padding: EdgeInsets.all(16.0),
+                            child: Text(
+                              'No notifications',
+                              style: TextStyle(
+                                fontSize: 16,
+                                color: Colors.grey,
+                              ),
+                            ),
+                          ),
+                        )
+                      : RefreshIndicator(
+                          onRefresh: () =>
+                              notificationProvider.fetchNotifications(),
+                          child: ListView.builder(
+                            controller: scrollController,
+                            itemCount: notifications.length,
+                            itemBuilder: (context, index) {
+                              final notification = notifications[index];
+                              return _buildNotificationItem(
+                                context,
+                                notification,
+                                notificationProvider,
+                              );
+                            },
+                          ),
+                        ),
             ),
           ],
         );
@@ -105,10 +106,10 @@ class NotificationDrawer extends StatelessWidget {
   }
 
   Widget _buildNotificationItem(
-      BuildContext context,
-      NotificationModel notification,
-      NotificationProvider notificationProvider,
-      ) {
+    BuildContext context,
+    NotificationModel notification,
+    NotificationProvider notificationProvider,
+  ) {
     // Check if this is a chat request notification
     final additionalData = notification.additionalData;
     final bool isChatRequest = additionalData != null &&
@@ -116,12 +117,12 @@ class NotificationDrawer extends StatelessWidget {
         additionalData['accepted'] != true;
 
     // Check if this is a task completion notification
-    final bool isTaskCompletion = additionalData != null &&
-        additionalData['isTaskCompletion'] == true;
+    final bool isTaskCompletion =
+        additionalData != null && additionalData['isTaskCompletion'] == true;
 
     // Check if this is a skill-matched emergency notification
-    final bool isSkillMatch = additionalData != null &&
-        additionalData['isSkillMatch'] == true;
+    final bool isSkillMatch =
+        additionalData != null && additionalData['isSkillMatch'] == true;
 
     return Dismissible(
       key: Key(notification.id),
@@ -139,13 +140,15 @@ class NotificationDrawer extends StatelessWidget {
         children: [
           ListTile(
             leading: CircleAvatar(
-              backgroundColor: notification.getColor().withOpacity(0.2),
-              child: Icon(notification.getIcon(), color: notification.getColor()),
+              backgroundColor: notification.getColor().withValues(alpha: 0.2),
+              child:
+                  Icon(notification.getIcon(), color: notification.getColor()),
             ),
             title: Text(
               notification.title,
               style: TextStyle(
-                fontWeight: notification.isRead ? FontWeight.normal : FontWeight.bold,
+                fontWeight:
+                    notification.isRead ? FontWeight.normal : FontWeight.bold,
               ),
             ),
             subtitle: Text(notification.message),
@@ -178,10 +181,12 @@ class NotificationDrawer extends StatelessWidget {
                 children: [
                   ElevatedButton(
                     onPressed: () async {
-                      await notificationProvider.acceptChatRequest(notification.id);
+                      await notificationProvider
+                          .acceptChatRequest(notification.id);
                       if (context.mounted) {
                         Navigator.pop(context); // Close the drawer
-                        _navigateToNotificationDestination(context, notification);
+                        _navigateToNotificationDestination(
+                            context, notification);
                       }
                     },
                     style: ElevatedButton.styleFrom(
@@ -194,7 +199,8 @@ class NotificationDrawer extends StatelessWidget {
                   const SizedBox(width: 8),
                   OutlinedButton(
                     onPressed: () async {
-                      await notificationProvider.rejectChatRequest(notification.id);
+                      await notificationProvider
+                          .rejectChatRequest(notification.id);
                     },
                     style: OutlinedButton.styleFrom(
                       foregroundColor: Colors.red,
@@ -252,15 +258,16 @@ class NotificationDrawer extends StatelessWidget {
   }
 
   void _navigateToNotificationDestination(
-      BuildContext context,
-      NotificationModel notification,
-      ) {
+    BuildContext context,
+    NotificationModel notification,
+  ) {
     switch (notification.type) {
       case NotificationType.chat:
         if (notification.relatedId != null) {
-          final chatProvider = Provider.of<ChatProvider>(context, listen: false);
+          final chatProvider =
+              Provider.of<ChatProvider>(context, listen: false);
           final chat = chatProvider.chats.firstWhere(
-                (chat) => chat.id == notification.relatedId,
+            (chat) => chat.id == notification.relatedId,
             orElse: () => ChatModel(
               id: notification.relatedId!,
               name: notification.title,
@@ -290,7 +297,8 @@ class NotificationDrawer extends StatelessWidget {
             MaterialPageRoute(
               builder: (_) => EmergencyRequestDetailScreen(
                 requestId: notification.relatedId!,
-                isOwnRequest: notification.additionalData?['isOwnRequest'] == true,
+                isOwnRequest:
+                    notification.additionalData?['isOwnRequest'] == true,
               ),
             ),
           );
@@ -312,7 +320,8 @@ class NotificationDrawer extends StatelessWidget {
 
       case NotificationType.profile:
         Navigator.of(context).popUntil((route) => route.isFirst);
-        Provider.of<NotificationProvider>(context, listen: false).markAsRead(notification.id);
+        Provider.of<NotificationProvider>(context, listen: false)
+            .markAsRead(notification.id);
         break;
 
       case NotificationType.system:
@@ -320,8 +329,9 @@ class NotificationDrawer extends StatelessWidget {
         break;
 
       case NotificationType.call:
-      // ✅ Fix: handle call notification using CallService
-        if (notification.additionalData != null && notification.relatedId != null) {
+        // ✅ Fix: handle call notification using CallService
+        if (notification.additionalData != null &&
+            notification.relatedId != null) {
           final callService = CallService();
           callService.handleIncomingCallFromNotification(
             callId: notification.relatedId!,
@@ -336,5 +346,4 @@ class NotificationDrawer extends StatelessWidget {
         break;
     }
   }
-
 }
