@@ -1,15 +1,14 @@
 import 'package:flutter/material.dart';
-import 'package:curio_campus/utils/app_theme.dart';
 
 class NotificationBadge extends StatelessWidget {
   final int count;
   final Widget child;
 
   const NotificationBadge({
-    Key? key,
+    super.key,
     required this.count,
     required this.child,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -46,4 +45,3 @@ class NotificationBadge extends StatelessWidget {
     );
   }
 }
-
