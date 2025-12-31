@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:record/record.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:flutter/foundation.dart';
+
 import 'dart:io';
 import 'dart:convert';
 import 'package:curio_campus/utils/app_theme.dart';
@@ -13,10 +13,10 @@ class VoiceRecorder extends StatefulWidget {
   final Function() onCancel;
 
   const VoiceRecorder({
-    Key? key,
+    super.key,
     required this.onStop,
     required this.onCancel,
-  }) : super(key: key);
+  });
 
   @override
   State<VoiceRecorder> createState() => _VoiceRecorderState();
@@ -45,15 +45,18 @@ class _VoiceRecorderState extends State<VoiceRecorder> {
     });
 
     if (!_hasPermission) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: const Text('Microphone permission is required to record audio'),
-          action: SnackBarAction(
-            label: 'Settings',
-            onPressed: () => openAppSettings(),
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content:
+                const Text('Microphone permission is required to record audio'),
+            action: SnackBarAction(
+              label: 'Settings',
+              onPressed: () => openAppSettings(),
+            ),
           ),
-        ),
-      );
+        );
+      }
     }
   }
 
@@ -66,7 +69,8 @@ class _VoiceRecorderState extends State<VoiceRecorder> {
     try {
       // Get temp directory
       final tempDir = await getTemporaryDirectory();
-      _recordingPath = '${tempDir.path}/audio_${DateTime.now().millisecondsSinceEpoch}.m4a';
+      _recordingPath =
+          '${tempDir.path}/audio_${DateTime.now().millisecondsSinceEpoch}.m4a';
 
       // Configure audio recorder - fixed parameter issues
       await _audioRecorder.start(
@@ -91,9 +95,11 @@ class _VoiceRecorderState extends State<VoiceRecorder> {
       });
     } catch (e) {
       debugPrint('Error starting recording: $e');
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to start recording: $e')),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to start recording: $e')),
+        );
+      }
     }
   }
 
@@ -123,9 +129,11 @@ class _VoiceRecorderState extends State<VoiceRecorder> {
       }
     } catch (e) {
       debugPrint('Error stopping recording: $e');
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to process recording: $e')),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to process recording: $e')),
+        );
+      }
       widget.onCancel();
     } finally {
       setState(() {
@@ -179,7 +187,7 @@ class _VoiceRecorderState extends State<VoiceRecorder> {
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.1),
+            color: Colors.black.withValues(alpha: 0.1),
             blurRadius: 10,
             offset: const Offset(0, 5),
           ),
@@ -223,21 +231,23 @@ class _VoiceRecorderState extends State<VoiceRecorder> {
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppTheme.primaryColor,
                     foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 16, vertical: 12),
                   ),
                 )
               else if (_isProcessing)
                 const CircularProgressIndicator()
               else ...[
-                  IconButton(
-                    onPressed: _cancelRecording,
-                    icon: const Icon(Icons.cancel, color: Colors.red, size: 32),
-                  ),
-                  IconButton(
-                    onPressed: _stopRecording,
-                    icon: const Icon(Icons.stop_circle, color: Colors.green, size: 32),
-                  ),
-                ],
+                IconButton(
+                  onPressed: _cancelRecording,
+                  icon: const Icon(Icons.cancel, color: Colors.red, size: 32),
+                ),
+                IconButton(
+                  onPressed: _stopRecording,
+                  icon: const Icon(Icons.stop_circle,
+                      color: Colors.green, size: 32),
+                ),
+              ],
             ],
           ),
         ],
