@@ -34,16 +34,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
             _buildSettingItem(
               icon: isDarkMode ? Icons.dark_mode : Icons.light_mode,
               title: 'Dark Mode',
-              trailing: Switch(
-                value: isDarkMode,
-                activeThumbColor: AppTheme.primaryColor,
-                onChanged: (value) async {
-                  await themeProvider.setDarkMode(value);
+              trailing: Switch.adaptive(
+                value: themeProvider.isDarkMode,
+                onChanged: (value) {
+                  themeProvider.toggleTheme();
                 },
+                thumbColor: MaterialStateProperty.all(AppTheme.primaryColor),
+                activeTrackColor: AppTheme.primaryColor.withOpacity(0.5),
               ),
-              onTap: () async {
-                await themeProvider.toggleTheme();
-              },
             ),
             const Divider(),
             _buildSettingItem(
