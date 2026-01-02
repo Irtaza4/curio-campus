@@ -10,6 +10,7 @@ import 'package:curio_campus/providers/project_provider.dart';
 import 'package:curio_campus/models/user_model.dart';
 
 import 'package:curio_campus/utils/image_utils.dart';
+import 'package:curio_campus/utils/logger.dart';
 
 import '../../utils/app_theme.dart';
 
@@ -38,12 +39,15 @@ class _MessagesScreenState extends State<MessagesScreen> {
 
     try {
       await Provider.of<ChatProvider>(context, listen: false).fetchChats();
-    } catch (e) {
+    } catch (e, stackTrace) {
+      Logger.error('Error fetching chats',
+          error: e, stackTrace: stackTrace, tag: 'MessagesScreen');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Error fetching chats: ${e.toString()}'),
-            backgroundColor: Colors.red,
+            content: Text('Unable to load chats. Please try again.'),
+            backgroundColor: AppTheme.errorColor,
+            behavior: SnackBarBehavior.floating,
           ),
         );
       }
@@ -125,13 +129,37 @@ class _MessagesScreenState extends State<MessagesScreen> {
               onRefresh: _fetchChats,
               child: chats.isEmpty
                   ? Center(
-                      child: Text(
-                        'No messages yet',
-                        style: TextStyle(
-                          color: isDarkMode
-                              ? AppTheme.darkTextColor
-                              : AppTheme.textColor,
-                        ),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Icons.chat_bubble_outline_rounded,
+                            size: 64,
+                            color: isDarkMode
+                                ? AppTheme.darkDarkGrayColor
+                                : AppTheme.mediumGrayColor,
+                          ),
+                          const SizedBox(height: 16),
+                          Text(
+                            'No messages yet',
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.w500,
+                              color: isDarkMode
+                                  ? AppTheme.darkDarkGrayColor
+                                  : AppTheme.darkGrayColor,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            'Start a conversation with your team!',
+                            style: TextStyle(
+                              color: isDarkMode
+                                  ? AppTheme.darkDarkGrayColor.withOpacity(0.7)
+                                  : AppTheme.darkGrayColor.withOpacity(0.7),
+                            ),
+                          ),
+                        ],
                       ),
                     )
                   : _buildChatList(chats, currentUserId),
