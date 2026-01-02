@@ -1,0 +1,157 @@
+import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../../utils/app_theme.dart';
+import '../../../providers/auth_provider.dart' as custom_auth;
+import '../../chat/create_group_chat_screen.dart';
+import '../../project/create_project_screen.dart';
+import '../../matchmaking/matchmaking_screen.dart';
+import '../../emergency/create_emergency_request_screen.dart';
+import '../../settings/settings_screen.dart';
+import '../../auth/login_screen.dart';
+import '../../profile/edit_profile_screen.dart';
+
+class MoreOptionsSheet extends StatelessWidget {
+  final int currentIndex;
+  final VoidCallback onShowNotifications;
+
+  const MoreOptionsSheet({
+    Key? key,
+    required this.currentIndex,
+    required this.onShowNotifications,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDarkMode = theme.brightness == Brightness.dark;
+
+    return SafeArea(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (currentIndex == 0)
+            ListTile(
+              leading: Icon(Icons.group_add, color: AppTheme.primaryColor),
+              title: const Text('Create Group Chat'),
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (_) => const CreateGroupChatScreen()),
+                );
+              },
+            )
+          else if (currentIndex == 1) ...[
+            ListTile(
+              leading:
+                  Icon(Icons.add_circle_outline, color: AppTheme.primaryColor),
+              title: const Text('Create New Project'),
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (_) => const CreateProjectScreen()),
+                );
+              },
+            ),
+            ListTile(
+              leading: Icon(Icons.people_outline, color: AppTheme.primaryColor),
+              title: const Text('Find Team Members'),
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const MatchmakingScreen()),
+                );
+              },
+            ),
+          ] else if (currentIndex == 2)
+            ListTile(
+              leading: Icon(Icons.add_alert, color: AppTheme.primaryColor),
+              title: const Text('Create Emergency Request'),
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (_) => const CreateEmergencyRequestScreen()),
+                );
+              },
+            )
+          else if (currentIndex == 3)
+            ListTile(
+              leading: Icon(Icons.edit, color: AppTheme.primaryColor),
+              title: const Text('Edit Profile'),
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const EditProfileScreen()),
+                );
+              },
+            ),
+          const Divider(),
+          ListTile(
+            leading: Icon(Icons.notifications_outlined,
+                color: AppTheme.primaryColor),
+            title: const Text('Notifications'),
+            onTap: () {
+              Navigator.pop(context);
+              onShowNotifications();
+            },
+          ),
+          ListTile(
+            leading: Icon(Icons.settings, color: AppTheme.primaryColor),
+            title: const Text('Settings'),
+            onTap: () {
+              Navigator.pop(context);
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const SettingsScreen()),
+              );
+            },
+          ),
+          ListTile(
+            leading: const Icon(Icons.logout, color: Colors.red),
+            title: const Text('Logout', style: TextStyle(color: Colors.red)),
+            onTap: () async {
+              Navigator.pop(context);
+              final confirm = await showDialog<bool>(
+                context: context,
+                builder: (context) => AlertDialog(
+                  title: const Text('Logout'),
+                  content: const Text('Are you sure you want to logout?'),
+                  actions: [
+                    TextButton(
+                      onPressed: () => Navigator.pop(context, false),
+                      child: const Text('Cancel'),
+                    ),
+                    TextButton(
+                      onPressed: () => Navigator.pop(context, true),
+                      child: const Text('Logout',
+                          style: TextStyle(color: Colors.red)),
+                    ),
+                  ],
+                ),
+              );
+
+              if (confirm == true && context.mounted) {
+                await Provider.of<custom_auth.AuthProvider>(context,
+                        listen: false)
+                    .logout();
+                if (context.mounted) {
+                  Navigator.of(context).pushAndRemoveUntil(
+                    MaterialPageRoute(builder: (_) => const LoginScreen()),
+                    (route) => false,
+                  );
+                }
+              }
+            },
+          ),
+        ],
+      ),
+    );
+  }
+}
