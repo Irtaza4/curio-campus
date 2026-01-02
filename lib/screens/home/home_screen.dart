@@ -11,7 +11,6 @@ import 'package:curio_campus/screens/project/create_project_screen.dart';
 import 'package:curio_campus/screens/project/project_screen.dart';
 import 'package:curio_campus/screens/profile/profile_screen.dart';
 import 'package:curio_campus/screens/matchmaking/matchmaking_screen.dart';
-import 'package:curio_campus/screens/chat/create_group_chat_screen.dart';
 import 'package:curio_campus/screens/chat/message_screen.dart';
 import 'package:curio_campus/screens/settings/settings_screen.dart';
 import 'package:curio_campus/screens/auth/login_screen.dart';
@@ -20,6 +19,9 @@ import 'package:curio_campus/utils/app_theme.dart';
 import 'package:curio_campus/widgets/notification_badge.dart';
 import 'package:curio_campus/widgets/notification_drawer.dart';
 import 'package:curio_campus/providers/auth_provider.dart' as custom_auth;
+import 'package:curio_campus/screens/home/widgets/more_options_sheet.dart';
+import 'package:curio_campus/utils/logger.dart';
+import 'package:curio_campus/screens/profile/edit_profile_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({Key? key}) : super(key: key);
@@ -45,7 +47,8 @@ class _HomeScreenState extends State<HomeScreen> {
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       // 🔔 Fetch notifications
-      Provider.of<NotificationProvider>(context, listen: false).fetchNotifications();
+      Provider.of<NotificationProvider>(context, listen: false)
+          .fetchNotifications();
 
       // 📞 Listen for calls
       final callService = CallService();
@@ -74,24 +77,21 @@ class _HomeScreenState extends State<HomeScreen> {
               final diff = now.difference(callTime).inSeconds;
 
               // Only respond to calls that just ended
-              if (['ended', 'declined', 'missed'].contains(status) && diff < 10) {
-                debugPrint("📴 Call $callId just ended ($status)");
+              if (['ended', 'declined', 'missed'].contains(status) &&
+                  diff < 10) {
+                Logger.info("Call $callId just ended ($status)",
+                    tag: 'HomeScreen');
 
                 if (mounted && Navigator.canPop(context)) {
                   Navigator.pop(context);
                 }
-
-              }
               }
             }
           }
-            );
+        });
       }
     });
   }
-
-
-
 
   // void _listenForIncomingCall() async {
   //   final currentUser = FirebaseAuth.instance.currentUser;
@@ -127,135 +127,15 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void _showMoreOptions() {
-    final theme = Theme.of(context);
-    final isDarkMode = theme.brightness == Brightness.dark;
-
     showModalBottomSheet(
       context: context,
-      backgroundColor: isDarkMode ? AppTheme.darkSurfaceColor : Colors.white,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-      ),
+      backgroundColor:
+          Colors.transparent, // Use transparent for custom corners in sheet
+      isScrollControlled: true,
       builder: (context) {
-        return SafeArea(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              if (_currentIndex == 0)
-                ListTile(
-                  leading: Icon(Icons.group_add, color: AppTheme.primaryColor),
-                  title: Text('Create Group Chat'),
-                  onTap: () {
-                    Navigator.pop(context);
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (_) => const CreateGroupChatScreen()),
-                    );
-                  },
-                )
-              else if (_currentIndex == 1) ...[
-                ListTile(
-                  leading: Icon(Icons.add_circle_outline, color: AppTheme.primaryColor),
-                  title: Text('Create New Project'),
-                  onTap: () {
-                    Navigator.pop(context);
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (_) => const CreateProjectScreen()),
-                    );
-                  },
-                ),
-                ListTile(
-                  leading: Icon(Icons.people_outline, color: AppTheme.primaryColor),
-                  title: Text('Find Team Members'),
-                  onTap: () {
-                    Navigator.pop(context);
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (_) => const MatchmakingScreen()),
-                    );
-                  },
-                ),
-              ] else if (_currentIndex == 2)
-                ListTile(
-                  leading: Icon(Icons.add_alert, color: AppTheme.primaryColor),
-                  title: Text('Create Emergency Request'),
-                  onTap: () {
-                    Navigator.pop(context);
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (_) => const CreateEmergencyRequestScreen()),
-                    );
-                  },
-                )
-              else if (_currentIndex == 3)
-                  ListTile(
-                    leading: Icon(Icons.edit, color: AppTheme.primaryColor),
-                    title: const Text('Edit Profile'),
-                    onTap: () {
-                      Navigator.pop(context);
-                      Navigator.pushNamed(context, '/edit-profile');
-                    },
-                  ),
-              const Divider(),
-              ListTile(
-                leading: Icon(Icons.notifications_outlined, color: AppTheme.primaryColor),
-                title: const Text('Notifications'),
-                onTap: () {
-                  Navigator.pop(context);
-                  _showNotifications();
-                },
-              ),
-              ListTile(
-                leading: Icon(Icons.settings, color: AppTheme.primaryColor),
-                title: const Text('Settings'),
-                onTap: () {
-                  Navigator.pop(context);
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (_) => const SettingsScreen()),
-                  );
-                },
-              ),
-              ListTile(
-                leading: const Icon(Icons.logout, color: Colors.red),
-                title: const Text('Logout', style: TextStyle(color: Colors.red)),
-                onTap: () async {
-                  Navigator.pop(context);
-                  final confirm = await showDialog<bool>(
-                    context: context,
-                    builder: (context) => AlertDialog(
-                      title: const Text('Logout'),
-                      content: const Text('Are you sure you want to logout?'),
-                      actions: [
-                        TextButton(
-                          onPressed: () => Navigator.pop(context, false),
-                          child: const Text('Cancel'),
-                        ),
-                        TextButton(
-                          onPressed: () => Navigator.pushReplacement(
-                            context,
-                            MaterialPageRoute(builder: (_) => const LoginScreen()),
-                          ),
-                          child: const Text('Logout', style: TextStyle(color: Colors.red)),
-                        ),
-                      ],
-                    ),
-                  );
-
-                  if (confirm == true && mounted) {
-                    await Provider.of<custom_auth.AuthProvider>(context, listen: false).logout();
-                    if (mounted) {
-                      Navigator.of(context).pushAndRemoveUntil(
-                        MaterialPageRoute(builder: (_) => const LoginScreen()),
-                            (route) => false,
-                      );
-                    }
-                  }
-                },
-              ),
-            ],
-          ),
+        return MoreOptionsSheet(
+          currentIndex: _currentIndex,
+          onShowNotifications: _showNotifications,
         );
       },
     );
@@ -338,24 +218,28 @@ class _HomeScreenState extends State<HomeScreen> {
         },
         type: BottomNavigationBarType.fixed,
         selectedItemColor: AppTheme.primaryColor,
-        unselectedItemColor: isDarkMode ? AppTheme.darkDarkGrayColor : Colors.grey,
+        unselectedItemColor:
+            isDarkMode ? AppTheme.darkDarkGrayColor : Colors.grey,
         backgroundColor: isDarkMode ? AppTheme.darkSurfaceColor : Colors.white,
         items: const [
           BottomNavigationBarItem(
-            icon: Icon(Icons.chat_bubble_outline),
-            activeIcon: Icon(Icons.chat_bubble),
-            label: 'Chats',
+            icon: Icon(Icons.chat_bubble_outline_rounded),
+            activeIcon: Icon(Icons.chat_bubble_rounded),
+            label: 'Messages',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.airline_seat_flat_angled),
+            icon: Icon(Icons.work_outline_rounded),
+            activeIcon: Icon(Icons.work_rounded),
             label: 'Projects',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.warning_amber_outlined),
+            icon: Icon(Icons.emergency_outlined),
+            activeIcon: Icon(Icons.emergency),
             label: 'Emergency',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.person_outline),
+            icon: Icon(Icons.person_outline_rounded),
+            activeIcon: Icon(Icons.person_rounded),
             label: 'Profile',
           ),
         ],
@@ -379,7 +263,8 @@ class _HomeScreenState extends State<HomeScreen> {
         return FloatingActionButton(
           onPressed: () => Navigator.push(
             context,
-            MaterialPageRoute(builder: (_) => const CreateEmergencyRequestScreen()),
+            MaterialPageRoute(
+                builder: (_) => const CreateEmergencyRequestScreen()),
           ),
           backgroundColor: AppTheme.primaryColor,
           child: const Icon(Icons.add, color: Colors.white),
