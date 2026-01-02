@@ -1,8 +1,5 @@
+import 'package:curio_campus/services/app_initialization_service.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:curio_campus/screens/splash_screen.dart';
-import 'package:firebase_core/firebase_core.dart';
-import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:provider/provider.dart';
 import 'package:curio_campus/providers/auth_provider.dart';
 import 'package:curio_campus/providers/chat_provider.dart';
@@ -11,6 +8,15 @@ import 'package:curio_campus/providers/matchmaking_provider.dart';
 import 'package:curio_campus/providers/emergency_provider.dart';
 import 'package:curio_campus/providers/notification_provider.dart';
 import 'package:curio_campus/providers/theme_provider.dart';
+import 'package:curio_campus/providers/matchmaking_provider.dart';
+import 'package:curio_campus/providers/emergency_provider.dart';
+import 'package:curio_campus/providers/notification_provider.dart';
+import 'package:curio_campus/providers/theme_provider.dart';
+import 'package:curio_campus/screens/splash_screen.dart';
+import 'package:curio_campus/utils/navigator_key.dart';
+import 'package:curio_campus/screens/chat/chat_screen.dart';
+import 'package:curio_campus/screens/emergency/emergency_request_detail_screen.dart';
+import 'package:curio_campus/screens/project/project_detail_screen.dart';
 import 'package:curio_campus/services/notification_service.dart';
 import 'package:curio_campus/services/call_service.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
@@ -20,275 +26,14 @@ import 'package:curio_campus/utils/navigator_key.dart';
 import 'package:curio_campus/screens/chat/chat_screen.dart';
 import 'package:curio_campus/screens/emergency/emergency_request_detail_screen.dart';
 import 'package:curio_campus/screens/project/project_detail_screen.dart';
+import 'package:curio_campus/services/app_initialization_service.dart'; // Assuming this new import is needed
 
 // Global reference to services for easy access
 late CallService callService;
 late NotificationService notificationService;
 
-// This must be a top-level function
-@pragma('vm:entry-point')
-Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
-  // Initialize Firebase if needed
-  await Firebase.initializeApp();
-
-  // Handle background notifications here
-  if (message.data['type'] == 'call') {
-    try {
-      final flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
-
-      // Create notification channel for Android
-      final androidPlugin =
-          flutterLocalNotificationsPlugin.resolvePlatformSpecificImplementation<
-              AndroidFlutterLocalNotificationsPlugin>();
-
-      if (androidPlugin != null) {
-        await androidPlugin.createNotificationChannel(
-          const AndroidNotificationChannel(
-            'call_channel',
-            'Call Notifications',
-            description: 'Notifications for incoming calls',
-            importance: Importance.max,
-            playSound: true,
-            enableVibration: true,
-          ),
-        );
-      }
-
-      final androidPlatformChannelSpecifics = AndroidNotificationDetails(
-        'call_channel',
-        'Call Notifications',
-        channelDescription: 'Notifications for incoming calls',
-        importance: Importance.max,
-        priority: Priority.max,
-        fullScreenIntent: true,
-        category: AndroidNotificationCategory.call,
-        playSound: true,
-        enableVibration: true,
-        actions: [
-          const AndroidNotificationAction('answer', 'Answer',
-              showsUserInterface: true),
-          const AndroidNotificationAction('decline', 'Decline',
-              showsUserInterface: true),
-        ],
-      );
-
-      final iOSPlatformChannelSpecifics = const DarwinNotificationDetails(
-        presentAlert: true,
-        presentBadge: true,
-        presentSound: true,
-        interruptionLevel: InterruptionLevel.timeSensitive,
-      );
-
-      final notificationDetails = NotificationDetails(
-        android: androidPlatformChannelSpecifics,
-        iOS: iOSPlatformChannelSpecifics,
-      );
-
-      final callId = int.tryParse(message.data['callId'] ?? '0') ?? 0;
-      final callerName = message.data['callerName'] ?? 'Unknown';
-      final callType = message.data['callType'] ?? 'voice';
-
-      // Convert the call ID to a valid notification ID (within 32-bit integer range)
-      final notificationId =
-          callId % 100000; // Use modulo to get a smaller number
-
-      await flutterLocalNotificationsPlugin.show(
-        notificationId,
-        'Incoming ${callType == 'video' ? 'Video' : 'Voice'} Call',
-        callerName,
-        notificationDetails,
-        payload: 'call:$callId',
-      );
-
-      // Save call data to shared preferences for when app is opened
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.setString(
-          'pending_call',
-          json.encode({
-            'callId': callId.toString(),
-            'callerId': message.data['callerId'],
-            'callerName': callerName,
-            'callType': callType,
-            'timestamp': DateTime.now().millisecondsSinceEpoch,
-          }));
-    } catch (e) {
-      debugPrint('Error handling call notification in background: $e');
-    }
-  } else if (message.data['type'] == 'chat') {
-    // Handle chat message notifications
-    try {
-      final flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
-
-      // Create notification channel for Android
-      final androidPlugin =
-          flutterLocalNotificationsPlugin.resolvePlatformSpecificImplementation<
-              AndroidFlutterLocalNotificationsPlugin>();
-
-      if (androidPlugin != null) {
-        await androidPlugin.createNotificationChannel(
-          const AndroidNotificationChannel(
-            'chat_channel',
-            'Chat Notifications',
-            description: 'Notifications for new messages',
-            importance: Importance.high,
-            playSound: true,
-            enableVibration: true,
-          ),
-        );
-      }
-
-      final senderName = message.data['senderName'] ?? 'Someone';
-      final messageContent = message.notification?.body ??
-          message.data['content'] ??
-          'New message';
-      final chatId = message.data['chatId'];
-      final chatName = message.data['chatName'] ?? 'Chat';
-
-      final androidPlatformChannelSpecifics = AndroidNotificationDetails(
-        'chat_channel',
-        'Chat Notifications',
-        channelDescription: 'Notifications for new messages',
-        importance: Importance.high,
-        priority: Priority.high,
-        showWhen: true,
-        enableVibration: true,
-        category: AndroidNotificationCategory.message,
-      );
-
-      final iOSPlatformChannelSpecifics = const DarwinNotificationDetails(
-        presentAlert: true,
-        presentBadge: true,
-        presentSound: true,
-      );
-
-      final notificationDetails = NotificationDetails(
-        android: androidPlatformChannelSpecifics,
-        iOS: iOSPlatformChannelSpecifics,
-      );
-
-      // Generate a unique notification ID
-      final notificationId = chatId != null
-          ? chatId.hashCode % 100000
-          : DateTime.now().millisecondsSinceEpoch % 100000;
-
-      await flutterLocalNotificationsPlugin.show(
-        notificationId,
-        senderName,
-        messageContent,
-        notificationDetails,
-        payload: json.encode(message.data),
-      );
-
-      // Save message data to shared preferences for when app is opened
-      final prefs = await SharedPreferences.getInstance();
-      final pendingMessages = prefs.getStringList('pending_messages') ?? [];
-      pendingMessages.add(json.encode({
-        'chatId': chatId,
-        'chatName': chatName,
-        'senderName': senderName,
-        'content': messageContent,
-        'timestamp': DateTime.now().millisecondsSinceEpoch,
-      }));
-
-      // Keep only the last 10 messages
-      if (pendingMessages.length > 10) {
-        pendingMessages.removeAt(0);
-      }
-
-      await prefs.setStringList('pending_messages', pendingMessages);
-    } catch (e) {
-      debugPrint('Error handling chat notification in background: $e');
-    }
-  } else {
-    // For other notification types
-    try {
-      final flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
-
-      // Create notification channel for Android
-      final androidPlugin =
-          flutterLocalNotificationsPlugin.resolvePlatformSpecificImplementation<
-              AndroidFlutterLocalNotificationsPlugin>();
-
-      if (androidPlugin != null) {
-        await androidPlugin.createNotificationChannel(
-          const AndroidNotificationChannel(
-            'high_importance_channel',
-            'High Importance Notifications',
-            description: 'This channel is used for important notifications.',
-            importance: Importance.max,
-          ),
-        );
-      }
-
-      final androidPlatformChannelSpecifics = AndroidNotificationDetails(
-        'high_importance_channel',
-        'High Importance Notifications',
-        channelDescription: 'This channel is used for important notifications.',
-        importance: Importance.max,
-        priority: Priority.high,
-        showWhen: true,
-      );
-
-      final notificationDetails = NotificationDetails(
-        android: androidPlatformChannelSpecifics,
-      );
-      print('Firebase Project ID: ${Firebase.app().options.projectId}');
-
-      await flutterLocalNotificationsPlugin.show(
-        message.hashCode % 100000, // Ensure ID is within 32-bit integer range
-        message.notification?.title ?? 'New Notification',
-        message.notification?.body ?? '',
-        notificationDetails,
-        payload: json.encode(message.data),
-      );
-    } catch (e) {
-      debugPrint('Error handling notification in background: $e');
-    }
-  }
-}
-
 void main() async {
-  WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp();
-
-  print('Firebase Project ID: ${Firebase.app().options.projectId}');
-  // Register background message handler
-  FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
-
-  // Initialize notification service
-  notificationService = NotificationService();
-  await notificationService.initialize();
-  await notificationService.setupBackgroundNotifications();
-
-  // Ensure FCM token is updated on app start
-  await notificationService.updateFCMToken();
-
-  // Initialize call service with Agora App ID
-  callService = CallService();
-  await callService.initialize('c4a1309f72be434592965a29b64c1fd4');
-
-  // Handle notification click when app is terminated
-  FirebaseMessaging.instance
-      .getInitialMessage()
-      .then((RemoteMessage? message) async {
-    if (message != null) {
-      // Handle the notification click based on the data
-      debugPrint(
-          'App opened from terminated state via notification: ${message.data}');
-
-      // Store the notification data to handle it after app is initialized
-      // This will be used in the first screen to navigate to the appropriate screen
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.setString('initial_notification', jsonEncode(message.data));
-    }
-  });
-
-  // Set preferred orientations
-  await SystemChrome.setPreferredOrientations([
-    DeviceOrientation.portraitUp,
-    DeviceOrientation.portraitDown,
-  ]);
-
+  await AppInitializationService.initialize();
   runApp(const MyApp());
 }
 
