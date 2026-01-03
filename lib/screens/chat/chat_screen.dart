@@ -114,7 +114,8 @@ class _ChatScreenState extends State<ChatScreen> {
             (id) => id != currentUserId,
             orElse: () => '',
           );
-  
+
+          
           if (otherParticipantId.isNotEmpty) {
             // Fetch the user's name
             final user =
