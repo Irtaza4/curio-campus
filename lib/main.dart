@@ -8,10 +8,6 @@ import 'package:curio_campus/providers/matchmaking_provider.dart';
 import 'package:curio_campus/providers/emergency_provider.dart';
 import 'package:curio_campus/providers/notification_provider.dart';
 import 'package:curio_campus/providers/theme_provider.dart';
-import 'package:curio_campus/providers/matchmaking_provider.dart';
-import 'package:curio_campus/providers/emergency_provider.dart';
-import 'package:curio_campus/providers/notification_provider.dart';
-import 'package:curio_campus/providers/theme_provider.dart';
 import 'package:curio_campus/screens/splash_screen.dart';
 import 'package:curio_campus/utils/navigator_key.dart';
 import 'package:curio_campus/screens/chat/chat_screen.dart';
@@ -22,11 +18,6 @@ import 'package:curio_campus/services/call_service.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:curio_campus/utils/navigator_key.dart';
-import 'package:curio_campus/screens/chat/chat_screen.dart';
-import 'package:curio_campus/screens/emergency/emergency_request_detail_screen.dart';
-import 'package:curio_campus/screens/project/project_detail_screen.dart';
-import 'package:curio_campus/services/app_initialization_service.dart'; // Assuming this new import is needed
 
 // Global reference to services for easy access
 late CallService callService;
