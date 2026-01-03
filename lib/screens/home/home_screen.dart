@@ -12,8 +12,6 @@ import 'package:curio_campus/screens/project/project_screen.dart';
 import 'package:curio_campus/screens/profile/profile_screen.dart';
 import 'package:curio_campus/screens/matchmaking/matchmaking_screen.dart';
 import 'package:curio_campus/screens/chat/message_screen.dart';
-import 'package:curio_campus/screens/settings/settings_screen.dart';
-import 'package:curio_campus/screens/auth/login_screen.dart';
 import 'package:curio_campus/services/call_service.dart';
 import 'package:curio_campus/utils/app_theme.dart';
 import 'package:curio_campus/widgets/notification_badge.dart';
@@ -21,7 +19,6 @@ import 'package:curio_campus/widgets/notification_drawer.dart';
 import 'package:curio_campus/providers/auth_provider.dart' as custom_auth;
 import 'package:curio_campus/screens/home/widgets/more_options_sheet.dart';
 import 'package:curio_campus/utils/logger.dart';
-import 'package:curio_campus/screens/profile/edit_profile_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({Key? key}) : super(key: key);

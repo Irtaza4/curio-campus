@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:curio_campus/utils/app_theme.dart';
 import 'package:provider/provider.dart';
-import '../../utils/app_theme.dart';
+
 import '../../../providers/auth_provider.dart' as custom_auth;
 import '../../chat/create_group_chat_screen.dart';
 import '../../project/create_project_screen.dart';
