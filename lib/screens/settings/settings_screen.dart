@@ -42,6 +42,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 thumbColor: MaterialStateProperty.all(AppTheme.primaryColor),
                 activeTrackColor: AppTheme.primaryColor.withOpacity(0.5),
               ),
+              onTap: () {
+                themeProvider.toggleTheme();
+              },
             ),
             const Divider(),
             _buildSettingItem(
