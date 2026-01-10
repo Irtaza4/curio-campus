@@ -8,6 +8,7 @@ import 'dart:convert';
 import '../main.dart';
 import '../utils/logger.dart';
 import 'background_messaging_handler.dart';
+import '../utils/config.dart';
 
 class AppInitializationService {
   static Future<void> initialize() async {
@@ -29,7 +30,7 @@ class AppInitializationService {
     await notificationService.updateFCMToken();
 
     // Initialize call service with Agora App ID
-    await callService.initialize('c4a1309f72be434592965a29b64c1fd4');
+    await callService.initialize(Config.agoraAppId);
 
     // Handle notification click when app is terminated
     final initialMessage = await FirebaseMessaging.instance.getInitialMessage();
