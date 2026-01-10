@@ -38,7 +38,6 @@ dependencies:
   firebase_auth: ^5.5.1
   firebase_database: ^11.3.4
   firebase_messaging: ^15.2.4
-  get: ^4.7.2
   shared_preferences: ^2.5.3
   uuid: ^4.5.1
   flutter_local_notifications: ^18.0.1
