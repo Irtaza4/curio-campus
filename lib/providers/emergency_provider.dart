@@ -22,12 +22,16 @@ class EmergencyProvider with ChangeNotifier {
   List<EmergencyRequestModel> get ignoredRequests =>
       _ignoredRequests; // Getter for ignored requests
   bool get isLoading => _isLoading;
+  bool _isFetchingAll = false;
+  bool _isFetchingMine = false;
+  bool get isFetchingAll => _isFetchingAll;
+  bool get isFetchingMine => _isFetchingMine;
   String? get errorMessage => _errorMessage;
 
   Future<void> fetchEmergencyRequests() async {
     if (_auth.currentUser == null) return;
 
-    _isLoading = true;
+    _isFetchingAll = true;
     _errorMessage = null;
     notifyListeners();
 
@@ -82,10 +86,10 @@ class EmergencyProvider with ChangeNotifier {
       _emergencyRequests = loadedRequests;
       _ignoredRequests = loadedIgnoredRequests;
 
-      _isLoading = false;
+      _isFetchingAll = false;
       notifyListeners();
     } catch (e) {
-      _isLoading = false;
+      _isFetchingAll = false;
       _errorMessage = e.toString();
       notifyListeners();
       rethrow; // Rethrow to handle in UI
@@ -95,7 +99,7 @@ class EmergencyProvider with ChangeNotifier {
   Future<void> fetchMyEmergencyRequests() async {
     if (_auth.currentUser == null) return;
 
-    _isLoading = true;
+    _isFetchingMine = true;
     _errorMessage = null;
     notifyListeners();
 
@@ -115,10 +119,10 @@ class EmergencyProvider with ChangeNotifier {
       // Sort the list after fetching
       _myEmergencyRequests.sort((a, b) => b.createdAt.compareTo(a.createdAt));
 
-      _isLoading = false;
+      _isFetchingMine = false;
       notifyListeners();
     } catch (e) {
-      _isLoading = false;
+      _isFetchingMine = false;
       _errorMessage = e.toString();
       notifyListeners();
       rethrow; // Rethrow to handle in UI
