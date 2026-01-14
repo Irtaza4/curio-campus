@@ -24,7 +24,7 @@ class EmergencyScreen extends StatefulWidget {
 
 class _EmergencyScreenState extends State<EmergencyScreen>
     with SingleTickerProviderStateMixin {
-  bool _isLoading = false;
+  bool _isActionInProgress = false;
   late TabController _tabController;
 
   @override
@@ -47,10 +47,6 @@ class _EmergencyScreenState extends State<EmergencyScreen>
   Future<void> _fetchAllEmergencyRequests() async {
     if (!mounted) return;
 
-    setState(() {
-      _isLoading = true;
-    });
-
     try {
       await Provider.of<EmergencyProvider>(context, listen: false)
           .fetchEmergencyRequests();
@@ -65,20 +61,12 @@ class _EmergencyScreenState extends State<EmergencyScreen>
         );
       }
     } finally {
-      if (mounted) {
-        setState(() {
-          _isLoading = false;
-        });
-      }
+      // No need to set local loading state
     }
   }
 
   Future<void> _fetchMyEmergencyRequests() async {
     if (!mounted) return;
-
-    setState(() {
-      _isLoading = true;
-    });
 
     try {
       await Provider.of<EmergencyProvider>(context, listen: false)
@@ -95,11 +83,7 @@ class _EmergencyScreenState extends State<EmergencyScreen>
         );
       }
     } finally {
-      if (mounted) {
-        setState(() {
-          _isLoading = false;
-        });
-      }
+      // No need to set local loading state
     }
   }
 
@@ -131,7 +115,7 @@ class _EmergencyScreenState extends State<EmergencyScreen>
 
   Future<void> _ignoreRequest(String requestId) async {
     setState(() {
-      _isLoading = true;
+      _isActionInProgress = true;
     });
 
     try {
@@ -159,7 +143,7 @@ class _EmergencyScreenState extends State<EmergencyScreen>
     } finally {
       if (mounted) {
         setState(() {
-          _isLoading = false;
+          _isActionInProgress = false;
         });
       }
     }
@@ -167,7 +151,7 @@ class _EmergencyScreenState extends State<EmergencyScreen>
 
   Future<void> _unignoreRequest(String requestId) async {
     setState(() {
-      _isLoading = true;
+      _isActionInProgress = true;
     });
 
     try {
@@ -195,7 +179,7 @@ class _EmergencyScreenState extends State<EmergencyScreen>
     } finally {
       if (mounted) {
         setState(() {
-          _isLoading = false;
+          _isActionInProgress = false;
         });
       }
     }
@@ -228,7 +212,7 @@ class _EmergencyScreenState extends State<EmergencyScreen>
     if (confirm != true) return;
 
     setState(() {
-      _isLoading = true;
+      _isActionInProgress = true;
     });
 
     try {
@@ -259,7 +243,7 @@ class _EmergencyScreenState extends State<EmergencyScreen>
     } finally {
       if (mounted) {
         setState(() {
-          _isLoading = false;
+          _isActionInProgress = false;
         });
       }
     }
@@ -318,7 +302,9 @@ class _EmergencyScreenState extends State<EmergencyScreen>
         final activeRequests = emergencyProvider.emergencyRequests;
         final ignoredRequests = emergencyProvider.ignoredRequests;
 
-        return _isLoading
+        return emergencyProvider.isFetchingAll &&
+                activeRequests.isEmpty &&
+                ignoredRequests.isEmpty
             ? const Center(child: CircularProgressIndicator())
             : (activeRequests.isEmpty && ignoredRequests.isEmpty)
                 ? Center(
@@ -388,7 +374,7 @@ class _EmergencyScreenState extends State<EmergencyScreen>
       builder: (context, emergencyProvider, child) {
         final myRequests = emergencyProvider.myEmergencyRequests;
 
-        return _isLoading
+        return emergencyProvider.isFetchingMine && myRequests.isEmpty
             ? const Center(child: CircularProgressIndicator())
             : myRequests.isEmpty
                 ? Center(
