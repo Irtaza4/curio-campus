@@ -34,13 +34,14 @@ class ProjectProvider with ChangeNotifier {
 
     try {
       final prefs = await SharedPreferences.getInstance();
-      final projectsJson = prefs.getString('${_auth.currentUser!.uid}_projects');
+      final projectsJson =
+          prefs.getString('${_auth.currentUser!.uid}_projects');
 
       if (projectsJson != null) {
         final List<dynamic> projectsList = jsonDecode(projectsJson);
-        _projects = projectsList.map((json) =>
-            ProjectModel.fromJson(json as Map<String, dynamic>)
-        ).toList();
+        _projects = projectsList
+            .map((json) => ProjectModel.fromJson(json as Map<String, dynamic>))
+            .toList();
         notifyListeners();
       }
 
@@ -59,7 +60,8 @@ class ProjectProvider with ChangeNotifier {
 
     try {
       final prefs = await SharedPreferences.getInstance();
-      final projectsJson = jsonEncode(_projects.map((p) => p.toJson()).toList());
+      final projectsJson =
+          jsonEncode(_projects.map((p) => p.toJson()).toList());
       await prefs.setString('${_auth.currentUser!.uid}_projects', projectsJson);
     } catch (e) {
       debugPrint('Error saving projects to prefs: $e');
@@ -84,9 +86,9 @@ class ProjectProvider with ChangeNotifier {
 
       _projects = querySnapshot.docs
           .map((doc) => ProjectModel.fromJson({
-        'id': doc.id,
-        ...doc.data(),
-      }))
+                'id': doc.id,
+                ...doc.data(),
+              }))
           .toList();
 
       // Sort in memory instead of in the query
@@ -197,19 +199,15 @@ class ProjectProvider with ChangeNotifier {
       return null;
     }
   }
+
   Future<List<UserModel>> fetchUsers(List<String> userIds) async {
     try {
-      List<UserModel> users = [];
+      // Fetch all users in parallel
+      final futures = userIds.map((id) => fetchUserById(id));
+      final results = await Future.wait(futures);
 
-      // Fetch each user by ID
-      for (String userId in userIds) {
-        final user = await fetchUserById(userId);
-        if (user != null) {
-          users.add(user);
-        }
-      }
-
-      return users;
+      // Filter out nulls
+      return results.whereType<UserModel>().toList();
     } catch (e) {
       _errorMessage = e.toString();
       notifyListeners();
@@ -243,9 +241,9 @@ class ProjectProvider with ChangeNotifier {
 
         final tasks = tasksSnapshot.docs
             .map((doc) => TaskModel.fromJson({
-          'id': doc.id,
-          ...doc.data(),
-        }))
+                  'id': doc.id,
+                  ...doc.data(),
+                }))
             .toList();
 
         _currentProject = _currentProject!.copyWith(tasks: tasks);
@@ -318,7 +316,8 @@ class ProjectProvider with ChangeNotifier {
       }
 
       // Delete the project document
-      batch.delete(_firestore.collection(Constants.projectsCollection).doc(projectId));
+      batch.delete(
+          _firestore.collection(Constants.projectsCollection).doc(projectId));
 
       await batch.commit();
 
@@ -419,8 +418,10 @@ class ProjectProvider with ChangeNotifier {
           tasks[index] = tasks[index].copyWith(status: status);
 
           // Calculate new progress
-          final completedTasks = tasks.where((t) => t.status == TaskStatus.completed).length;
-          final progress = tasks.isEmpty ? 0 : (completedTasks / tasks.length * 100).round();
+          final completedTasks =
+              tasks.where((t) => t.status == TaskStatus.completed).length;
+          final progress =
+              tasks.isEmpty ? 0 : (completedTasks / tasks.length * 100).round();
 
           _currentProject = _currentProject!.copyWith(
             tasks: tasks,
@@ -494,7 +495,8 @@ class ProjectProvider with ChangeNotifier {
       // Calculate new progress
       final completedTasks = updatedTasks.where((t) => t.isCompleted).length;
       final totalTasks = updatedTasks.length;
-      final progress = totalTasks > 0 ? (completedTasks / totalTasks * 100).round() : 0;
+      final progress =
+          totalTasks > 0 ? (completedTasks / totalTasks * 100).round() : 0;
 
       // Update the project in Firestore
       await _firestore
