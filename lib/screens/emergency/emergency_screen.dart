@@ -16,7 +16,7 @@ import 'package:curio_campus/models/notification_model.dart';
 import '../../utils/image_utils.dart';
 
 class EmergencyScreen extends StatefulWidget {
-  const EmergencyScreen({Key? key}) : super(key: key);
+  const EmergencyScreen({super.key});
 
   @override
   State<EmergencyScreen> createState() => _EmergencyScreenState();
@@ -589,8 +589,8 @@ class _EmergencyScreenState extends State<EmergencyScreen>
                         ),
                         decoration: BoxDecoration(
                           color: isIgnored
-                              ? Colors.grey.withOpacity(0.1)
-                              : AppTheme.primaryColor.withOpacity(0.1),
+                              ? Colors.grey.withValues(alpha: 0.1)
+                              : AppTheme.primaryColor.withValues(alpha: 0.1),
                           borderRadius: BorderRadius.circular(16),
                         ),
                         child: Text(
@@ -633,7 +633,7 @@ class _EmergencyScreenState extends State<EmergencyScreen>
                         vertical: 4,
                       ),
                       decoration: BoxDecoration(
-                        color: Colors.green.withOpacity(0.2),
+                        color: Colors.green.withValues(alpha: 0.2),
                         borderRadius: BorderRadius.circular(16),
                       ),
                       child: const Text(
@@ -654,7 +654,7 @@ class _EmergencyScreenState extends State<EmergencyScreen>
                         vertical: 4,
                       ),
                       decoration: BoxDecoration(
-                        color: Colors.grey.withOpacity(0.2),
+                        color: Colors.grey.withValues(alpha: 0.2),
                         borderRadius: BorderRadius.circular(16),
                       ),
                       child: const Text(

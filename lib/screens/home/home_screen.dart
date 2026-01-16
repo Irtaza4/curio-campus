@@ -16,7 +16,6 @@ import 'package:curio_campus/services/call_service.dart';
 import 'package:curio_campus/utils/app_theme.dart';
 import 'package:curio_campus/widgets/notification_badge.dart';
 import 'package:curio_campus/widgets/notification_drawer.dart';
-import 'package:curio_campus/providers/auth_provider.dart' as custom_auth;
 import 'package:curio_campus/screens/home/widgets/more_options_sheet.dart';
 import 'package:curio_campus/utils/logger.dart';
 
