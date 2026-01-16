@@ -40,9 +40,21 @@ class _EditProjectScreenState extends State<EditProjectScreen> {
     _deadline = widget.project.deadline;
     _selectedTeamMembers = List.from(widget.project.teamMembers);
 
-    // Schedule the fetch operation after the build is complete
+    // Check if the user is the creator
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
+        final projectProvider =
+            Provider.of<ProjectProvider>(context, listen: false);
+        if (widget.project.createdBy != projectProvider.currentUserId) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Only the project creator can edit this project.'),
+              backgroundColor: Colors.red,
+            ),
+          );
+          Navigator.pop(context);
+          return;
+        }
         _fetchChatContacts();
       }
     });
@@ -80,14 +92,10 @@ class _EditProjectScreenState extends State<EditProjectScreen> {
       contactIds.remove(currentUserId);
 
       // Fetch user details for each contact
-      final List<UserModel> contacts = [];
-      for (final userId in contactIds) {
-        final user = await Provider.of<ProjectProvider>(context, listen: false)
-            .fetchUserById(userId);
-        if (user != null) {
-          contacts.add(user);
-        }
-      }
+      if (!mounted) return;
+      final contacts =
+          await Provider.of<ProjectProvider>(context, listen: false)
+              .fetchUsers(contactIds.toList());
 
       if (!mounted) return;
 
@@ -150,6 +158,18 @@ class _EditProjectScreenState extends State<EditProjectScreen> {
 
   Future<void> _saveProject() async {
     if (!_formKey.currentState!.validate()) return;
+    final projectProvider =
+        Provider.of<ProjectProvider>(context, listen: false);
+    if (widget.project.createdBy != projectProvider.currentUserId) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('You do not have permission to edit this project.'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      Navigator.pop(context);
+      return;
+    }
 
     setState(() {
       _isLoading = true;
