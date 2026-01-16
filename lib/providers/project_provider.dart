@@ -454,8 +454,6 @@ class ProjectProvider with ChangeNotifier {
     if (_auth.currentUser == null) return false;
 
     try {
-      final userId = _auth.currentUser!.uid;
-
       // Find the project
       final projectIndex = _projects.indexWhere((p) => p.id == projectId);
       if (projectIndex == -1) return false;
@@ -514,13 +512,13 @@ class ProjectProvider with ChangeNotifier {
 
       _projects[projectIndex] = updatedProject;
 
+      // Get the user who completed the task once
+      final completer = await fetchUserById(completedById);
+      final completerName = completer?.name ?? 'A team member';
+
       // Send a notification to all team members except the one who completed the task
       for (final memberId in project.teamMembers) {
         if (memberId != completedById) {
-          // Get the user who completed the task
-          final completer = await fetchUserById(completedById);
-          final completerName = completer?.name ?? 'A team member';
-
           // Create a notification
           if (navigatorKey.currentContext != null) {
             final notificationProvider = Provider.of<NotificationProvider>(

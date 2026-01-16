@@ -7,10 +7,8 @@ import 'package:curio_campus/models/message_model.dart';
 import 'package:curio_campus/models/user_model.dart';
 import 'package:curio_campus/utils/constants.dart';
 import 'dart:async';
-import 'package:curio_campus/services/notification_service.dart';
 import 'package:provider/provider.dart';
 import 'package:curio_campus/providers/notification_provider.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 class ChatProvider with ChangeNotifier {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
@@ -21,7 +19,6 @@ class ChatProvider with ChangeNotifier {
   bool _isLoading = false;
   String? _errorMessage;
   String? _currentChatId;
-
 
   // For real-time updates
   StreamSubscription<QuerySnapshot>? _messagesSubscription;
@@ -53,9 +50,9 @@ class ChatProvider with ChangeNotifier {
       // Process new messages
       final newMessages = snapshot.docs
           .map((doc) => MessageModel.fromJson({
-        'id': doc.id,
-        ...doc.data(),
-      }))
+                'id': doc.id,
+                ...doc.data(),
+              }))
           .toList();
 
       // Update the messages list
@@ -89,9 +86,9 @@ class ChatProvider with ChangeNotifier {
       // Process chats
       final newChats = snapshot.docs
           .map((doc) => ChatModel.fromJson({
-        'id': doc.id,
-        ...doc.data(),
-      }))
+                'id': doc.id,
+                ...doc.data(),
+              }))
           .toList();
 
       // Sort in memory
@@ -161,9 +158,9 @@ class ChatProvider with ChangeNotifier {
 
       _chats = querySnapshot.docs
           .map((doc) => ChatModel.fromJson({
-        'id': doc.id,
-        ...doc.data(),
-      }))
+                'id': doc.id,
+                ...doc.data(),
+              }))
           .toList();
 
       // Sort in memory instead of in the query
@@ -206,9 +203,9 @@ class ChatProvider with ChangeNotifier {
 
       _messages = querySnapshot.docs
           .map((doc) => MessageModel.fromJson({
-        'id': doc.id,
-        ...doc.data(),
-      }))
+                'id': doc.id,
+                ...doc.data(),
+              }))
           .toList();
 
       // Mark messages as read
@@ -287,9 +284,8 @@ class ChatProvider with ChangeNotifier {
   Future<List<UserModel>> getUsers() async {
     try {
       // Fetch all users from Firestore (adjust the query as needed)
-      final querySnapshot = await _firestore
-          .collection(Constants.usersCollection)
-          .get();
+      final querySnapshot =
+          await _firestore.collection(Constants.usersCollection).get();
 
       // Map the fetched data into a list of UserModel objects
       final users = querySnapshot.docs.map((doc) {
@@ -382,13 +378,8 @@ class ChatProvider with ChangeNotifier {
   }
 
   // Helper method to notify participants
-  Future<void> _notifyParticipants(
-      String chatId,
-      String senderId,
-      String senderName,
-      String content,
-      BuildContext? context
-      ) async {
+  Future<void> _notifyParticipants(String chatId, String senderId,
+      String senderName, String content, BuildContext? context) async {
     try {
       // Get chat details to create notification
       final chatDoc = await _firestore
@@ -559,7 +550,8 @@ class ChatProvider with ChangeNotifier {
       final chatId = const Uuid().v4();
 
       // For individual chats, use the recipient's name as the chat name
-      final chatName = type == ChatType.individual ? recipientName : recipientName;
+      final chatName =
+          type == ChatType.individual ? recipientName : recipientName;
 
       final chat = ChatModel(
         id: chatId,
@@ -728,7 +720,8 @@ class ChatProvider with ChangeNotifier {
       }
 
       // Delete the chat document
-      batch.delete(_firestore.collection(Constants.chatsCollection).doc(chatId));
+      batch
+          .delete(_firestore.collection(Constants.chatsCollection).doc(chatId));
 
       await batch.commit();
 
@@ -753,7 +746,7 @@ class ChatProvider with ChangeNotifier {
 
     // Find the message in the messages list
     final message = _messages.firstWhere(
-          (m) => m.id == messageId,
+      (m) => m.id == messageId,
       orElse: () => MessageModel(
         id: '',
         senderId: '',
@@ -838,6 +831,7 @@ class ChatProvider with ChangeNotifier {
       notifyListeners();
     }
   }
+
 // Add this method to send call event messages
   Future<void> sendCallEventMessage({
     required String chatId,
@@ -911,14 +905,15 @@ class ChatProvider with ChangeNotifier {
         'lastMessageContent': content,
         'lastMessageSenderId': userId,
         'lastMessageAt': now.toIso8601String(),
-        'lastMessageType': 'call_event', // Add message type for better UI handling
+        'lastMessageType':
+            'call_event', // Add message type for better UI handling
       });
 
       // Send a notification to the other user about the call event
       final otherParticipants = (await _firestore
-          .collection(Constants.chatsCollection)
-          .doc(chatId)
-          .get())
+              .collection(Constants.chatsCollection)
+              .doc(chatId)
+              .get())
           .data()?['participants'] as List<dynamic>?;
 
       if (otherParticipants != null) {
@@ -935,7 +930,8 @@ class ChatProvider with ChangeNotifier {
               if (fcmToken != null && fcmToken.isNotEmpty) {
                 // Send a notification about the call event
                 // This would typically be done via a Cloud Function
-                debugPrint('Would send call event notification to $participantId with token $fcmToken');
+                debugPrint(
+                    'Would send call event notification to $participantId with token $fcmToken');
               }
             }
           }
@@ -998,7 +994,7 @@ class ChatProvider with ChangeNotifier {
 
     // Find the chat in the chats list
     final chat = _chats.firstWhere(
-          (c) => c.id == chatId,
+      (c) => c.id == chatId,
       orElse: () => ChatModel(
         id: '',
         name: '',

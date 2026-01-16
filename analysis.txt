@@ -1,0 +1,117 @@
+Analyzing curio-campus...                                       
+
+   info • Parameter 'key' could be a super parameter • lib/main.dart:30:9 • use_super_parameters
+   info • The constant name 'call_event' isn't a lowerCamelCase identifier • lib/models/message_model.dart:3:61 • constant_identifier_names
+warning • Unused import: 'package:curio_campus/services/notification_service.dart' • lib/providers/chat_provider.dart:10:8 • unused_import
+warning • Unused import: 'package:shared_preferences/shared_preferences.dart' • lib/providers/chat_provider.dart:13:8 • unused_import
+   info • Don't use 'BuildContext's across async gaps • lib/providers/chat_provider.dart:377:70 • use_build_context_synchronously
+   info • Don't use 'BuildContext's across async gaps • lib/providers/chat_provider.dart:434:19 • use_build_context_synchronously
+   info • Don't use 'BuildContext's across async gaps • lib/providers/chat_provider.dart:522:62 • use_build_context_synchronously
+   info • Use 'rethrow' to rethrow a caught exception • lib/providers/chat_provider.dart:687:7 • use_rethrow_when_possible
+   info • Don't invoke 'print' in production code • lib/providers/emergency_provider.dart:262:7 • avoid_print
+   info • Don't invoke 'print' in production code • lib/providers/emergency_provider.dart:263:7 • avoid_print
+   info • Don't invoke 'print' in production code • lib/providers/emergency_provider.dart:264:7 • avoid_print
+   info • Don't invoke 'print' in production code • lib/providers/emergency_provider.dart:265:7 • avoid_print
+   info • Don't invoke 'print' in production code • lib/providers/emergency_provider.dart:266:7 • avoid_print
+   info • Don't invoke 'print' in production code • lib/providers/emergency_provider.dart:274:7 • avoid_print
+   info • Don't invoke 'print' in production code • lib/providers/emergency_provider.dart:276:7 • avoid_print
+   info • Don't invoke 'print' in production code • lib/providers/emergency_provider.dart:277:7 • avoid_print
+   info • Don't invoke 'print' in production code • lib/providers/emergency_provider.dart:287:7 • avoid_print
+warning • The value of the local variable 'userId' isn't used • lib/providers/notification_provider.dart:550:13 • unused_local_variable
+   info • Parameter 'key' could be a super parameter • lib/screens/auth/login_screen.dart:11:9 • use_super_parameters
+   info • Parameter 'key' could be a super parameter • lib/screens/auth/register_screen.dart:14:9 • use_super_parameters
+   info • Don't use 'BuildContext's across async gaps • lib/screens/auth/register_screen.dart:58:28 • use_build_context_synchronously
+warning • Unused import: 'package:curio_campus/utils/app_theme.dart' • lib/screens/chat/call_screen.dart:4:8 • unused_import
+   info • Parameter 'key' could be a super parameter • lib/screens/chat/call_screen.dart:21:9 • use_super_parameters
+   info • The private field _recentMessages could be 'final' • lib/screens/chat/call_screen.dart:62:30 • prefer_final_fields
+warning • The value of the local variable 'size' isn't used • lib/screens/chat/call_screen.dart:414:11 • unused_local_variable
+   info • 'WillPopScope' is deprecated and shouldn't be used. Use PopScope instead. The Android predictive back feature will not work with WillPopScope. This feature was deprecated after v3.12.0-1.0.pre • lib/screens/chat/call_screen.dart:417:12 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/screens/chat/call_screen.dart:458:34 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/screens/chat/call_screen.dart:493:53 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/screens/chat/call_screen.dart:578:55 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/screens/chat/call_screen.dart:589:57 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/screens/chat/call_screen.dart:663:43 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/screens/chat/call_screen.dart:791:35 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/screens/chat/call_screen.dart:812:45 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/screens/chat/call_screen.dart:828:47 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/screens/chat/call_screen.dart:835:47 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/screens/chat/call_screen.dart:852:51 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/screens/chat/call_screen.dart:889:33 • deprecated_member_use
+   info • Parameter 'key' could be a super parameter • lib/screens/chat/chat_screen.dart:27:9 • use_super_parameters
+   info • The private field _isDeleting could be 'final' • lib/screens/chat/chat_screen.dart:48:8 • prefer_final_fields
+warning • The value of the field '_isDeleting' isn't used • lib/screens/chat/chat_screen.dart:48:8 • unused_field
+   info • The private field _deletingMessages could be 'final' • lib/screens/chat/chat_screen.dart:49:21 • prefer_final_fields
+   info • Don't use 'BuildContext's across async gaps • lib/screens/chat/chat_screen.dart:78:37 • use_build_context_synchronously
+   info • Don't use 'BuildContext's across async gaps • lib/screens/chat/chat_screen.dart:80:37 • use_build_context_synchronously
+   info • Don't use 'BuildContext's across async gaps • lib/screens/chat/chat_screen.dart:98:56 • use_build_context_synchronously
+   info • Don't use 'BuildContext's across async gaps • lib/screens/chat/chat_screen.dart:125:52 • use_build_context_synchronously
+   info • Don't use 'BuildContext's across async gaps, guarded by an unrelated 'mounted' check • lib/screens/chat/chat_screen.dart:287:53 • use_build_context_synchronously
+   info • Don't use 'BuildContext's across async gaps, guarded by an unrelated 'mounted' check • lib/screens/chat/chat_screen.dart:290:36 • use_build_context_synchronously
+   info • Don't use 'BuildContext's across async gaps • lib/screens/chat/chat_screen.dart:338:45 • use_build_context_synchronously
+   info • Don't use 'BuildContext's across async gaps • lib/screens/chat/chat_screen.dart:350:43 • use_build_context_synchronously
+   info • Don't use 'BuildContext's across async gaps • lib/screens/chat/chat_screen.dart:437:41 • use_build_context_synchronously
+warning • The value of the local variable 'displayName' isn't used • lib/screens/chat/chat_screen.dart:517:11 • unused_local_variable
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/screens/chat/chat_screen.dart:604:40 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/screens/chat/chat_screen.dart:902:53 • deprecated_member_use
+warning • Unused import: 'package:curio_campus/utils/image_utils.dart' • lib/screens/chat/create_group_chat_screen.dart:11:8 • unused_import
+   info • Parameter 'key' could be a super parameter • lib/screens/chat/create_group_chat_screen.dart:16:9 • use_super_parameters
+   info • Don't use 'BuildContext's across async gaps • lib/screens/chat/create_group_chat_screen.dart:71:30 • use_build_context_synchronously
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/screens/chat/create_group_chat_screen.dart:299:62 • deprecated_member_use
+warning • Unused import: 'package:curio_campus/models/chat_model.dart' • lib/screens/chat/edit_group_chat_screen.dart:9:8 • unused_import
+   info • Don't use 'BuildContext's across async gaps • lib/screens/chat/edit_group_chat_screen.dart:105:30 • use_build_context_synchronously
+   info • Don't use 'BuildContext's across async gaps • lib/screens/chat/edit_group_chat_screen.dart:181:28 • use_build_context_synchronously
+warning • The value of the local variable 'tempSelectedUserIds' isn't used • lib/screens/chat/edit_group_chat_screen.dart:192:24 • unused_local_variable
+warning • Unused import: 'dart:convert' • lib/screens/chat/image_viewer_screen.dart:1:8 • unused_import
+   info • Parameter 'key' could be a super parameter • lib/screens/chat/image_viewer_screen.dart:14:9 • use_super_parameters
+warning • The value of the field '_isLoading' isn't used • lib/screens/chat/image_viewer_screen.dart:26:8 • unused_field
+warning • The value of the field '_hasError' isn't used • lib/screens/chat/image_viewer_screen.dart:27:8 • unused_field
+warning • The value of the local variable 'isDarkMode' isn't used • lib/screens/chat/image_viewer_screen.dart:115:11 • unused_local_variable
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/screens/chat/image_viewer_screen.dart:120:39 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/screens/chat/image_viewer_screen.dart:149:29 • deprecated_member_use
+   info • 'scale' is deprecated and shouldn't be used. Use scaleByVector3, scaleByVector4, or scaleByDouble instead • lib/screens/chat/image_viewer_screen.dart:159:21 • deprecated_member_use
+   info • 'scale' is deprecated and shouldn't be used. Use scaleByVector3, scaleByVector4, or scaleByDouble instead • lib/screens/chat/image_viewer_screen.dart:169:21 • deprecated_member_use
+   info • Parameter 'key' could be a super parameter • lib/screens/chat/message_screen.dart:18:9 • use_super_parameters
+   info • Don't use 'BuildContext's across async gaps • lib/screens/chat/message_screen.dart:90:17 • use_build_context_synchronously
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/screens/chat/message_screen.dart:158:64 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/screens/chat/message_screen.dart:159:60 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/screens/chat/message_screen.dart:268:64 • deprecated_member_use
+   info • Parameter 'key' could be a super parameter • lib/screens/emergency/create_emergency_request_screen.dart:11:9 • use_super_parameters
+   info • Don't use 'BuildContext's across async gaps • lib/screens/emergency/create_emergency_request_screen.dart:106:9 • use_build_context_synchronously
+   info • Parameter 'key' could be a super parameter • lib/screens/emergency/edit_emergency_request_screen.dart:14:9 • use_super_parameters
+   info • Don't use 'BuildContext's across async gaps • lib/screens/emergency/edit_emergency_request_screen.dart:72:9 • use_build_context_synchronously
+   info • Parameter 'key' could be a super parameter • lib/screens/emergency/emergency_request_detail_screen.dart:16:9 • use_super_parameters
+   info • Don't use 'BuildContext's across async gaps • lib/screens/emergency/emergency_request_detail_screen.dart:197:42 • use_build_context_synchronously
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/screens/emergency/emergency_request_detail_screen.dart:493:60 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/screens/emergency/emergency_request_detail_screen.dart:496:62 • deprecated_member_use
+warning • Unused import: 'package:curio_campus/widgets/notification_badge.dart' • lib/screens/emergency/emergency_screen.dart:12:8 • unused_import
+warning • Unused import: 'package:curio_campus/widgets/notification_drawer.dart' • lib/screens/emergency/emergency_screen.dart:13:8 • unused_import
+warning • Unused import: 'package:curio_campus/models/notification_model.dart' • lib/screens/emergency/emergency_screen.dart:14:8 • unused_import
+   info • Parameter 'key' could be a super parameter • lib/screens/emergency/emergency_screen.dart:19:9 • use_super_parameters
+warning • The value of the field '_isActionInProgress' isn't used • lib/screens/emergency/emergency_screen.dart:27:8 • unused_field
+   info • Don't use 'BuildContext's across async gaps • lib/screens/emergency/emergency_screen.dart:220:48 • use_build_context_synchronously
+warning • The value of the local variable 'unreadCount' isn't used • lib/screens/emergency/emergency_screen.dart:257:11 • unused_local_variable
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/screens/emergency/emergency_screen.dart:592:45 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/screens/emergency/emergency_screen.dart:593:55 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/screens/emergency/emergency_screen.dart:636:45 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/screens/emergency/emergency_screen.dart:657:44 • deprecated_member_use
+warning • Unused import: 'package:curio_campus/providers/auth_provider.dart' • lib/screens/home/home_screen.dart:19:8 • unused_import
+   info • Parameter 'key' could be a super parameter • lib/screens/home/home_screen.dart:24:9 • use_super_parameters
+   info • Parameter 'key' could be a super parameter • lib/screens/home/widgets/more_options_sheet.dart:18:9 • use_super_parameters
+warning • The value of the local variable 'isDarkMode' isn't used • lib/screens/home/widgets/more_options_sheet.dart:27:11 • unused_local_variable
+   info • 'value' is deprecated and shouldn't be used. Use initialValue instead. This will set the initial value for the form field. This feature was deprecated after v3.33.0-1.0.pre • lib/screens/matchmaking/matchmaking_screen.dart:219:21 • deprecated_member_use
+   info • 'surfaceVariant' is deprecated and shouldn't be used. Use surfaceContainerHighest instead. This feature was deprecated after v3.18.0-0.1.pre • lib/screens/profile/edit_profile_screen.dart:180:57 • deprecated_member_use
+   info • 'surfaceVariant' is deprecated and shouldn't be used. Use surfaceContainerHighest instead. This feature was deprecated after v3.18.0-0.1.pre • lib/screens/profile/edit_profile_screen.dart:186:57 • deprecated_member_use
+   info • 'surfaceVariant' is deprecated and shouldn't be used. Use surfaceContainerHighest instead. This feature was deprecated after v3.18.0-0.1.pre • lib/screens/profile/edit_profile_screen.dart:195:57 • deprecated_member_use
+   info • 'surfaceVariant' is deprecated and shouldn't be used. Use surfaceContainerHighest instead. This feature was deprecated after v3.18.0-0.1.pre • lib/screens/profile/edit_profile_screen.dart:206:55 • deprecated_member_use
+   info • Don't use 'BuildContext's across async gaps, guarded by an unrelated 'mounted' check • lib/screens/project/project_detail_screen.dart:192:32 • use_build_context_synchronously
+   info • Don't use 'BuildContext's across async gaps, guarded by an unrelated 'mounted' check • lib/screens/project/project_screen.dart:111:38 • use_build_context_synchronously
+   info • 'MaterialStateProperty' is deprecated and shouldn't be used. Use WidgetStateProperty instead. Moved to the Widgets layer to make code available outside of Material. This feature was deprecated after v3.19.0-0.3.pre • lib/screens/settings/settings_screen.dart:42:29 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/screens/settings/settings_screen.dart:43:57 • deprecated_member_use
+   info • Parameter 'key' could be a super parameter • lib/screens/splash_screen.dart:17:9 • use_super_parameters
+   info • Don't use 'BuildContext's across async gaps • lib/screens/splash_screen.dart:82:44 • use_build_context_synchronously
+   info • Parameter 'key' could be a super parameter • lib/services/call_service.dart:1017:9 • use_super_parameters
+   info • Parameter 'key' could be a super parameter • lib/services/call_service.dart:1161:9 • use_super_parameters
+   info • Don't use 'BuildContext's across async gaps • lib/services/call_service.dart:1204:24 • use_build_context_synchronously
+   info • Don't use 'BuildContext's across async gaps • lib/services/call_service.dart:1216:11 • use_build_context_synchronously
+
+113 issues found. (ran in 2.2s)
