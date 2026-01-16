@@ -30,9 +30,6 @@ class ChatScreen extends StatefulWidget {
     required this.chatName,
   }) : super(key: key);
 
-
-
-
   @override
   State<ChatScreen> createState() => _ChatScreenState();
 }
@@ -72,6 +69,8 @@ class _ChatScreenState extends State<ChatScreen> {
     try {
       await Provider.of<ChatProvider>(context, listen: false)
           .fetchMessages(widget.chatId);
+
+      if (!mounted) return;
 
       // Get the sender's name from the first message
       final messages =
@@ -115,17 +114,15 @@ class _ChatScreenState extends State<ChatScreen> {
             orElse: () => '',
           );
 
-
-
-
-
           if (otherParticipantId.isNotEmpty) {
+            if (!mounted) return;
             // Fetch the user's name
             final user =
                 await Provider.of<ProjectProvider>(context, listen: false)
                     .fetchUserById(otherParticipantId);
 
-            if (user != null && mounted) {
+            if (!mounted) return;
+            if (user != null) {
               setState(() {
                 _senderName = user.name;
                 _otherUserId = otherParticipantId;

@@ -14,10 +14,10 @@ class EmergencyRequestDetailScreen extends StatefulWidget {
   final bool isOwnRequest;
 
   const EmergencyRequestDetailScreen({
-    Key? key,
+    super.key,
     required this.requestId,
     this.isOwnRequest = false,
-  }) : super(key: key);
+  });
 
   @override
   State<EmergencyRequestDetailScreen> createState() =>
@@ -490,10 +490,12 @@ class _EmergencyRequestDetailScreenState
                               vertical: 8,
                             ),
                             decoration: BoxDecoration(
-                              color: AppTheme.primaryColor.withOpacity(0.1),
+                              color:
+                                  AppTheme.primaryColor.withValues(alpha: 0.1),
                               borderRadius: BorderRadius.circular(16),
                               border: Border.all(
-                                color: AppTheme.primaryColor.withOpacity(0.5),
+                                color: AppTheme.primaryColor
+                                    .withValues(alpha: 0.5),
                               ),
                             ),
                             child: Text(

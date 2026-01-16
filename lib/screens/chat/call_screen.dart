@@ -34,7 +34,8 @@ class CallScreen extends StatefulWidget {
   State<CallScreen> createState() => _CallScreenState();
 }
 
-class _CallScreenState extends State<CallScreen> with SingleTickerProviderStateMixin {
+class _CallScreenState extends State<CallScreen>
+    with SingleTickerProviderStateMixin {
   bool _isMuted = false;
   bool _isSpeakerOn = false;
   bool _isCameraOff = false;
@@ -132,7 +133,8 @@ class _CallScreenState extends State<CallScreen> with SingleTickerProviderStateM
     widget.engine.registerEventHandler(
       RtcEngineEventHandler(
         onJoinChannelSuccess: (connection, elapsed) {
-          debugPrint('[Agora] Local user joined channel: \${connection.channelId}');
+          debugPrint(
+              '[Agora] Local user joined channel: \${connection.channelId}');
           setState(() {
             _localUserJoined = true;
             _isCallRinging = false;
@@ -152,8 +154,10 @@ class _CallScreenState extends State<CallScreen> with SingleTickerProviderStateM
             }
           });
         },
-        onFirstRemoteVideoFrame: (connection, remoteUid, width, height, elapsed) {
-          debugPrint('[Agora] 📹 First remote video frame from \$remoteUid (\${width}x\$height)');
+        onFirstRemoteVideoFrame:
+            (connection, remoteUid, width, height, elapsed) {
+          debugPrint(
+              '[Agora] 📹 First remote video frame from \$remoteUid (\${width}x\$height)');
           if (!_remoteUids.contains(remoteUid)) {
             setState(() {
               _remoteUids.add(remoteUid);
@@ -179,13 +183,14 @@ class _CallScreenState extends State<CallScreen> with SingleTickerProviderStateM
           }
         },
         onConnectionStateChanged: (connection, state, reason) {
-          debugPrint('[Agora] Connection state changed: \$state, reason: \$reason');
+          debugPrint(
+              '[Agora] Connection state changed: \$state, reason: \$reason');
           setState(() {
             _callStatus = state == ConnectionStateType.connectionStateConnected
                 ? 'connected'
                 : state == ConnectionStateType.connectionStateConnecting
-                ? 'connecting'
-                : 'disconnected';
+                    ? 'connecting'
+                    : 'disconnected';
           });
         },
         onError: (err, msg) {
@@ -233,13 +238,6 @@ class _CallScreenState extends State<CallScreen> with SingleTickerProviderStateM
 
     debugPrint('[Agora] Call setup complete');
   }
-
-
-
-
-
-
-
 
   void _startCallTimer() {
     _callTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
@@ -319,15 +317,12 @@ class _CallScreenState extends State<CallScreen> with SingleTickerProviderStateM
           .add(callMessage);
 
       // Update last message in chat document
-      await FirebaseFirestore.instance
-          .collection('chats')
-          .doc(chatRoomId)
-          .set({
-        'lastMessage': '${widget.callType == CallType.video ? 'Video' : 'Voice'} call ${_getCallStatusText(status)}',
+      await FirebaseFirestore.instance.collection('chats').doc(chatRoomId).set({
+        'lastMessage':
+            '${widget.callType == CallType.video ? 'Video' : 'Voice'} call ${_getCallStatusText(status)}',
         'lastMessageTime': FieldValue.serverTimestamp(),
         'participants': [currentUserId, widget.userId],
       }, SetOptions(merge: true));
-
     } catch (e) {
       debugPrint('Error adding call event to chat: $e');
     }
@@ -377,8 +372,6 @@ class _CallScreenState extends State<CallScreen> with SingleTickerProviderStateM
     );
   }
 
-
-
   String _formatDuration(Duration duration) {
     String twoDigits(int n) => n.toString().padLeft(2, '0');
     final hours = twoDigits(duration.inHours);
@@ -414,10 +407,12 @@ class _CallScreenState extends State<CallScreen> with SingleTickerProviderStateM
     final size = MediaQuery.of(context).size;
     final isOutgoingCall = widget.isOutgoing && !_isCallConnected;
 
-    return WillPopScope(
-      onWillPop: () async {
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, result) async {
+        if (didPop) return;
         // Show confirmation dialog before ending call
-        final result = await showDialog<bool>(
+        final endCall = await showDialog<bool>(
           context: context,
           builder: (context) => AlertDialog(
             title: const Text('End Call'),
@@ -429,15 +424,15 @@ class _CallScreenState extends State<CallScreen> with SingleTickerProviderStateM
               ),
               TextButton(
                 onPressed: () => Navigator.pop(context, true),
-                child: const Text('End Call', style: TextStyle(color: Colors.red)),
+                child:
+                    const Text('End Call', style: TextStyle(color: Colors.red)),
               ),
             ],
           ),
         );
-        if (result == true) {
+        if (endCall == true) {
           _endCall();
         }
-        return false;
       },
       child: Scaffold(
         backgroundColor: Colors.black,
@@ -447,19 +442,19 @@ class _CallScreenState extends State<CallScreen> with SingleTickerProviderStateM
             widget.callType == CallType.video
                 ? _buildVideoView()
                 : Container(
-              width: double.infinity,
-              height: double.infinity,
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  colors: [
-                    Colors.black,
-                    Colors.black.withOpacity(0.8),
-                  ],
-                ),
-              ),
-            ),
+                    width: double.infinity,
+                    height: double.infinity,
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        colors: [
+                          Colors.black,
+                          Colors.black.withValues(alpha: 0.8),
+                        ],
+                      ),
+                    ),
+                  ),
 
             // Call UI
             SafeArea(
@@ -476,7 +471,9 @@ class _CallScreenState extends State<CallScreen> with SingleTickerProviderStateM
                         Text(
                           widget.callType == CallType.video
                               ? 'Video Call'
-                              : widget.isOutgoing ? 'Outgoing Voice Call' : 'Voice Call',
+                              : widget.isOutgoing
+                                  ? 'Outgoing Voice Call'
+                                  : 'Voice Call',
                           style: const TextStyle(
                             color: Colors.white,
                             fontSize: 18,
@@ -490,7 +487,7 @@ class _CallScreenState extends State<CallScreen> with SingleTickerProviderStateM
                             child: Text(
                               _formatDuration(_callDuration),
                               style: TextStyle(
-                                color: Colors.white.withOpacity(0.7),
+                                color: Colors.white.withValues(alpha: 0.7),
                                 fontSize: 14,
                               ),
                               textAlign: TextAlign.center,
@@ -518,22 +515,35 @@ class _CallScreenState extends State<CallScreen> with SingleTickerProviderStateM
                                     child: CircleAvatar(
                                       radius: 60,
                                       backgroundColor: Colors.blue,
-                                      backgroundImage: widget.profileImageBase64 != null && widget.profileImageBase64!.isNotEmpty
-                                          ? MemoryImage(base64Decode(widget.profileImageBase64!))
-                                          : null,
-                                      onBackgroundImageError: widget.profileImageBase64 != null && widget.profileImageBase64!.isNotEmpty
-                                          ? (_, __) {
-                                        // Handle error silently
-                                      }
-                                          : null,
-                                      child: (widget.profileImageBase64 == null || widget.profileImageBase64!.isEmpty)
-                                          ? Text(
-                                        widget.userName.isNotEmpty
-                                            ? widget.userName[0].toUpperCase()
-                                            : '?',
-                                        style: const TextStyle(color: Colors.white, fontSize: 40),
-                                      )
-                                          : null,
+                                      backgroundImage:
+                                          widget.profileImageBase64 != null &&
+                                                  widget.profileImageBase64!
+                                                      .isNotEmpty
+                                              ? MemoryImage(base64Decode(
+                                                  widget.profileImageBase64!))
+                                              : null,
+                                      onBackgroundImageError:
+                                          widget.profileImageBase64 != null &&
+                                                  widget.profileImageBase64!
+                                                      .isNotEmpty
+                                              ? (_, __) {
+                                                  // Handle error silently
+                                                }
+                                              : null,
+                                      child:
+                                          (widget.profileImageBase64 == null ||
+                                                  widget.profileImageBase64!
+                                                      .isEmpty)
+                                              ? Text(
+                                                  widget.userName.isNotEmpty
+                                                      ? widget.userName[0]
+                                                          .toUpperCase()
+                                                      : '?',
+                                                  style: const TextStyle(
+                                                      color: Colors.white,
+                                                      fontSize: 40),
+                                                )
+                                              : null,
                                     ),
                                   );
                                 },
@@ -542,21 +552,29 @@ class _CallScreenState extends State<CallScreen> with SingleTickerProviderStateM
                               CircleAvatar(
                                 radius: 60,
                                 backgroundColor: Colors.blue,
-                                backgroundImage: widget.profileImageBase64 != null && widget.profileImageBase64!.isNotEmpty
-                                    ? MemoryImage(base64Decode(widget.profileImageBase64!))
+                                backgroundImage: widget.profileImageBase64 !=
+                                            null &&
+                                        widget.profileImageBase64!.isNotEmpty
+                                    ? MemoryImage(base64Decode(
+                                        widget.profileImageBase64!))
                                     : null,
-                                onBackgroundImageError: widget.profileImageBase64 != null && widget.profileImageBase64!.isNotEmpty
-                                    ? (_, __) {
-                                  // Handle error silently
-                                }
-                                    : null,
-                                child: (widget.profileImageBase64 == null || widget.profileImageBase64!.isEmpty)
+                                onBackgroundImageError:
+                                    widget.profileImageBase64 != null &&
+                                            widget
+                                                .profileImageBase64!.isNotEmpty
+                                        ? (_, __) {
+                                            // Handle error silently
+                                          }
+                                        : null,
+                                child: (widget.profileImageBase64 == null ||
+                                        widget.profileImageBase64!.isEmpty)
                                     ? Text(
-                                  widget.userName.isNotEmpty
-                                      ? widget.userName[0].toUpperCase()
-                                      : '?',
-                                  style: const TextStyle(color: Colors.white, fontSize: 40),
-                                )
+                                        widget.userName.isNotEmpty
+                                            ? widget.userName[0].toUpperCase()
+                                            : '?',
+                                        style: const TextStyle(
+                                            color: Colors.white, fontSize: 40),
+                                      )
                                     : null,
                               ),
 
@@ -573,20 +591,24 @@ class _CallScreenState extends State<CallScreen> with SingleTickerProviderStateM
                             const SizedBox(height: 8),
                             if (_isCallRinging || !_isCallConnected)
                               Text(
-                                isOutgoingCall ? 'Calling...' : _callStatus.capitalize(),
+                                isOutgoingCall
+                                    ? 'Calling...'
+                                    : _callStatus.capitalize(),
                                 style: TextStyle(
-                                  color: Colors.white.withOpacity(0.7),
+                                  color: Colors.white.withValues(alpha: 0.7),
                                   fontSize: 16,
                                 ),
                                 textAlign: TextAlign.center,
                               ),
-                            if (_isCallConnected && !_isCallRinging && widget.callType == CallType.voice)
+                            if (_isCallConnected &&
+                                !_isCallRinging &&
+                                widget.callType == CallType.voice)
                               Padding(
                                 padding: const EdgeInsets.only(top: 8.0),
                                 child: Text(
                                   _formatDuration(_callDuration),
                                   style: TextStyle(
-                                    color: Colors.white.withOpacity(0.7),
+                                    color: Colors.white.withValues(alpha: 0.7),
                                     fontSize: 16,
                                     fontWeight: FontWeight.bold,
                                   ),
@@ -658,9 +680,10 @@ class _CallScreenState extends State<CallScreen> with SingleTickerProviderStateM
                   },
                   child: Container(
                     margin: const EdgeInsets.symmetric(horizontal: 16),
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 16, vertical: 12),
                     decoration: BoxDecoration(
-                      color: Colors.black.withOpacity(0.7),
+                      color: Colors.black.withValues(alpha: 0.7),
                       borderRadius: BorderRadius.circular(12),
                       border: Border.all(color: Colors.white24),
                     ),
@@ -669,7 +692,8 @@ class _CallScreenState extends State<CallScreen> with SingleTickerProviderStateM
                         const CircleAvatar(
                           radius: 16,
                           backgroundColor: Colors.blue,
-                          child: Icon(Icons.message, color: Colors.white, size: 16),
+                          child: Icon(Icons.message,
+                              color: Colors.white, size: 16),
                         ),
                         const SizedBox(width: 12),
                         Expanded(
@@ -697,7 +721,8 @@ class _CallScreenState extends State<CallScreen> with SingleTickerProviderStateM
                             ],
                           ),
                         ),
-                        const Icon(Icons.close, color: Colors.white54, size: 16),
+                        const Icon(Icons.close,
+                            color: Colors.white54, size: 16),
                       ],
                     ),
                   ),
@@ -715,12 +740,13 @@ class _CallScreenState extends State<CallScreen> with SingleTickerProviderStateM
         // Show all remote UIDs
         if (_remoteUids.isNotEmpty)
           ..._remoteUids.map((uid) => AgoraVideoView(
-            controller: VideoViewController.remote(
-              rtcEngine: widget.engine,
-              canvas: VideoCanvas(uid: uid),
-              connection: RtcConnection(channelId: 'channel_${widget.callId}'),
-            ),
-          )),
+                controller: VideoViewController.remote(
+                  rtcEngine: widget.engine,
+                  canvas: VideoCanvas(uid: uid),
+                  connection:
+                      RtcConnection(channelId: 'channel_${widget.callId}'),
+                ),
+              )),
         if (_remoteUids.isEmpty)
           Container(
             color: Colors.black,
@@ -761,9 +787,6 @@ class _CallScreenState extends State<CallScreen> with SingleTickerProviderStateM
     );
   }
 
-
-
-
   Widget _buildOutgoingCallControls() {
     return Align(
       alignment: Alignment.center,
@@ -788,7 +811,7 @@ class _CallScreenState extends State<CallScreen> with SingleTickerProviderStateM
           Text(
             'Cancel',
             style: TextStyle(
-              color: Colors.white.withOpacity(0.8),
+              color: Colors.white.withValues(alpha: 0.8),
               fontSize: 14,
             ),
           ),
@@ -796,7 +819,6 @@ class _CallScreenState extends State<CallScreen> with SingleTickerProviderStateM
       ),
     );
   }
-
 
   Widget _buildActiveCallControls() {
     return Column(
@@ -809,7 +831,7 @@ class _CallScreenState extends State<CallScreen> with SingleTickerProviderStateM
               icon: _isMuted ? Icons.mic_off : Icons.mic,
               label: _isMuted ? 'Unmute' : 'Mute',
               onPressed: _toggleMute,
-              backgroundColor: Colors.white.withOpacity(0.2),
+              backgroundColor: Colors.white.withValues(alpha: 0.2),
             ),
             const SizedBox(width: 16),
             _buildCallButton(
@@ -825,14 +847,14 @@ class _CallScreenState extends State<CallScreen> with SingleTickerProviderStateM
                 icon: _isCameraOff ? Icons.videocam_off : Icons.videocam,
                 label: _isCameraOff ? 'Camera On' : 'Camera Off',
                 onPressed: _toggleCamera,
-                backgroundColor: Colors.white.withOpacity(0.2),
+                backgroundColor: Colors.white.withValues(alpha: 0.2),
               ),
             ] else
               _buildCallButton(
                 icon: _isSpeakerOn ? Icons.volume_up : Icons.volume_down,
                 label: _isSpeakerOn ? 'Speaker Off' : 'Speaker On',
                 onPressed: _toggleSpeaker,
-                backgroundColor: Colors.white.withOpacity(0.2),
+                backgroundColor: Colors.white.withValues(alpha: 0.2),
               ),
           ],
         ),
@@ -849,7 +871,7 @@ class _CallScreenState extends State<CallScreen> with SingleTickerProviderStateM
                     icon: Icons.flip_camera_ios,
                     label: 'Flip',
                     onPressed: _switchCamera,
-                    backgroundColor: Colors.white.withOpacity(0.2),
+                    backgroundColor: Colors.white.withValues(alpha: 0.2),
                     size: 50,
                   ),
               ],
@@ -886,7 +908,7 @@ class _CallScreenState extends State<CallScreen> with SingleTickerProviderStateM
         Text(
           label,
           style: TextStyle(
-            color: Colors.white.withOpacity(0.8),
+            color: Colors.white.withValues(alpha: 0.8),
             fontSize: 12,
           ),
         ),
