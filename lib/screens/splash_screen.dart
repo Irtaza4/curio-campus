@@ -14,7 +14,7 @@ import 'package:curio_campus/screens/project/project_detail_screen.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 
 class SplashScreen extends StatefulWidget {
-  const SplashScreen({Key? key}) : super(key: key);
+  const SplashScreen({super.key});
 
   @override
   State<SplashScreen> createState() => _SplashScreenState();
@@ -76,11 +76,13 @@ class _SplashScreenState extends State<SplashScreen>
     try {
       final authProvider = Provider.of<AuthProvider>(context, listen: false);
       final prefs = await SharedPreferences.getInstance();
+      if (!mounted) return;
       final initialNotificationJson = prefs.getString('initial_notification');
 
       if (authProvider.isAuthenticated) {
-        await Provider.of<ProjectProvider>(context, listen: false)
-            .initProjects();
+        final projectProvider =
+            Provider.of<ProjectProvider>(context, listen: false);
+        await projectProvider.initProjects();
 
         if (mounted) {
           Navigator.of(context).pushReplacement(
