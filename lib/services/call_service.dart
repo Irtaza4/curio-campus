@@ -1015,7 +1015,7 @@ class IncomingCallScreen extends StatefulWidget {
   final VoidCallback onDecline;
 
   const IncomingCallScreen({
-    Key? key,
+    super.key,
     required this.callId,
     required this.callerId,
     required this.callerName,
@@ -1023,7 +1023,7 @@ class IncomingCallScreen extends StatefulWidget {
     required this.callType,
     required this.onAccept,
     required this.onDecline,
-  }) : super(key: key);
+  });
 
   @override
   State<IncomingCallScreen> createState() => _IncomingCallScreenState();
@@ -1159,14 +1159,14 @@ class OutgoingCallScreen extends StatefulWidget {
   final VoidCallback onCancel;
 
   const OutgoingCallScreen({
-    Key? key,
+    super.key,
     required this.callId,
     required this.recipientId,
     required this.recipientName,
     this.recipientImage,
     required this.callType,
     required this.onCancel,
-  }) : super(key: key);
+  });
 
   @override
   State<OutgoingCallScreen> createState() => _OutgoingCallScreenState();
@@ -1201,7 +1201,9 @@ class _OutgoingCallScreenState extends State<OutgoingCallScreen> {
           _showCallScreen();
         } else if (status == 'declined' || status == 'missed') {
           // Call was declined or missed, close the screen
-          Navigator.of(context).pop();
+          if (mounted) {
+            Navigator.of(context).pop();
+          }
         }
       }
     });
@@ -1211,7 +1213,9 @@ class _OutgoingCallScreenState extends State<OutgoingCallScreen> {
     // Initialize Agora and show the call screen
     final callService = CallService();
     callService._initializeAgoraEngine().then((_) {
+      if (!mounted) return;
       callService._joinChannel(widget.callId.toString()).then((_) {
+        if (!mounted) return;
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(
