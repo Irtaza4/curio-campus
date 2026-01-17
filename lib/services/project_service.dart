@@ -28,15 +28,13 @@ class ProjectService {
   }
 
   Future<List<ProjectModel>> fetchProjects(List<String> projectIds) async {
-    List<ProjectModel> projects = [];
-
-    for (final projectId in projectIds) {
-      final project = await fetchProject(projectId);
-      if (project != null) {
-        projects.add(project);
-      }
+    try {
+      final futures = projectIds.map((id) => fetchProject(id));
+      final results = await Future.wait(futures);
+      return results.whereType<ProjectModel>().toList();
+    } catch (e) {
+      debugPrint('Error fetching projects: $e');
+      return [];
     }
-
-    return projects;
   }
 }
