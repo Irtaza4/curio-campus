@@ -111,6 +111,8 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
         borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
       ),
       builder: (context) {
+        final projectProvider =
+            Provider.of<ProjectProvider>(context, listen: false);
         return SafeArea(
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -123,20 +125,20 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
                   // Share functionality
                 },
               ),
-              ListTile(
-                leading: const Icon(Icons.delete, color: Colors.red),
-                title: const Text('Delete Project',
-                    style: TextStyle(color: Colors.red)),
-                onTap: () async {
-                  Navigator.pop(context);
-                  final projectProvider =
-                      Provider.of<ProjectProvider>(context, listen: false);
-                  final project = projectProvider.currentProject;
-                  if (project != null) {
-                    _showDeleteProjectDialog(project);
-                  }
-                },
-              ),
+              if (projectProvider.currentProject?.createdBy ==
+                  projectProvider.currentUserId)
+                ListTile(
+                  leading: const Icon(Icons.delete, color: Colors.red),
+                  title: const Text('Delete Project',
+                      style: TextStyle(color: Colors.red)),
+                  onTap: () async {
+                    Navigator.pop(context);
+                    final project = projectProvider.currentProject;
+                    if (project != null) {
+                      _showDeleteProjectDialog(project);
+                    }
+                  },
+                ),
               ListTile(
                 leading: Icon(Icons.archive, color: AppTheme.primaryColor),
                 title: const Text('Archive Project'),
@@ -208,10 +210,11 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
       appBar: AppBar(
         title: Text(project?.name ?? 'Project Details'),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.edit),
-            onPressed: _editProject,
-          ),
+          if (project?.createdBy == projectProvider.currentUserId)
+            IconButton(
+              icon: const Icon(Icons.edit),
+              onPressed: _editProject,
+            ),
           IconButton(
             icon: const Icon(Icons.more_vert),
             onPressed: _showMoreOptions,
