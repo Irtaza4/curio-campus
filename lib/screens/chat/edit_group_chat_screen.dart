@@ -178,6 +178,7 @@ class _EditGroupChatScreenState extends State<EditGroupChatScreen> {
         users.where((user) => !_participants.contains(user.id)).toList();
 
     if (filteredUsers.isEmpty) {
+      if (!mounted) return; // Add mounted check before showing SnackBar
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('All available users are already in this group'),
@@ -197,24 +198,95 @@ class _EditGroupChatScreenState extends State<EditGroupChatScreen> {
         final theme = Theme.of(context);
         final isDarkMode = theme.brightness == Brightness.dark;
 
-        return AlertDialog(
-          backgroundColor:
-              isDarkMode ? AppTheme.darkSurfaceColor : Colors.white,
-          title: Text(
-            'Add Participants',
-            style: TextStyle(
-              color: isDarkMode ? AppTheme.darkTextColor : AppTheme.textColor,
-            ),
-          ),
-          content: SizedBox(
-            width: double.maxFinite,
-            height: 300,
-            child: Column(
-              children: [
-                Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 8.0),
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return AlertDialog(
+              backgroundColor:
+                  isDarkMode ? AppTheme.darkSurfaceColor : Colors.white,
+              title: Text(
+                'Add Participants',
+                style: TextStyle(
+                  color:
+                      isDarkMode ? AppTheme.darkTextColor : AppTheme.textColor,
+                ),
+              ),
+              content: SizedBox(
+                width: double.maxFinite,
+                height: 300,
+                child: Column(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 8.0),
+                      child: Text(
+                        'Select users to add to the group',
+                        style: TextStyle(
+                          color: isDarkMode
+                              ? AppTheme.darkDarkGrayColor
+                              : AppTheme.darkGrayColor,
+                        ),
+                      ),
+                    ),
+                    Expanded(
+                      child: ListView.builder(
+                        shrinkWrap: true,
+                        itemCount: filteredUsers.length,
+                        itemBuilder: (context, index) {
+                          final user = filteredUsers[index];
+                          final userId = user.id;
+                          final isSelected =
+                              tempSelectedUserIds.contains(userId);
+
+                          return CheckboxListTile(
+                            title: Text(
+                              user.name,
+                              style: TextStyle(
+                                color: isDarkMode
+                                    ? AppTheme.darkTextColor
+                                    : AppTheme.textColor,
+                              ),
+                            ),
+                            subtitle: Text(
+                              user.email,
+                              style: TextStyle(
+                                color: isDarkMode
+                                    ? AppTheme.darkDarkGrayColor
+                                    : AppTheme.darkGrayColor,
+                              ),
+                            ),
+                            value: isSelected,
+                            activeColor: AppTheme.primaryColor,
+                            onChanged: (value) {
+                              setState(() {
+                                if (value == true) {
+                                  tempSelectedUserIds.add(userId);
+                                } else {
+                                  tempSelectedUserIds.remove(userId);
+                                }
+                              });
+                            },
+                            secondary: CircleAvatar(
+                              backgroundColor: AppTheme.primaryColor,
+                              child: Text(
+                                user.name.isNotEmpty
+                                    ? user.name[0].toUpperCase()
+                                    : '?',
+                                style: const TextStyle(color: Colors.white),
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () {
+                    Navigator.pop(context);
+                  },
                   child: Text(
-                    'Select users to add to the group',
+                    'Cancel',
                     style: TextStyle(
                       color: isDarkMode
                           ? AppTheme.darkDarkGrayColor
@@ -222,73 +294,25 @@ class _EditGroupChatScreenState extends State<EditGroupChatScreen> {
                     ),
                   ),
                 ),
-                Expanded(
-                  child: ListView.builder(
-                    shrinkWrap: true,
-                    itemCount: filteredUsers.length,
-                    itemBuilder: (context, index) {
-                      final user = filteredUsers[index];
-                      final userId = user.id;
-
-                      return CheckboxListTile(
-                        title: Text(
-                          user.name,
-                          style: TextStyle(
-                            color: isDarkMode
-                                ? AppTheme.darkTextColor
-                                : AppTheme.textColor,
-                          ),
-                        ),
-                        subtitle: Text(
-                          user.email,
-                          style: TextStyle(
-                            color: isDarkMode
-                                ? AppTheme.darkDarkGrayColor
-                                : AppTheme.darkGrayColor,
-                          ),
-                        ),
-                        value: false,
-                        activeColor: AppTheme.primaryColor,
-                        onChanged: (value) {
-                          if (value == true) {
-                            // Add user directly to the participants list
-                            setState(() {
-                              _participants.add(userId);
-                            });
-                            Navigator.pop(context);
-                          }
-                        },
-                        secondary: CircleAvatar(
-                          backgroundColor: AppTheme.primaryColor,
-                          child: Text(
-                            user.name.isNotEmpty
-                                ? user.name[0].toUpperCase()
-                                : '?',
-                            style: const TextStyle(color: Colors.white),
-                          ),
-                        ),
-                      );
-                    },
+                TextButton(
+                  onPressed: () {
+                    // Update the main participants list
+                    this.setState(() {
+                      _participants.addAll(tempSelectedUserIds);
+                    });
+                    Navigator.pop(context);
+                  },
+                  child: Text(
+                    'Add (${tempSelectedUserIds.length})',
+                    style: TextStyle(
+                      color: AppTheme.primaryColor,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ),
               ],
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.pop(context);
-              },
-              child: Text(
-                'Cancel',
-                style: TextStyle(
-                  color: isDarkMode
-                      ? AppTheme.darkDarkGrayColor
-                      : AppTheme.darkGrayColor,
-                ),
-              ),
-            ),
-          ],
+            );
+          },
         );
       },
     );
