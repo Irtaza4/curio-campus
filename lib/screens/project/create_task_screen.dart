@@ -35,11 +35,73 @@ class _CreateTaskScreenState extends State<CreateTaskScreen> {
   TaskPriority _priority = TaskPriority.medium;
   bool _isLoading = false;
 
+  List<UserModel> _assignableUsers = [];
+  bool _isLoadingUsers = true;
+
   @override
   void initState() {
     super.initState();
     if (widget.teamMembers.isNotEmpty) {
       _assignedTo = widget.teamMembers.first;
+    }
+    _fetchAssignableUsers();
+  }
+
+  Future<void> _fetchAssignableUsers() async {
+    final projectProvider =
+        Provider.of<ProjectProvider>(context, listen: false);
+    final chatProvider = Provider.of<ChatProvider>(context, listen: false);
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    final currentUserId = authProvider.firebaseUser?.uid;
+
+    final Set<String> userIds = {};
+
+    // Add team members
+    userIds.addAll(widget.teamMembers);
+
+    // Add chat participants
+    if (currentUserId != null) {
+      for (var chat in chatProvider.chats) {
+        for (var participantId in chat.participants) {
+          if (participantId != currentUserId) {
+            userIds.add(participantId);
+          }
+        }
+      }
+    }
+
+    List<UserModel> fetchedUsers = [];
+
+    // Fetch user details
+    try {
+      // In a real app, you'd want a bulk fetch API.
+      // For now, we'll fetch them in parallel to speed it up.
+      final futures = userIds.map((id) => projectProvider.fetchUserById(id));
+      final results = await Future.wait(futures);
+
+      for (var user in results) {
+        if (user != null) {
+          fetchedUsers.add(user);
+        }
+      }
+    } catch (e) {
+      debugPrint('Error fetching users: $e');
+    }
+
+    if (mounted) {
+      setState(() {
+        _assignableUsers = fetchedUsers;
+        _isLoadingUsers = false;
+
+        // Ensure _assignedTo is valid
+        if (_assignedTo.isNotEmpty &&
+            !_assignableUsers.any((u) => u.id == _assignedTo)) {
+          // If the currently assigned user ID isn't in the fetched list (e.g. error fetching), keep it but maybe warn?
+          // Or just leave it as is, since we have the ID.
+        } else if (_assignedTo.isEmpty && _assignableUsers.isNotEmpty) {
+          _assignedTo = _assignableUsers.first.id;
+        }
+      });
     }
   }
 
@@ -104,6 +166,9 @@ class _CreateTaskScreenState extends State<CreateTaskScreen> {
   }
 
   Future<void> _selectDate(BuildContext context) async {
+    final theme = Theme.of(context);
+    final isDarkMode = theme.brightness == Brightness.dark;
+
     final DateTime? picked = await showDatePicker(
       context: context,
       initialDate: _dueDate,
@@ -112,10 +177,22 @@ class _CreateTaskScreenState extends State<CreateTaskScreen> {
       builder: (context, child) {
         return Theme(
           data: Theme.of(context).copyWith(
-            colorScheme: ColorScheme.light(
-              primary: AppTheme.primaryColor,
-              onPrimary: Colors.white,
-              onSurface: Colors.black,
+            colorScheme: isDarkMode
+                ? ColorScheme.dark(
+                    primary: AppTheme.primaryColor,
+                    onPrimary: Colors.white,
+                    surface: AppTheme.darkSurfaceColor,
+                    onSurface: AppTheme.darkTextColor,
+                  )
+                : ColorScheme.light(
+                    primary: AppTheme.primaryColor,
+                    onPrimary: Colors.white,
+                    surface: Colors.white,
+                    onSurface: Colors.black,
+                  ),
+            dialogTheme: DialogThemeData(
+              backgroundColor:
+                  isDarkMode ? AppTheme.darkSurfaceColor : Colors.white,
             ),
           ),
           child: child!,
@@ -132,31 +209,6 @@ class _CreateTaskScreenState extends State<CreateTaskScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final chatProvider = Provider.of<ChatProvider>(context, listen: false);
-    final authProvider = Provider.of<AuthProvider>(context, listen: false);
-    final currentUserId = authProvider.firebaseUser?.uid;
-
-    // Get chat participants for assignment
-    List<String> chatParticipants = [];
-    if (currentUserId != null) {
-      for (var chat in chatProvider.chats) {
-        for (var participantId in chat.participants) {
-          if (participantId != currentUserId &&
-              !chatParticipants.contains(participantId)) {
-            chatParticipants.add(participantId);
-          }
-        }
-      }
-    }
-
-    // Combine team members and chat participants
-    final List<String> allAssignableUsers = [...widget.teamMembers];
-    for (var participantId in chatParticipants) {
-      if (!allAssignableUsers.contains(participantId)) {
-        allAssignableUsers.add(participantId);
-      }
-    }
-
     return Scaffold(
       appBar: AppBar(
         title: const Text('Create Task'),
@@ -322,57 +374,47 @@ class _CreateTaskScreenState extends State<CreateTaskScreen> {
                 ),
               ),
               const SizedBox(height: 8),
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 8,
-                ),
-                decoration: BoxDecoration(
-                  color: AppTheme.lightGrayColor,
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: DropdownButtonHideUnderline(
-                  child: DropdownButton<String>(
-                    value: _assignedTo.isEmpty ? null : _assignedTo,
-                    isExpanded: true,
-                    hint: const Text('Select team member or chat contact'),
-                    icon: Icon(
-                      Icons.arrow_drop_down,
-                      color: AppTheme.primaryColor,
-                    ),
-                    items: allAssignableUsers.map((userId) {
-                      // For team members, use the dummy data
-                      // For chat contacts, fetch the user name from the project provider
-                      return DropdownMenuItem<String>(
-                        value: userId,
-                        child: FutureBuilder<UserModel?>(
-                          future: Provider.of<ProjectProvider>(context,
-                                  listen: false)
-                              .fetchUserById(userId),
-                          builder: (context, snapshot) {
-                            if (snapshot.connectionState ==
-                                ConnectionState.waiting) {
-                              return const Text('Loading...');
+              _isLoadingUsers
+                  ? const Center(child: CircularProgressIndicator())
+                  : Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 8,
+                      ),
+                      decoration: BoxDecoration(
+                        color: AppTheme.lightGrayColor,
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: DropdownButtonHideUnderline(
+                        child: DropdownButton<String>(
+                          value: _assignedTo.isNotEmpty &&
+                                  _assignableUsers
+                                      .any((u) => u.id == _assignedTo)
+                              ? _assignedTo
+                              : null,
+                          isExpanded: true,
+                          hint: const Text('Select team member'),
+                          icon: Icon(
+                            Icons.arrow_drop_down,
+                            color: AppTheme.primaryColor,
+                          ),
+                          items: _assignableUsers.map((user) {
+                            return DropdownMenuItem<String>(
+                              value: user.id,
+                              child: Text(user.name),
+                            );
+                          }).toList(),
+                          onChanged: (value) {
+                            if (value != null) {
+                              setState(() {
+                                _assignedTo = value;
+                              });
                             }
-                            if (snapshot.hasData && snapshot.data != null) {
-                              return Text(snapshot.data!.name);
-                            }
-                            return Text('User $userId');
                           },
                         ),
-                      );
-                    }).toList(),
-                    onChanged: (value) {
-                      if (value != null) {
-                        setState(() {
-                          _assignedTo = value;
-                        });
-                      }
-                    },
-                  ),
-                ),
-              ),
+                      ),
+                    ),
 
               const SizedBox(height: 32),
 
