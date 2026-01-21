@@ -133,9 +133,11 @@ class _CreateProjectScreenState extends State<CreateProjectScreen> {
     );
 
     if (picked != null && picked != _deadline) {
-      setState(() {
-        _deadline = picked;
-      });
+      if (mounted) {
+        setState(() {
+          _deadline = picked;
+        });
+      }
     }
   }
 
@@ -303,9 +305,11 @@ class _CreateProjectScreenState extends State<CreateProjectScreen> {
   Future<void> _createProject() async {
     if (!_formKey.currentState!.validate()) return;
 
-    setState(() {
-      _isLoading = true;
-    });
+    if (mounted) {
+      setState(() {
+        _isLoading = true;
+      });
+    }
 
     try {
       final projectId =
@@ -331,9 +335,11 @@ class _CreateProjectScreenState extends State<CreateProjectScreen> {
         }
       }
     } catch (e) {
-      setState(() {
-        _isLoading = false;
-      });
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
