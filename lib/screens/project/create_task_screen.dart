@@ -124,9 +124,11 @@ class _CreateTaskScreenState extends State<CreateTaskScreen> {
         return;
       }
 
-      setState(() {
-        _isLoading = true;
-      });
+      if (mounted) {
+        setState(() {
+          _isLoading = true;
+        });
+      }
 
       final projectProvider =
           Provider.of<ProjectProvider>(context, listen: false);
@@ -140,9 +142,11 @@ class _CreateTaskScreenState extends State<CreateTaskScreen> {
         dueDate: _dueDate,
       );
 
-      setState(() {
-        _isLoading = false;
-      });
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
 
       if (taskId != null && mounted) {
         // Return true to indicate success
@@ -187,13 +191,8 @@ class _CreateTaskScreenState extends State<CreateTaskScreen> {
                 : ColorScheme.light(
                     primary: AppTheme.primaryColor,
                     onPrimary: Colors.white,
-                    surface: Colors.white,
                     onSurface: Colors.black,
                   ),
-            dialogTheme: DialogThemeData(
-              backgroundColor:
-                  isDarkMode ? AppTheme.darkSurfaceColor : Colors.white,
-            ),
           ),
           child: child!,
         );
