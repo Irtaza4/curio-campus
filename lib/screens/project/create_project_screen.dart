@@ -67,11 +67,15 @@ class _CreateProjectScreenState extends State<CreateProjectScreen> {
           Provider.of<ProjectProvider>(context, listen: false).currentUserId;
       contactIds.remove(currentUserId);
 
-      // Fetch user details for each contact
+      // Fetch user details for each contact concurrently
+      final futures = contactIds.map((userId) =>
+          Provider.of<ProjectProvider>(context, listen: false)
+              .fetchUserById(userId));
+
+      final results = await Future.wait(futures);
+
       final List<UserModel> contacts = [];
-      for (final userId in contactIds) {
-        final user = await Provider.of<ProjectProvider>(context, listen: false)
-            .fetchUserById(userId);
+      for (final user in results) {
         if (user != null) {
           contacts.add(user);
         }
