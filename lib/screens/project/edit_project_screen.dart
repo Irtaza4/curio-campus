@@ -87,6 +87,9 @@ class _EditProjectScreenState extends State<EditProjectScreen> {
         contactIds.addAll(chat.participants);
       }
 
+      // Add existing team members to ensure they are available even if not in chats
+      contactIds.addAll(widget.project.teamMembers);
+
       // Remove current user ID
       if (!mounted) return;
       final currentUserId =
@@ -142,9 +145,11 @@ class _EditProjectScreenState extends State<EditProjectScreen> {
     );
 
     if (picked != null && picked != _deadline) {
-      setState(() {
-        _deadline = picked;
-      });
+      if (mounted) {
+        setState(() {
+          _deadline = picked;
+        });
+      }
     }
   }
 
@@ -343,9 +348,11 @@ class _EditProjectScreenState extends State<EditProjectScreen> {
         Navigator.pop(context, true);
       }
     } catch (e) {
-      setState(() {
-        _isLoading = false;
-      });
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
