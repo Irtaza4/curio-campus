@@ -26,9 +26,11 @@ class _ProjectsScreenState extends State<ProjectsScreen> {
 
   // Update the _fetchProjects method to handle loading from shared preferences first
   Future<void> _fetchProjects() async {
-    setState(() {
-      _isLoading = true;
-    });
+    if (mounted) {
+      setState(() {
+        _isLoading = true;
+      });
+    }
 
     try {
       // First try to load from shared preferences for immediate display
@@ -95,17 +97,21 @@ class _ProjectsScreenState extends State<ProjectsScreen> {
             onPressed: () async {
               Navigator.pop(context);
 
-              setState(() {
-                _isLoading = true;
-              });
+              if (mounted) {
+                setState(() {
+                  _isLoading = true;
+                });
+              }
 
               final success =
                   await Provider.of<ProjectProvider>(context, listen: false)
                       .deleteProject(project.id);
 
-              setState(() {
-                _isLoading = false;
-              });
+              if (mounted) {
+                setState(() {
+                  _isLoading = false;
+                });
+              }
 
               if (success && mounted) {
                 ScaffoldMessenger.of(context).showSnackBar(
