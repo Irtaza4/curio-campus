@@ -1,4 +1,3 @@
-import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:curio_campus/models/project_model.dart';
@@ -9,6 +8,7 @@ import 'package:curio_campus/utils/app_theme.dart';
 import 'package:curio_campus/widgets/custom_button.dart';
 import 'package:curio_campus/widgets/custom_text_field.dart';
 import 'package:intl/intl.dart';
+import 'package:curio_campus/widgets/skill_selector.dart';
 
 class EditProjectScreen extends StatefulWidget {
   final ProjectModel project;
@@ -27,6 +27,7 @@ class _EditProjectScreenState extends State<EditProjectScreen> {
   final _nameController = TextEditingController();
   final _descriptionController = TextEditingController();
   DateTime _deadline = DateTime.now().add(const Duration(days: 7));
+  List<String> _selectedSkills = [];
   List<String> _selectedTeamMembers = [];
   bool _isLoading = false;
   List<UserModel> _chatContacts = [];
@@ -39,6 +40,7 @@ class _EditProjectScreenState extends State<EditProjectScreen> {
     _descriptionController.text = widget.project.description;
     _deadline = widget.project.deadline;
     _selectedTeamMembers = List.from(widget.project.teamMembers);
+    _selectedSkills = List.from(widget.project.requiredSkills);
 
     // Check if the user is the creator
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -146,14 +148,164 @@ class _EditProjectScreenState extends State<EditProjectScreen> {
     }
   }
 
-  void _toggleTeamMember(String userId) {
-    setState(() {
-      if (_selectedTeamMembers.contains(userId)) {
-        _selectedTeamMembers.remove(userId);
-      } else {
-        _selectedTeamMembers.add(userId);
-      }
-    });
+  Future<void> _selectRequiredSkills() async {
+    final theme = Theme.of(context);
+    final isDarkMode = theme.brightness == Brightness.dark;
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: isDarkMode ? AppTheme.darkSurfaceColor : Colors.white,
+        title: Text(
+          'Required Skills',
+          style: TextStyle(
+            color: isDarkMode ? AppTheme.darkTextColor : AppTheme.textColor,
+          ),
+        ),
+        content: SizedBox(
+          width: double.maxFinite,
+          child: SkillSelector(
+            selectedSkills: _selectedSkills,
+            onSkillsChanged: (skills) {
+              setState(() {
+                _selectedSkills = skills;
+              });
+            },
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text(
+              'Done',
+              style: TextStyle(
+                color: AppTheme.primaryColor,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _selectTeamMembers() async {
+    if (_isLoadingContacts) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Loading contacts, please wait...'),
+        ),
+      );
+      return;
+    }
+
+    if (_chatContacts.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+              'No chat contacts found. Start chatting with people to add them to your project.'),
+        ),
+      );
+      return;
+    }
+
+    // Create a stateful list to track selections within the dialog
+    final List<String> tempSelectedMembers = List.from(_selectedTeamMembers);
+    final theme = Theme.of(context);
+    final isDarkMode = theme.brightness == Brightness.dark;
+
+    await showDialog(
+      context: context,
+      builder: (BuildContext dialogContext) {
+        return StatefulBuilder(
+            builder: (BuildContext context, StateSetter setDialogState) {
+          return AlertDialog(
+            backgroundColor:
+                isDarkMode ? AppTheme.darkSurfaceColor : Colors.white,
+            title: Text(
+              'Add Team Members',
+              style: TextStyle(
+                color: isDarkMode ? AppTheme.darkTextColor : AppTheme.textColor,
+              ),
+            ),
+            content: SizedBox(
+              width: double.maxFinite,
+              child: ListView.builder(
+                shrinkWrap: true,
+                itemCount: _chatContacts.length,
+                itemBuilder: (context, index) {
+                  final contact = _chatContacts[index];
+                  final isSelected = tempSelectedMembers.contains(contact.id);
+
+                  return CheckboxListTile(
+                    title: Text(
+                      contact.name,
+                      style: TextStyle(
+                        color: isDarkMode
+                            ? AppTheme.darkTextColor
+                            : AppTheme.textColor,
+                      ),
+                    ),
+                    subtitle: Text(
+                      contact.email,
+                      style: TextStyle(
+                        color: isDarkMode
+                            ? AppTheme.darkDarkGrayColor
+                            : AppTheme.darkGrayColor,
+                      ),
+                    ),
+                    value: isSelected,
+                    activeColor: AppTheme.primaryColor,
+                    onChanged: (value) {
+                      setDialogState(() {
+                        if (value == true) {
+                          tempSelectedMembers.add(contact.id);
+                        } else {
+                          tempSelectedMembers.remove(contact.id);
+                        }
+                      });
+                    },
+                    secondary: CircleAvatar(
+                      backgroundColor: AppTheme.primaryColor,
+                      child: Text(
+                        contact.name.isNotEmpty
+                            ? contact.name[0].toUpperCase()
+                            : '?',
+                        style: const TextStyle(color: Colors.white),
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: Text(
+                  'Cancel',
+                  style: TextStyle(
+                    color: AppTheme.primaryColor,
+                  ),
+                ),
+              ),
+              TextButton(
+                onPressed: () {
+                  setState(() {
+                    _selectedTeamMembers = tempSelectedMembers;
+                  });
+                  Navigator.pop(context);
+                },
+                child: Text(
+                  'Done',
+                  style: TextStyle(
+                    color: AppTheme.primaryColor,
+                  ),
+                ),
+              ),
+            ],
+          );
+        });
+      },
+    );
   }
 
   Future<void> _saveProject() async {
@@ -181,6 +333,7 @@ class _EditProjectScreenState extends State<EditProjectScreen> {
         description: _descriptionController.text.trim(),
         deadline: _deadline,
         teamMembers: _selectedTeamMembers,
+        requiredSkills: _selectedSkills,
       );
 
       await Provider.of<ProjectProvider>(context, listen: false)
@@ -207,6 +360,9 @@ class _EditProjectScreenState extends State<EditProjectScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDarkMode = theme.brightness == Brightness.dark;
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Edit Project'),
@@ -251,12 +407,100 @@ class _EditProjectScreenState extends State<EditProjectScreen> {
 
                     const SizedBox(height: 16),
 
+                    // Required Skills
+                    Text(
+                      'Required Skills',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: isDarkMode
+                            ? AppTheme.darkTextColor
+                            : AppTheme.textColor,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    InkWell(
+                      onTap: _selectRequiredSkills,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 12,
+                        ),
+                        decoration: BoxDecoration(
+                          border: Border.all(
+                            color: isDarkMode
+                                ? AppTheme.darkMediumGrayColor
+                                : Colors.grey[300]!,
+                          ),
+                          borderRadius: BorderRadius.circular(8),
+                          color: isDarkMode
+                              ? AppTheme.darkInputBackgroundColor
+                              : Colors.transparent,
+                        ),
+                        child: Row(
+                          children: [
+                            Icon(
+                              Icons.psychology,
+                              size: 20,
+                              color: AppTheme.primaryColor,
+                            ),
+                            const SizedBox(width: 8),
+                            Text(
+                              _selectedSkills.isEmpty
+                                  ? 'Select required skills'
+                                  : '${_selectedSkills.length} skill(s) selected',
+                              style: TextStyle(
+                                fontSize: 16,
+                                color: isDarkMode
+                                    ? AppTheme.darkTextColor
+                                    : AppTheme.textColor,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+
+                    if (_selectedSkills.isNotEmpty) ...[
+                      const SizedBox(height: 8),
+                      Wrap(
+                        spacing: 8,
+                        runSpacing: 8,
+                        children: _selectedSkills.map((skill) {
+                          return Chip(
+                            label: Text(
+                              skill,
+                              style: TextStyle(
+                                color: isDarkMode
+                                    ? AppTheme.darkTextColor
+                                    : AppTheme.textColor,
+                              ),
+                            ),
+                            backgroundColor: isDarkMode
+                                ? AppTheme.darkLightGrayColor
+                                : AppTheme.lightGrayColor,
+                            deleteIcon: const Icon(Icons.close, size: 18),
+                            onDeleted: () {
+                              setState(() {
+                                _selectedSkills.remove(skill);
+                              });
+                            },
+                          );
+                        }).toList(),
+                      ),
+                    ],
+
+                    const SizedBox(height: 16),
+
                     // Deadline
-                    const Text(
+                    Text(
                       'Deadline',
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
+                        color: isDarkMode
+                            ? AppTheme.darkTextColor
+                            : AppTheme.textColor,
                       ),
                     ),
                     const SizedBox(height: 8),
@@ -268,8 +512,15 @@ class _EditProjectScreenState extends State<EditProjectScreen> {
                           vertical: 12,
                         ),
                         decoration: BoxDecoration(
-                          border: Border.all(color: Colors.grey[300]!),
+                          border: Border.all(
+                            color: isDarkMode
+                                ? AppTheme.darkMediumGrayColor
+                                : Colors.grey[300]!,
+                          ),
                           borderRadius: BorderRadius.circular(8),
+                          color: isDarkMode
+                              ? AppTheme.darkInputBackgroundColor
+                              : Colors.transparent,
                         ),
                         child: Row(
                           children: [
@@ -281,7 +532,12 @@ class _EditProjectScreenState extends State<EditProjectScreen> {
                             const SizedBox(width: 8),
                             Text(
                               DateFormat('MMMM d, yyyy').format(_deadline),
-                              style: const TextStyle(fontSize: 16),
+                              style: TextStyle(
+                                fontSize: 16,
+                                color: isDarkMode
+                                    ? AppTheme.darkTextColor
+                                    : AppTheme.textColor,
+                              ),
                             ),
                           ],
                         ),
@@ -291,105 +547,103 @@ class _EditProjectScreenState extends State<EditProjectScreen> {
                     const SizedBox(height: 24),
 
                     // Team members
-                    const Text(
+                    Text(
                       'Team Members',
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    const Text(
-                      'You can only add members from your chat contacts',
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: Colors.grey,
+                        color: isDarkMode
+                            ? AppTheme.darkTextColor
+                            : AppTheme.textColor,
                       ),
                     ),
                     const SizedBox(height: 8),
-
-                    _isLoadingContacts
-                        ? const Center(
-                            child: Padding(
-                              padding: EdgeInsets.all(16.0),
-                              child: CircularProgressIndicator(),
+                    InkWell(
+                      onTap: _selectTeamMembers,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 12,
+                        ),
+                        decoration: BoxDecoration(
+                          border: Border.all(
+                            color: isDarkMode
+                                ? AppTheme.darkMediumGrayColor
+                                : Colors.grey[300]!,
+                          ),
+                          borderRadius: BorderRadius.circular(8),
+                          color: isDarkMode
+                              ? AppTheme.darkInputBackgroundColor
+                              : Colors.transparent,
+                        ),
+                        child: Row(
+                          children: [
+                            Icon(
+                              Icons.people,
+                              size: 20,
+                              color: AppTheme.primaryColor,
                             ),
-                          )
-                        : _chatContacts.isEmpty
-                            ? const Padding(
-                                padding: EdgeInsets.all(16.0),
-                                child: Text(
-                                  'No chat contacts found. Start chatting with people to add them to your project.',
-                                  textAlign: TextAlign.center,
-                                  style: TextStyle(
-                                    color: Colors.grey,
-                                    fontSize: 14,
-                                  ),
-                                ),
-                              )
-                            : ListView.builder(
-                                shrinkWrap: true,
-                                physics: const NeverScrollableScrollPhysics(),
-                                itemCount: _chatContacts.length,
-                                itemBuilder: (context, index) {
-                                  final contact = _chatContacts[index];
-                                  final isSelected =
-                                      _selectedTeamMembers.contains(contact.id);
-
-                                  return ListTile(
-                                    leading: CircleAvatar(
-                                      backgroundColor: AppTheme.primaryColor,
-                                      child: contact.profileImageBase64 !=
-                                                  null &&
-                                              contact.profileImageBase64!
-                                                  .isNotEmpty
-                                          ? ClipOval(
-                                              child: Image.memory(
-                                                base64Decode(contact
-                                                    .profileImageBase64!),
-                                                fit: BoxFit.cover,
-                                                width: 40,
-                                                height: 40,
-                                                errorBuilder: (context, error,
-                                                    stackTrace) {
-                                                  return Text(
-                                                    contact.name.isNotEmpty
-                                                        ? contact.name[0]
-                                                            .toUpperCase()
-                                                        : '?',
-                                                    style: const TextStyle(
-                                                        color: Colors.white),
-                                                  );
-                                                },
-                                              ),
-                                            )
-                                          : Text(
-                                              contact.name.isNotEmpty
-                                                  ? contact.name[0]
-                                                      .toUpperCase()
-                                                  : '?',
-                                              style: const TextStyle(
-                                                  color: Colors.white),
-                                            ),
-                                    ),
-                                    title: Text(contact.name),
-                                    subtitle: Text(
-                                      contact.majorSkills.isNotEmpty
-                                          ? contact.majorSkills.join(', ')
-                                          : 'No skills listed',
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                                    trailing: Checkbox(
-                                      value: isSelected,
-                                      activeColor: AppTheme.primaryColor,
-                                      onChanged: (value) =>
-                                          _toggleTeamMember(contact.id),
-                                    ),
-                                    onTap: () => _toggleTeamMember(contact.id),
-                                  );
-                                },
+                            const SizedBox(width: 8),
+                            Text(
+                              _selectedTeamMembers.isEmpty
+                                  ? 'Add team members'
+                                  : '${_selectedTeamMembers.length} member(s) selected',
+                              style: TextStyle(
+                                fontSize: 16,
+                                color: isDarkMode
+                                    ? AppTheme.darkTextColor
+                                    : AppTheme.textColor,
                               ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+
+                    if (_selectedTeamMembers.isNotEmpty) ...[
+                      const SizedBox(height: 16),
+                      Wrap(
+                        spacing: 8,
+                        runSpacing: 8,
+                        children: _selectedTeamMembers.map((userId) {
+                          // Try to find user in loaded contacts, or fallback
+                          final user = _chatContacts.firstWhere(
+                            (contact) => contact.id == userId,
+                            orElse: () => UserModel(
+                              id: userId,
+                              name:
+                                  'User', // May need refinement if users not in contacts
+                              email: '',
+                              majorSkills: [],
+                              minorSkills: [],
+                              createdAt: DateTime.now(),
+                              lastActive: DateTime.now(),
+                              profileImageBase64: null,
+                            ),
+                          );
+
+                          return Chip(
+                            label: Text(
+                              user.name,
+                              style: TextStyle(
+                                color: isDarkMode
+                                    ? AppTheme.darkTextColor
+                                    : AppTheme.textColor,
+                              ),
+                            ),
+                            backgroundColor: isDarkMode
+                                ? AppTheme.darkLightGrayColor
+                                : AppTheme.lightGrayColor,
+                            deleteIcon: const Icon(Icons.close, size: 18),
+                            onDeleted: () {
+                              setState(() {
+                                _selectedTeamMembers.remove(userId);
+                              });
+                            },
+                          );
+                        }).toList(),
+                      ),
+                    ],
 
                     const SizedBox(height: 32),
 
