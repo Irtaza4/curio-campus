@@ -26,6 +26,7 @@ class ProjectDetailScreen extends StatefulWidget {
 
 class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
   bool _isLoading = false;
+  Map<String, UserModel> _teamMemberDetails = {};
 
   @override
   void initState() {
@@ -43,12 +44,37 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
       _isLoading = true;
     });
 
-    await Provider.of<ProjectProvider>(context, listen: false)
-        .fetchProjectDetails(widget.projectId);
+    final provider = Provider.of<ProjectProvider>(context, listen: false);
+    await provider.fetchProjectDetails(widget.projectId);
 
-    setState(() {
-      _isLoading = false;
-    });
+    // Fetch team member details
+    if (provider.currentProject != null && mounted) {
+      final memberIds = provider.currentProject!.teamMembers;
+      final futures = memberIds.map((id) => provider.fetchUserById(id));
+
+      try {
+        final results = await Future.wait(futures);
+        final Map<String, UserModel> details = {};
+
+        for (var user in results) {
+          if (user != null) {
+            details[user.id] = user;
+          }
+        }
+
+        setState(() {
+          _teamMemberDetails = details;
+        });
+      } catch (e) {
+        debugPrint('Error fetching team members: $e');
+      }
+    }
+
+    if (mounted) {
+      setState(() {
+        _isLoading = false;
+      });
+    }
   }
 
   Future<void> _updateTaskStatus(String taskId, TaskStatus status) async {
@@ -285,6 +311,34 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
                                   ),
                                 ),
                                 const SizedBox(height: 16),
+                                if (project.requiredSkills.isNotEmpty) ...[
+                                  const Text(
+                                    'Required Skills',
+                                    style: TextStyle(
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 8),
+                                  Wrap(
+                                    spacing: 8,
+                                    runSpacing: 8,
+                                    children:
+                                        project.requiredSkills.map((skill) {
+                                      return Chip(
+                                        label: Text(
+                                          skill,
+                                          style: const TextStyle(fontSize: 12),
+                                        ),
+                                        padding: EdgeInsets.zero,
+                                        visualDensity: VisualDensity.compact,
+                                        backgroundColor:
+                                            AppTheme.lightGrayColor,
+                                      );
+                                    }).toList(),
+                                  ),
+                                  const SizedBox(height: 16),
+                                ],
                                 const Text(
                                   'Your Target',
                                   style: TextStyle(
@@ -345,89 +399,84 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
                               scrollDirection: Axis.horizontal,
                               itemCount: project.teamMembers.length,
                               itemBuilder: (context, index) {
-                                return FutureBuilder<UserModel?>(
-                                  future: Provider.of<ProjectProvider>(context,
-                                          listen: false)
-                                      .fetchUserById(
-                                          project.teamMembers[index]),
-                                  builder: (context, snapshot) {
-                                    if (snapshot.connectionState ==
-                                        ConnectionState.waiting) {
-                                      return const Padding(
-                                        padding: EdgeInsets.all(8.0),
-                                        child: CircularProgressIndicator(),
-                                      );
-                                    }
+                                final memberId = project.teamMembers[index];
+                                final user = _teamMemberDetails[memberId];
 
-                                    final user = snapshot.data;
-                                    if (user == null) {
-                                      return const SizedBox.shrink();
-                                    }
+                                if (user == null) {
+                                  // Show placeholder or loading if not found yet (though should be loaded by now)
+                                  return const Padding(
+                                    padding: EdgeInsets.only(right: 16),
+                                    child: CircleAvatar(
+                                      radius: 24,
+                                      child: Icon(Icons.person, size: 20),
+                                    ),
+                                  );
+                                }
 
-                                    return Padding(
-                                      padding: const EdgeInsets.only(right: 16),
-                                      child: Column(
-                                        children: [
-                                          user.profileImageBase64 != null &&
-                                                  user.profileImageBase64!
-                                                      .isNotEmpty
-                                              ? CachedNetworkImage(
-                                                  imageUrl:
-                                                      user.profileImageBase64!,
-                                                  imageBuilder: (context,
-                                                          imageProvider) =>
+                                return Padding(
+                                  padding: const EdgeInsets.only(right: 16),
+                                  child: Column(
+                                    children: [
+                                      user.profileImageBase64 != null &&
+                                              user.profileImageBase64!
+                                                  .isNotEmpty
+                                          ? CachedNetworkImage(
+                                              imageUrl:
+                                                  user.profileImageBase64!,
+                                              imageBuilder:
+                                                  (context, imageProvider) =>
                                                       CircleAvatar(
-                                                    radius: 24,
-                                                    backgroundImage:
-                                                        imageProvider,
-                                                    backgroundColor:
-                                                        AppTheme.primaryColor,
-                                                  ),
-                                                  placeholder: (context, url) =>
-                                                      CircleAvatar(
-                                                    radius: 24,
-                                                    backgroundColor:
-                                                        AppTheme.primaryColor,
-                                                    child:
-                                                        const CircularProgressIndicator(
-                                                      color: Colors.white,
-                                                      strokeWidth: 2,
-                                                    ),
-                                                  ),
-                                                  errorWidget:
-                                                      (context, url, error) =>
-                                                          CircleAvatar(
-                                                    radius: 24,
-                                                    backgroundColor:
-                                                        AppTheme.primaryColor,
-                                                    child: Text(
-                                                      user.name[0]
-                                                          .toUpperCase(),
-                                                      style: const TextStyle(
-                                                          color: Colors.white),
-                                                    ),
-                                                  ),
-                                                )
-                                              : CircleAvatar(
-                                                  radius: 24,
-                                                  backgroundColor:
-                                                      AppTheme.primaryColor,
-                                                  child: Text(
-                                                    user.name[0].toUpperCase(),
-                                                    style: const TextStyle(
-                                                        color: Colors.white),
-                                                  ),
+                                                radius: 24,
+                                                backgroundImage: imageProvider,
+                                                backgroundColor:
+                                                    AppTheme.primaryColor,
+                                              ),
+                                              placeholder: (context, url) =>
+                                                  CircleAvatar(
+                                                radius: 24,
+                                                backgroundColor:
+                                                    AppTheme.primaryColor,
+                                                child:
+                                                    const CircularProgressIndicator(
+                                                  color: Colors.white,
+                                                  strokeWidth: 2,
                                                 ),
-                                          const SizedBox(height: 4),
-                                          Text(
-                                            user.name.split(' ')[0],
-                                            style:
-                                                const TextStyle(fontSize: 12),
-                                          ),
-                                        ],
+                                              ),
+                                              errorWidget:
+                                                  (context, url, error) =>
+                                                      CircleAvatar(
+                                                radius: 24,
+                                                backgroundColor:
+                                                    AppTheme.primaryColor,
+                                                child: Text(
+                                                  user.name.isNotEmpty
+                                                      ? user.name[0]
+                                                          .toUpperCase()
+                                                      : '?',
+                                                  style: const TextStyle(
+                                                      color: Colors.white),
+                                                ),
+                                              ),
+                                            )
+                                          : CircleAvatar(
+                                              radius: 24,
+                                              backgroundColor:
+                                                  AppTheme.primaryColor,
+                                              child: Text(
+                                                user.name.isNotEmpty
+                                                    ? user.name[0].toUpperCase()
+                                                    : '?',
+                                                style: const TextStyle(
+                                                    color: Colors.white),
+                                              ),
+                                            ),
+                                      const SizedBox(height: 4),
+                                      Text(
+                                        user.name.split(' ')[0],
+                                        style: const TextStyle(fontSize: 12),
                                       ),
-                                    );
-                                  },
+                                    ],
+                                  ),
                                 );
                               },
                             ),
