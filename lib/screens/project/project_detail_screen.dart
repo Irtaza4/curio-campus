@@ -189,10 +189,14 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
   }
 
   Future<void> _showDeleteProjectDialog(ProjectModel project) async {
+    final projectProvider =
+        Provider.of<ProjectProvider>(context, listen: false);
+    final navigator = Navigator.of(context);
+
     return showDialog<void>(
       context: context,
       barrierDismissible: false, // user must tap button!
-      builder: (BuildContext context) {
+      builder: (BuildContext dialogContext) {
         return AlertDialog(
           title: const Text('Delete Project'),
           content: SingleChildScrollView(
@@ -207,17 +211,16 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
             TextButton(
               child: const Text('Cancel'),
               onPressed: () {
-                Navigator.of(context).pop();
+                Navigator.of(dialogContext).pop();
               },
             ),
             TextButton(
               child: const Text('Delete', style: TextStyle(color: Colors.red)),
               onPressed: () async {
-                Navigator.of(context).pop();
-                await Provider.of<ProjectProvider>(context, listen: false)
-                    .deleteProject(project.id);
+                Navigator.of(dialogContext).pop();
+                await projectProvider.deleteProject(project.id);
                 if (mounted) {
-                  Navigator.of(context).pop();
+                  navigator.pop();
                 }
               },
             ),
