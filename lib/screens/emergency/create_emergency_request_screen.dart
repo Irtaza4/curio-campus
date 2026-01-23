@@ -8,7 +8,7 @@ import 'package:curio_campus/widgets/skill_selector.dart';
 import 'package:intl/intl.dart';
 
 class CreateEmergencyRequestScreen extends StatefulWidget {
-  const CreateEmergencyRequestScreen({Key? key}) : super(key: key);
+  const CreateEmergencyRequestScreen({super.key});
 
   @override
   State<CreateEmergencyRequestScreen> createState() =>
