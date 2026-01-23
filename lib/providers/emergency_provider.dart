@@ -259,22 +259,11 @@ class EmergencyProvider with ChangeNotifier {
         responses: [],
       );
 
-      print('🔥 About to save emergency request to Firestore:');
-      print('  - Collection: ${Constants.emergencyRequestsCollection}');
-      print('  - Document ID: $requestId');
-      print('  - Required Skills: $requiredSkills');
-      print('  - Requester: $userName');
-
       // Save to Firestore - this should trigger the Cloud Function
       await _firestore
           .collection(Constants.emergencyRequestsCollection)
           .doc(requestId)
           .set(request.toJson());
-
-      print(
-          '✅ Emergency request saved - Cloud Function will handle notifications');
-      print('🔍 Check Firebase Functions logs to see if trigger fired');
-      print('   Command: firebase functions:log --project curiocampus-c8f79');
 
       // Add request to local lists
       _myEmergencyRequests.insert(0, request);
@@ -284,7 +273,7 @@ class EmergencyProvider with ChangeNotifier {
 
       return requestId;
     } catch (e) {
-      print('❌ Error creating emergency request: $e');
+      // print('❌ Error creating emergency request: $e');
       _isLoading = false;
       _errorMessage = e.toString();
       notifyListeners();
