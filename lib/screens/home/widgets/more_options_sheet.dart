@@ -16,10 +16,10 @@ class MoreOptionsSheet extends StatelessWidget {
   final VoidCallback onShowNotifications;
 
   const MoreOptionsSheet({
-    Key? key,
+    super.key,
     required this.currentIndex,
     required this.onShowNotifications,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
