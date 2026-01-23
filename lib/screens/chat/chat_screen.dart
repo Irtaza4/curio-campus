@@ -598,7 +598,7 @@ class _ChatScreenState extends State<ChatScreen> {
                 color: isDarkMode ? AppTheme.darkSurfaceColor : Colors.white,
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.grey.withOpacity(0.2),
+                    color: Colors.grey.withValues(alpha: 0.2),
                     spreadRadius: 1,
                     blurRadius: 3,
                     offset: const Offset(0, -1),
@@ -896,7 +896,7 @@ class _ChatScreenState extends State<ChatScreen> {
             color: isCurrentUser
                 ? Colors.white70
                 : (isDarkMode
-                    ? AppTheme.darkMessageTextColor.withOpacity(0.7)
+                    ? AppTheme.darkMessageTextColor.withValues(alpha: 0.7)
                     : Colors.black54),
             fontStyle: FontStyle.italic,
           ),
