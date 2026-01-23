@@ -229,6 +229,7 @@ class _SkillSelectorState extends State<SkillSelector> {
 
   void _showSkillSelectionDialog(
       List<String> availableSkills, bool isDarkMode) {
+    _searchQuery = '';
     bool showingMajorSkills = true;
 
     showDialog(
