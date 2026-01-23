@@ -117,7 +117,7 @@ class _ImageViewerScreenState extends State<ImageViewerScreen> {
     return Scaffold(
       backgroundColor: Colors.black,
       appBar: AppBar(
-        backgroundColor: Colors.black.withOpacity(0.5),
+        backgroundColor: Colors.black.withValues(alpha: 0.5),
         elevation: 0,
         title: Text(widget.title),
         actions: [
@@ -146,7 +146,7 @@ class _ImageViewerScreenState extends State<ImageViewerScreen> {
         ),
       ),
       bottomNavigationBar: BottomAppBar(
-        color: Colors.black.withOpacity(0.5),
+        color: Colors.black.withValues(alpha: 0.5),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: [
