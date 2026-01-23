@@ -155,8 +155,10 @@ class _MessagesScreenState extends State<MessagesScreen> {
                             'Start a conversation with your team!',
                             style: TextStyle(
                               color: isDarkMode
-                                  ? AppTheme.darkDarkGrayColor.withOpacity(0.7)
-                                  : AppTheme.darkGrayColor.withOpacity(0.7),
+                                  ? AppTheme.darkDarkGrayColor
+                                      .withValues(alpha: 0.7)
+                                  : AppTheme.darkGrayColor
+                                      .withValues(alpha: 0.7),
                             ),
                           ),
                         ],
@@ -265,7 +267,9 @@ class _MessagesScreenState extends State<MessagesScreen> {
           borderRadius: BorderRadius.circular(8),
           boxShadow: [
             BoxShadow(
-              color: isDarkMode ? Colors.black12 : Colors.grey.withOpacity(0.1),
+              color: isDarkMode
+                  ? Colors.black12
+                  : Colors.grey.withValues(alpha: 0.1),
               spreadRadius: 1,
               blurRadius: 3,
               offset: const Offset(0, 1),
