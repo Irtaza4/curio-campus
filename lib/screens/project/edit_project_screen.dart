@@ -157,38 +157,44 @@ class _EditProjectScreenState extends State<EditProjectScreen> {
     final theme = Theme.of(context);
     final isDarkMode = theme.brightness == Brightness.dark;
 
-    showDialog(
+    await showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: isDarkMode ? AppTheme.darkSurfaceColor : Colors.white,
-        title: Text(
-          'Required Skills',
-          style: TextStyle(
-            color: isDarkMode ? AppTheme.darkTextColor : AppTheme.textColor,
-          ),
-        ),
-        content: SizedBox(
-          width: double.maxFinite,
-          child: SkillSelector(
-            selectedSkills: _selectedSkills,
-            onSkillsChanged: (skills) {
-              setState(() {
-                _selectedSkills = skills;
-              });
-            },
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text(
-              'Done',
+      builder: (context) => StatefulBuilder(
+        builder: (context, setDialogState) {
+          return AlertDialog(
+            backgroundColor:
+                isDarkMode ? AppTheme.darkSurfaceColor : Colors.white,
+            title: Text(
+              'Required Skills',
               style: TextStyle(
-                color: AppTheme.primaryColor,
+                color: isDarkMode ? AppTheme.darkTextColor : AppTheme.textColor,
               ),
             ),
-          ),
-        ],
+            content: SizedBox(
+              width: double.maxFinite,
+              child: SkillSelector(
+                selectedSkills: _selectedSkills,
+                onSkillsChanged: (skills) {
+                  setState(() {
+                    _selectedSkills = skills;
+                  });
+                  setDialogState(() {});
+                },
+              ),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: Text(
+                  'Done',
+                  style: TextStyle(
+                    color: AppTheme.primaryColor,
+                  ),
+                ),
+              ),
+            ],
+          );
+        },
       ),
     );
   }
