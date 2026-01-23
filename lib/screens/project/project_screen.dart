@@ -85,17 +85,17 @@ class _ProjectsScreenState extends State<ProjectsScreen> {
   void _showDeleteProjectDialog(ProjectModel project) {
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
+      builder: (dialogContext) => AlertDialog(
         title: const Text('Delete Project'),
         content: Text('Are you sure you want to delete "${project.name}"?'),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context),
+            onPressed: () => Navigator.pop(dialogContext),
             child: const Text('Cancel'),
           ),
           TextButton(
             onPressed: () async {
-              Navigator.pop(context);
+              Navigator.pop(dialogContext);
 
               if (mounted) {
                 setState(() {
