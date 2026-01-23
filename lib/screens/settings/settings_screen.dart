@@ -39,8 +39,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 onChanged: (value) {
                   themeProvider.toggleTheme();
                 },
-                thumbColor: MaterialStateProperty.all(AppTheme.primaryColor),
-                activeTrackColor: AppTheme.primaryColor.withOpacity(0.5),
+                thumbColor: WidgetStateProperty.all(AppTheme.primaryColor),
+                activeTrackColor: AppTheme.primaryColor.withValues(alpha: 0.5),
               ),
               onTap: () {
                 themeProvider.toggleTheme();
