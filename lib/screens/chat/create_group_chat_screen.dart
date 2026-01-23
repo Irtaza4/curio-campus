@@ -296,7 +296,8 @@ class _CreateGroupChatScreenState extends State<CreateGroupChatScreen> {
 
                     return Chip(
                       label: Text(user.name),
-                      backgroundColor: AppTheme.primaryColor.withOpacity(0.1),
+                      backgroundColor:
+                          AppTheme.primaryColor.withValues(alpha: 0.1),
                       deleteIconColor: AppTheme.primaryColor,
                       onDeleted: () {
                         setState(() {
