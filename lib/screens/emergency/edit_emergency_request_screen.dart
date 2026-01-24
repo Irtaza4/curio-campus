@@ -86,6 +86,7 @@ class _EditEmergencyRequestScreenState
       );
 
       if (pickedTime != null) {
+        if (!mounted) return;
         setState(() {
           _deadline = DateTime(
             pickedDate.year,
