@@ -266,6 +266,7 @@ class AppTheme {
       primary: darkPrimaryColor,
       secondary: darkSecondaryColor,
       surface: darkSurfaceColor,
+      error: darkErrorColor,
     ),
     cardTheme: CardThemeData(
       color: darkSurfaceColor,
