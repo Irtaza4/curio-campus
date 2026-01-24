@@ -10,6 +10,7 @@ import 'package:curio_campus/providers/chat_provider.dart';
 import 'package:curio_campus/models/chat_model.dart';
 
 import '../services/call_service.dart';
+import 'package:curio_campus/utils/app_theme.dart';
 
 class NotificationDrawer extends StatelessWidget {
   final NotificationType? filterType;
@@ -127,7 +128,7 @@ class NotificationDrawer extends StatelessWidget {
     return Dismissible(
       key: Key(notification.id),
       background: Container(
-        color: Colors.red,
+        color: AppTheme.errorColor,
         alignment: Alignment.centerRight,
         padding: const EdgeInsets.only(right: 16),
         child: const Icon(Icons.delete, color: Colors.white),
