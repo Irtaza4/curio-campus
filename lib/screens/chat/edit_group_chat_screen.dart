@@ -102,6 +102,7 @@ class _EditGroupChatScreenState extends State<EditGroupChatScreen> {
           });
         }
       } catch (e) {
+        if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Error processing image: ${e.toString()}'),
