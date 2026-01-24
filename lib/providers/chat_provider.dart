@@ -367,6 +367,7 @@ class ChatProvider with ChangeNotifier {
         'lastMessageContent': 'Voice message',
         'lastMessageSenderId': userId,
         'lastMessageAt': now.toIso8601String(),
+        'lastMessageType': 'audio',
       });
 
       // Notify other participants
@@ -507,6 +508,7 @@ class ChatProvider with ChangeNotifier {
         'lastMessageContent': content,
         'lastMessageSenderId': userId,
         'lastMessageAt': now.toIso8601String(),
+        'lastMessageType': type.name,
       });
 
       // Notify other participants
@@ -825,6 +827,7 @@ class ChatProvider with ChangeNotifier {
         'lastMessageContent': 'Sent an image',
         'lastMessageSenderId': userId,
         'lastMessageAt': now.toIso8601String(),
+        'lastMessageType': 'image',
       });
     } catch (e) {
       _errorMessage = e.toString();
