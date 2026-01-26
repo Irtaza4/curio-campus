@@ -51,7 +51,7 @@ class _EditProjectScreenState extends State<EditProjectScreen> {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
               content: Text('Only the project creator can edit this project.'),
-              backgroundColor: Colors.red,
+              backgroundColor: AppTheme.errorColor,
             ),
           );
           Navigator.pop(context);
@@ -118,7 +118,7 @@ class _EditProjectScreenState extends State<EditProjectScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Error fetching contacts: ${e.toString()}'),
-          backgroundColor: Colors.red,
+          backgroundColor: AppTheme.errorColor,
         ),
       );
     }
@@ -327,7 +327,7 @@ class _EditProjectScreenState extends State<EditProjectScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('You do not have permission to edit this project.'),
-          backgroundColor: Colors.red,
+          backgroundColor: AppTheme.errorColor,
         ),
       );
       Navigator.pop(context);
@@ -364,7 +364,7 @@ class _EditProjectScreenState extends State<EditProjectScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Error updating project: ${e.toString()}'),
-            backgroundColor: Colors.red,
+            backgroundColor: AppTheme.errorColor,
           ),
         );
       }
@@ -443,7 +443,7 @@ class _EditProjectScreenState extends State<EditProjectScreen> {
                           border: Border.all(
                             color: isDarkMode
                                 ? AppTheme.darkMediumGrayColor
-                                : Colors.grey[300]!,
+                                : AppTheme.mediumGrayColor,
                           ),
                           borderRadius: BorderRadius.circular(8),
                           color: isDarkMode
@@ -528,7 +528,7 @@ class _EditProjectScreenState extends State<EditProjectScreen> {
                           border: Border.all(
                             color: isDarkMode
                                 ? AppTheme.darkMediumGrayColor
-                                : Colors.grey[300]!,
+                                : AppTheme.mediumGrayColor,
                           ),
                           borderRadius: BorderRadius.circular(8),
                           color: isDarkMode
@@ -582,7 +582,7 @@ class _EditProjectScreenState extends State<EditProjectScreen> {
                           border: Border.all(
                             color: isDarkMode
                                 ? AppTheme.darkMediumGrayColor
-                                : Colors.grey[300]!,
+                                : AppTheme.mediumGrayColor,
                           ),
                           borderRadius: BorderRadius.circular(8),
                           color: isDarkMode
