@@ -44,7 +44,7 @@ class _LoginScreenState extends State<LoginScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(authProvider.errorMessage ?? 'Login failed'),
-            backgroundColor: Colors.red,
+            backgroundColor: AppTheme.errorColor,
           ),
         );
       }
@@ -57,7 +57,9 @@ class _LoginScreenState extends State<LoginScreen> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
-      backgroundColor: isDark ? AppTheme.darkBackgroundColor : Colors.white, // Adjust background color
+      backgroundColor: isDark
+          ? AppTheme.darkBackgroundColor
+          : Colors.white, // Adjust background color
       body: SafeArea(
         child: SingleChildScrollView(
           child: Padding(
@@ -67,7 +69,8 @@ class _LoginScreenState extends State<LoginScreen> {
               children: [
                 // Back button
                 IconButton(
-                  icon: Icon(Icons.arrow_back, color: isDark ? Colors.white : AppTheme.primaryColor),
+                  icon: Icon(Icons.arrow_back,
+                      color: isDark ? Colors.white : AppTheme.primaryColor),
                   onPressed: () {
                     Navigator.pop(context);
                   },
@@ -87,7 +90,8 @@ class _LoginScreenState extends State<LoginScreen> {
                           return Icon(
                             Icons.hub,
                             size: 80,
-                            color: isDark ? Colors.white : AppTheme.primaryColor,
+                            color:
+                                isDark ? Colors.white : AppTheme.primaryColor,
                           );
                         },
                       ),
@@ -105,7 +109,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         'Sign in to continue.',
                         style: TextStyle(
                           fontSize: 16,
-                          color: Colors.grey,
+                          color: AppTheme.darkGrayColor,
                         ),
                       ),
                     ],
@@ -126,7 +130,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         style: TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.w500,
-                          color: Colors.grey,
+                          color: AppTheme.darkGrayColor,
                         ),
                       ),
                       const SizedBox(height: 8),
@@ -153,7 +157,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         style: TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.w500,
-                          color: Colors.grey,
+                          color: AppTheme.darkGrayColor,
                         ),
                       ),
                       const SizedBox(height: 8),
@@ -187,9 +191,6 @@ class _LoginScreenState extends State<LoginScreen> {
 
                       const SizedBox(height: 16),
 
-
-
-
                       const SizedBox(height: 32),
 
                       // Login button
@@ -207,7 +208,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         children: [
                           const Text(
                             "Don't have an account?",
-                            style: TextStyle(color: Colors.grey),
+                            style: TextStyle(color: AppTheme.darkGrayColor),
                           ),
                           TextButton(
                             onPressed: () {
