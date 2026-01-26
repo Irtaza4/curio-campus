@@ -58,7 +58,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Error picking image: ${e.toString()}'),
-          backgroundColor: Colors.red,
+          backgroundColor: AppTheme.errorColor,
         ),
       );
     }
@@ -70,7 +70,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('Please select at least one major skill'),
-            backgroundColor: Colors.red,
+            backgroundColor: AppTheme.errorColor,
           ),
         );
         return;
@@ -103,7 +103,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(authProvider.errorMessage ?? 'Registration failed'),
-            backgroundColor: Colors.red,
+            backgroundColor: AppTheme.errorColor,
           ),
         );
       }
@@ -115,7 +115,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
     final authProvider = Provider.of<AuthProvider>(context);
     final isDark = Theme.of(context).brightness == Brightness.dark;
     return Scaffold(
-      backgroundColor: isDark ? AppTheme.darkBackgroundColor : Colors.white, // Use dark theme background color
+      backgroundColor: isDark
+          ? AppTheme.darkBackgroundColor
+          : Colors.white, // Use dark theme background color
       body: SafeArea(
         child: SingleChildScrollView(
           child: Padding(
@@ -124,7 +126,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 IconButton(
-                  icon: const Icon(Icons.arrow_back, color: AppTheme.primaryColor),
+                  icon: const Icon(Icons.arrow_back,
+                      color: AppTheme.primaryColor),
                   onPressed: () {
                     Navigator.pop(context);
                   },
@@ -134,18 +137,27 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   child: Column(
                     children: [
                       Text('Create new',
-                          style: TextStyle(fontSize: 32, fontWeight: FontWeight.bold, color: AppTheme.primaryColor)),
+                          style: TextStyle(
+                              fontSize: 32,
+                              fontWeight: FontWeight.bold,
+                              color: AppTheme.primaryColor)),
                       Text('Account',
-                          style: TextStyle(fontSize: 32, fontWeight: FontWeight.bold, color: AppTheme.primaryColor)),
+                          style: TextStyle(
+                              fontSize: 32,
+                              fontWeight: FontWeight.bold,
+                              color: AppTheme.primaryColor)),
                       const SizedBox(height: 8),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          const Text('Already Registered?', style: TextStyle(color: Colors.white)),
+                          const Text('Already Registered?',
+                              style: TextStyle(color: Colors.white)),
                           TextButton(
                             onPressed: () => Navigator.pop(context),
                             child: const Text('Log in here',
-                                style: TextStyle(color: AppTheme.primaryColor, fontWeight: FontWeight.bold)),
+                                style: TextStyle(
+                                    color: AppTheme.primaryColor,
+                                    fontWeight: FontWeight.bold)),
                           ),
                         ],
                       ),
@@ -158,9 +170,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       CircleAvatar(
                         radius: 50,
                         backgroundColor: AppTheme.lightGrayColor,
-                        backgroundImage: _profileImage != null ? FileImage(_profileImage!) : null,
+                        backgroundImage: _profileImage != null
+                            ? FileImage(_profileImage!)
+                            : null,
                         child: _profileImage == null
-                            ? Icon(Icons.person, size: 50, color: AppTheme.primaryColor)
+                            ? Icon(Icons.person,
+                                size: 50, color: AppTheme.primaryColor)
                             : null,
                       ),
                       Positioned(
@@ -174,7 +189,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                               color: AppTheme.primaryColor,
                               shape: BoxShape.circle,
                             ),
-                            child: const Icon(Icons.camera_alt, color: Colors.white, size: 20),
+                            child: const Icon(Icons.camera_alt,
+                                color: Colors.white, size: 20),
                           ),
                         ),
                       ),
@@ -187,29 +203,44 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text('NAME', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: Colors.grey)),
+                      const Text('NAME',
+                          style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w500,
+                              color: AppTheme.darkGrayColor)),
                       const SizedBox(height: 8),
                       CustomTextField(
                         controller: _nameController,
                         hintText: 'Your name',
-                        validator: (value) => value == null || value.isEmpty ? 'Please enter your name' : null,
+                        validator: (value) => value == null || value.isEmpty
+                            ? 'Please enter your name'
+                            : null,
                       ),
                       const SizedBox(height: 24),
-                      const Text('EMAIL', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: Colors.grey)),
+                      const Text('EMAIL',
+                          style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w500,
+                              color: AppTheme.darkGrayColor)),
                       const SizedBox(height: 8),
                       CustomTextField(
                         controller: _emailController,
                         hintText: 'email@gmail.com',
                         keyboardType: TextInputType.emailAddress,
                         validator: (value) {
-                          if (value == null || value.isEmpty) return 'Please enter your email';
-                          if (!value.contains('@')) return 'Please enter a valid email';
+                          if (value == null || value.isEmpty)
+                            return 'Please enter your email';
+                          if (!value.contains('@'))
+                            return 'Please enter a valid email';
                           return null;
                         },
                       ),
                       const SizedBox(height: 24),
                       const Text('PASSWORD',
-                          style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: Colors.grey)),
+                          style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w500,
+                              color: AppTheme.darkGrayColor)),
                       const SizedBox(height: 8),
                       CustomTextField(
                         controller: _passwordController,
@@ -217,32 +248,45 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         obscureText: !_isPasswordVisible,
                         suffixIcon: IconButton(
                           icon: Icon(
-                            _isPasswordVisible ? Icons.visibility_off : Icons.visibility,
+                            _isPasswordVisible
+                                ? Icons.visibility_off
+                                : Icons.visibility,
                             color: Colors.grey,
                           ),
-                          onPressed: () => setState(() => _isPasswordVisible = !_isPasswordVisible),
+                          onPressed: () => setState(
+                              () => _isPasswordVisible = !_isPasswordVisible),
                         ),
                         validator: (value) {
-                          if (value == null || value.isEmpty) return 'Please enter a password';
-                          if (value.length < 6) return 'Password must be at least 6 characters';
+                          if (value == null || value.isEmpty)
+                            return 'Please enter a password';
+                          if (value.length < 6)
+                            return 'Password must be at least 6 characters';
                           return null;
                         },
                       ),
                       const SizedBox(height: 24),
                       const Text('MAJOR SKILLS',
-                          style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: Colors.grey)),
+                          style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w500,
+                              color: AppTheme.darkGrayColor)),
                       const SizedBox(height: 8),
                       SkillSelector(
                         selectedSkills: _selectedMajorSkills,
-                        onSkillsChanged: (skills) => setState(() => _selectedMajorSkills = skills),
+                        onSkillsChanged: (skills) =>
+                            setState(() => _selectedMajorSkills = skills),
                       ),
                       const SizedBox(height: 24),
                       const Text('MINOR SKILLS (FRAMEWORKS & TOOLS)',
-                          style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: Colors.grey)),
+                          style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w500,
+                              color: AppTheme.darkGrayColor)),
                       const SizedBox(height: 8),
                       SkillSelector(
                         selectedSkills: _selectedMinorSkills,
-                        onSkillsChanged: (skills) => setState(() => _selectedMinorSkills = skills),
+                        onSkillsChanged: (skills) =>
+                            setState(() => _selectedMinorSkills = skills),
                       ),
                       const SizedBox(height: 32),
                       CustomButton(
