@@ -71,7 +71,7 @@ class _CreateGroupChatScreenState extends State<CreateGroupChatScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Error processing image: ${e.toString()}'),
-            backgroundColor: Colors.red,
+            backgroundColor: AppTheme.errorColor,
           ),
         );
       }
@@ -84,7 +84,7 @@ class _CreateGroupChatScreenState extends State<CreateGroupChatScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('Please select at least one participant'),
-            backgroundColor: Colors.red,
+            backgroundColor: AppTheme.errorColor,
           ),
         );
         return;
@@ -119,7 +119,7 @@ class _CreateGroupChatScreenState extends State<CreateGroupChatScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('Group chat created successfully'),
-            backgroundColor: Colors.green,
+            backgroundColor: AppTheme.successColor,
           ),
         );
       } else if (mounted) {
@@ -127,7 +127,7 @@ class _CreateGroupChatScreenState extends State<CreateGroupChatScreen> {
           SnackBar(
             content: Text(
                 chatProvider.errorMessage ?? 'Failed to create group chat'),
-            backgroundColor: Colors.red,
+            backgroundColor: AppTheme.errorColor,
           ),
         );
       }
@@ -251,7 +251,8 @@ class _CreateGroupChatScreenState extends State<CreateGroupChatScreen> {
 
   Widget _buildParticipantsSection() {
     return FutureBuilder<List<UserModel>>(
-      future: ChatProvider().getUsers(), // Fetch users from Firestore
+      future: Provider.of<ChatProvider>(context, listen: false)
+          .getUsers(), // Fetch users from Firestore
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(child: CircularProgressIndicator());
