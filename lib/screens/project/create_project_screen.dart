@@ -97,7 +97,7 @@ class _CreateProjectScreenState extends State<CreateProjectScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Error fetching contacts: ${e.toString()}'),
-          backgroundColor: Colors.red,
+          backgroundColor: AppTheme.errorColor,
         ),
       );
     }
@@ -329,7 +329,7 @@ class _CreateProjectScreenState extends State<CreateProjectScreen> {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
               content: Text('Failed to create project'),
-              backgroundColor: Colors.red,
+              backgroundColor: AppTheme.errorColor,
             ),
           );
         }
@@ -345,7 +345,7 @@ class _CreateProjectScreenState extends State<CreateProjectScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Error creating project: ${e.toString()}'),
-            backgroundColor: Colors.red,
+            backgroundColor: AppTheme.errorColor,
           ),
         );
       }
@@ -424,7 +424,7 @@ class _CreateProjectScreenState extends State<CreateProjectScreen> {
                           border: Border.all(
                             color: isDarkMode
                                 ? AppTheme.darkMediumGrayColor
-                                : Colors.grey[300]!,
+                                : AppTheme.mediumGrayColor,
                           ),
                           borderRadius: BorderRadius.circular(8),
                           color: isDarkMode
@@ -509,7 +509,7 @@ class _CreateProjectScreenState extends State<CreateProjectScreen> {
                           border: Border.all(
                             color: isDarkMode
                                 ? AppTheme.darkMediumGrayColor
-                                : Colors.grey[300]!,
+                                : AppTheme.mediumGrayColor,
                           ),
                           borderRadius: BorderRadius.circular(8),
                           color: isDarkMode
@@ -563,7 +563,7 @@ class _CreateProjectScreenState extends State<CreateProjectScreen> {
                           border: Border.all(
                             color: isDarkMode
                                 ? AppTheme.darkMediumGrayColor
-                                : Colors.grey[300]!,
+                                : AppTheme.mediumGrayColor,
                           ),
                           borderRadius: BorderRadius.circular(8),
                           color: isDarkMode
