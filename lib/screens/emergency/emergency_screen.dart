@@ -8,10 +8,6 @@ import 'package:intl/intl.dart';
 import 'package:curio_campus/providers/auth_provider.dart';
 import 'package:curio_campus/screens/emergency/emergency_request_detail_screen.dart';
 import 'package:curio_campus/screens/emergency/edit_emergency_request_screen.dart';
-import 'package:curio_campus/providers/notification_provider.dart';
-import 'package:curio_campus/widgets/notification_badge.dart';
-import 'package:curio_campus/widgets/notification_drawer.dart';
-import 'package:curio_campus/models/notification_model.dart';
 
 import '../../utils/image_utils.dart';
 
@@ -24,7 +20,6 @@ class EmergencyScreen extends StatefulWidget {
 
 class _EmergencyScreenState extends State<EmergencyScreen>
     with SingleTickerProviderStateMixin {
-  bool _isActionInProgress = false;
   late TabController _tabController;
 
   @override
@@ -114,10 +109,6 @@ class _EmergencyScreenState extends State<EmergencyScreen>
   }
 
   Future<void> _ignoreRequest(String requestId) async {
-    setState(() {
-      _isActionInProgress = true;
-    });
-
     try {
       final success =
           await Provider.of<EmergencyProvider>(context, listen: false)
@@ -140,20 +131,10 @@ class _EmergencyScreenState extends State<EmergencyScreen>
           ),
         );
       }
-    } finally {
-      if (mounted) {
-        setState(() {
-          _isActionInProgress = false;
-        });
-      }
-    }
+    } finally {}
   }
 
   Future<void> _unignoreRequest(String requestId) async {
-    setState(() {
-      _isActionInProgress = true;
-    });
-
     try {
       final success =
           await Provider.of<EmergencyProvider>(context, listen: false)
@@ -176,13 +157,7 @@ class _EmergencyScreenState extends State<EmergencyScreen>
           ),
         );
       }
-    } finally {
-      if (mounted) {
-        setState(() {
-          _isActionInProgress = false;
-        });
-      }
-    }
+    } finally {}
   }
 
   Future<void> _deleteRequest(EmergencyRequestModel request) async {
@@ -211,25 +186,23 @@ class _EmergencyScreenState extends State<EmergencyScreen>
     // If user canceled, do nothing
     if (confirm != true) return;
 
-    setState(() {
-      _isActionInProgress = true;
-    });
-
     try {
-      final success =
-          await Provider.of<EmergencyProvider>(context, listen: false)
-              .deleteEmergencyRequest(request.id);
+      if (mounted) {
+        final success =
+            await Provider.of<EmergencyProvider>(context, listen: false)
+                .deleteEmergencyRequest(request.id);
 
-      if (success && mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Request deleted successfully'),
-            backgroundColor: Colors.green,
-          ),
-        );
-        // Refresh the lists
-        _fetchMyEmergencyRequests();
-        _fetchAllEmergencyRequests();
+        if (success && mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Request deleted successfully'),
+              backgroundColor: Colors.green,
+            ),
+          );
+          // Refresh the lists
+          _fetchMyEmergencyRequests();
+          _fetchAllEmergencyRequests();
+        }
       }
     } catch (e) {
       if (mounted) {
@@ -240,21 +213,13 @@ class _EmergencyScreenState extends State<EmergencyScreen>
           ),
         );
       }
-    } finally {
-      if (mounted) {
-        setState(() {
-          _isActionInProgress = false;
-        });
-      }
-    }
+    } finally {}
   }
 
   @override
   Widget build(BuildContext context) {
     final authProvider = Provider.of<AuthProvider>(context);
-    final notificationProvider = Provider.of<NotificationProvider>(context);
     final currentUserId = authProvider.firebaseUser?.uid;
-    final unreadCount = notificationProvider.unreadCount;
 
     return Scaffold(
       // Remove the appBar here
