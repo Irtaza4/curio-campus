@@ -25,10 +25,10 @@ class ChatScreen extends StatefulWidget {
   final String chatName;
 
   const ChatScreen({
-    Key? key,
+    super.key,
     required this.chatId,
     required this.chatName,
-  }) : super(key: key);
+  });
 
   @override
   State<ChatScreen> createState() => _ChatScreenState();
@@ -42,8 +42,7 @@ class _ChatScreenState extends State<ChatScreen> {
   bool _isRecording = false;
   String? _otherUserId;
   String? _otherUserProfileImage;
-  bool _isDeleting = false;
-  Map<String, bool> _deletingMessages = {};
+  final Map<String, bool> _deletingMessages = {};
 
   @override
   void initState() {
@@ -280,12 +279,12 @@ class _ChatScreenState extends State<ChatScreen> {
                     ),
                   );
 
-                  if (confirm == true && mounted) {
+                  if (confirm == true) {
+                    if (!mounted) return;
                     await Provider.of<AuthProvider>(context, listen: false)
                         .logout();
-                    if (mounted) {
-                      Navigator.of(context).pushReplacementNamed('/login');
-                    }
+                    if (!mounted) return;
+                    Navigator.of(context).pushReplacementNamed('/login');
                   }
                 },
               ),
@@ -332,6 +331,21 @@ class _ChatScreenState extends State<ChatScreen> {
             final base64Image = base64Encode(compressedBytes);
             final fileName = compressedFile.name;
 
+            if (mounted) {
+              await Provider.of<ChatProvider>(context, listen: false)
+                  .sendImageMessage(
+                chatId: widget.chatId,
+                imageBase64: base64Image,
+                fileName: fileName,
+              );
+            }
+          }
+        } else {
+          // Convert to base64
+          final base64Image = base64Encode(bytes);
+          final fileName = pickedFile.name;
+
+          if (mounted) {
             await Provider.of<ChatProvider>(context, listen: false)
                 .sendImageMessage(
               chatId: widget.chatId,
@@ -339,17 +353,6 @@ class _ChatScreenState extends State<ChatScreen> {
               fileName: fileName,
             );
           }
-        } else {
-          // Convert to base64
-          final base64Image = base64Encode(bytes);
-          final fileName = pickedFile.name;
-
-          await Provider.of<ChatProvider>(context, listen: false)
-              .sendImageMessage(
-            chatId: widget.chatId,
-            imageBase64: base64Image,
-            fileName: fileName,
-          );
         }
 
         // Scroll to bottom after sending an image
@@ -431,8 +434,10 @@ class _ChatScreenState extends State<ChatScreen> {
 
     if (confirm == true) {
       try {
-        await Provider.of<ChatProvider>(context, listen: false)
-            .deleteMessage(widget.chatId, messageId);
+        if (mounted) {
+          await Provider.of<ChatProvider>(context, listen: false)
+              .deleteMessage(widget.chatId, messageId);
+        }
 
         // Refresh the messages list to ensure UI is updated
         await _fetchMessages();
@@ -509,9 +514,6 @@ class _ChatScreenState extends State<ChatScreen> {
         lastMessageAt: DateTime.now(),
       ),
     );
-
-    // Use the sender's name if available, otherwise use the chat name
-    final displayName = _senderName.isNotEmpty ? _senderName : widget.chatName;
 
     return Scaffold(
       appBar: AppBar(
