@@ -8,12 +8,11 @@ import 'package:curio_campus/utils/app_theme.dart';
 import 'package:curio_campus/widgets/custom_button.dart';
 import 'package:curio_campus/widgets/custom_text_field.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:curio_campus/utils/image_utils.dart';
 
 import '../../models/user_model.dart';
 
 class CreateGroupChatScreen extends StatefulWidget {
-  const CreateGroupChatScreen({Key? key}) : super(key: key);
+  const CreateGroupChatScreen({super.key});
 
   @override
   State<CreateGroupChatScreen> createState() => _CreateGroupChatScreenState();
@@ -68,6 +67,7 @@ class _CreateGroupChatScreenState extends State<CreateGroupChatScreen> {
           });
         }
       } catch (e) {
+        if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Error processing image: ${e.toString()}'),
