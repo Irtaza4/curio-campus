@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:curio_campus/utils/app_theme.dart';
 import 'package:agora_rtc_engine/agora_rtc_engine.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -19,7 +18,7 @@ class CallScreen extends StatefulWidget {
   final VoidCallback onCallEnd;
 
   const CallScreen({
-    Key? key,
+    super.key,
     required this.userId,
     required this.userName,
     required this.callType,
@@ -28,7 +27,7 @@ class CallScreen extends StatefulWidget {
     required this.callId,
     required this.isOutgoing,
     required this.onCallEnd,
-  }) : super(key: key);
+  });
 
   @override
   State<CallScreen> createState() => _CallScreenState();
@@ -60,7 +59,7 @@ class _CallScreenState extends State<CallScreen>
 
   // For chat messages during call
   StreamSubscription<QuerySnapshot>? _chatSubscription;
-  List<Map<String, dynamic>> _recentMessages = [];
+  final List<Map<String, dynamic>> _recentMessages = [];
   bool _showMessageBanner = false;
   Timer? _messageBannerTimer;
   final List<int> _remoteUids = [];
@@ -404,7 +403,6 @@ class _CallScreenState extends State<CallScreen>
 
   @override
   Widget build(BuildContext context) {
-    final size = MediaQuery.of(context).size;
     final isOutgoingCall = widget.isOutgoing && !_isCallConnected;
 
     return PopScope(
