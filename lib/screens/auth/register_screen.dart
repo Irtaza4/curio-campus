@@ -11,7 +11,7 @@ import 'package:curio_campus/widgets/custom_text_field.dart';
 import 'package:curio_campus/widgets/skill_selector.dart';
 
 class RegisterScreen extends StatefulWidget {
-  const RegisterScreen({Key? key}) : super(key: key);
+  const RegisterScreen({super.key});
 
   @override
   State<RegisterScreen> createState() => _RegisterScreenState();
@@ -55,6 +55,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
         });
       }
     } catch (e) {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Error picking image: ${e.toString()}'),
@@ -228,10 +229,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         hintText: 'email@gmail.com',
                         keyboardType: TextInputType.emailAddress,
                         validator: (value) {
-                          if (value == null || value.isEmpty)
+                          if (value == null || value.isEmpty) {
                             return 'Please enter your email';
-                          if (!value.contains('@'))
+                          }
+                          if (!value.contains('@')) {
                             return 'Please enter a valid email';
+                          }
                           return null;
                         },
                       ),
@@ -257,10 +260,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
                               () => _isPasswordVisible = !_isPasswordVisible),
                         ),
                         validator: (value) {
-                          if (value == null || value.isEmpty)
+                          if (value == null || value.isEmpty) {
                             return 'Please enter a password';
-                          if (value.length < 6)
+                          }
+                          if (value.length < 6) {
                             return 'Password must be at least 6 characters';
+                          }
                           return null;
                         },
                       ),
