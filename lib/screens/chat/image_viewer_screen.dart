@@ -1,4 +1,3 @@
-import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:curio_campus/utils/app_theme.dart';
@@ -12,19 +11,17 @@ class ImageViewerScreen extends StatefulWidget {
   final String title;
 
   const ImageViewerScreen({
-    Key? key,
+    super.key,
     this.imageUrl,
     this.imageBase64,
     required this.title,
-  }) : super(key: key);
+  });
 
   @override
   State<ImageViewerScreen> createState() => _ImageViewerScreenState();
 }
 
 class _ImageViewerScreenState extends State<ImageViewerScreen> {
-  bool _isLoading = true;
-  bool _hasError = false;
   bool _isSaving = false;
   final TransformationController _transformationController =
       TransformationController();
@@ -111,9 +108,6 @@ class _ImageViewerScreenState extends State<ImageViewerScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final isDarkMode = theme.brightness == Brightness.dark;
-
     return Scaffold(
       backgroundColor: Colors.black,
       appBar: AppBar(
@@ -189,7 +183,6 @@ class _ImageViewerScreenState extends State<ImageViewerScreen> {
         widget.imageUrl!,
         loadingBuilder: (context, child, loadingProgress) {
           if (loadingProgress == null) {
-            _isLoading = false;
             return child;
           }
           return Center(
@@ -203,17 +196,16 @@ class _ImageViewerScreenState extends State<ImageViewerScreen> {
           );
         },
         errorBuilder: (context, error, stackTrace) {
-          _hasError = true;
-          return Center(
+          return const Center(
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                const Icon(
+                Icon(
                   Icons.error_outline,
                   color: Colors.red,
                   size: 48,
                 ),
-                const SizedBox(height: 16),
+                SizedBox(height: 16),
                 Text(
                   'Failed to load image',
                   style: TextStyle(color: Colors.white),
