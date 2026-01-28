@@ -102,6 +102,7 @@ class _CreateEmergencyRequestScreenState
     );
 
     if (pickedDate != null) {
+      if (!context.mounted) return;
       final TimeOfDay? pickedTime = await showTimePicker(
         context: context,
         initialTime: TimeOfDay.fromDateTime(_deadline),
