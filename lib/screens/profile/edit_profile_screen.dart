@@ -177,13 +177,13 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                                     CircleAvatar(
                                   radius: 60,
                                   backgroundColor:
-                                      theme.colorScheme.surfaceVariant,
+                                      theme.colorScheme.surfaceContainerHighest,
                                   backgroundImage: imageProvider,
                                 ),
                                 placeholder: (context, url) => CircleAvatar(
                                   radius: 60,
                                   backgroundColor:
-                                      theme.colorScheme.surfaceVariant,
+                                      theme.colorScheme.surfaceContainerHighest,
                                   child: CircularProgressIndicator(
                                     color: theme.colorScheme.primary,
                                   ),
@@ -192,7 +192,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                                     CircleAvatar(
                                   radius: 60,
                                   backgroundColor:
-                                      theme.colorScheme.surfaceVariant,
+                                      theme.colorScheme.surfaceContainerHighest,
                                   child: Icon(
                                     Icons.person,
                                     size: 60,
@@ -203,7 +203,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                             : CircleAvatar(
                                 radius: 60,
                                 backgroundColor:
-                                    theme.colorScheme.surfaceVariant,
+                                    theme.colorScheme.surfaceContainerHighest,
                                 child: Icon(
                                   Icons.person,
                                   size: 60,
