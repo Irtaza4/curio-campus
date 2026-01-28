@@ -280,10 +280,10 @@ class _ChatScreenState extends State<ChatScreen> {
                   );
 
                   if (confirm == true) {
-                    if (!mounted) return;
+                    if (!context.mounted) return;
                     await Provider.of<AuthProvider>(context, listen: false)
                         .logout();
-                    if (!mounted) return;
+                    if (!context.mounted) return;
                     Navigator.of(context).pushReplacementNamed('/login');
                   }
                 },
