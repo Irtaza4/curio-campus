@@ -371,7 +371,9 @@ class ChatProvider with ChangeNotifier {
       });
 
       // Notify other participants
-      _notifyParticipants(chatId, userId, userName, 'Voice message', context);
+      if (context != null && context.mounted) {
+        _notifyParticipants(chatId, userId, userName, 'Voice message', context);
+      }
     } catch (e) {
       _errorMessage = e.toString();
       notifyListeners();
@@ -419,8 +421,8 @@ class ChatProvider with ChangeNotifier {
               },
             });
 
-            // If context is provided, also update the notification provider
-            if (context != null) {
+            // If context is provided and mounted, also update the notification provider
+            if (context != null && context.mounted) {
               try {
                 final notificationProvider = Provider.of<NotificationProvider>(
                   context,
@@ -512,7 +514,9 @@ class ChatProvider with ChangeNotifier {
       });
 
       // Notify other participants
-      _notifyParticipants(chatId, userId, userName, content, context);
+      if (context != null && context.mounted) {
+        _notifyParticipants(chatId, userId, userName, content, context);
+      }
     } catch (e) {
       _errorMessage = e.toString();
       notifyListeners();
@@ -678,7 +682,7 @@ class ChatProvider with ChangeNotifier {
     } catch (e) {
       _errorMessage = e.toString();
       notifyListeners();
-      throw e;
+      rethrow;
     }
   }
 
