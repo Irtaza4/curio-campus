@@ -150,7 +150,7 @@ class _ImageViewerScreenState extends State<ImageViewerScreen> {
                 final Matrix4 currentTransform =
                     _transformationController.value;
                 final Matrix4 newTransform = currentTransform.clone()
-                  ..scale(0.8, 0.8);
+                  ..multiply(Matrix4.diagonal3Values(0.8, 0.8, 1.0));
                 _transformationController.value = newTransform;
               },
             ),
@@ -160,7 +160,7 @@ class _ImageViewerScreenState extends State<ImageViewerScreen> {
                 final Matrix4 currentTransform =
                     _transformationController.value;
                 final Matrix4 newTransform = currentTransform.clone()
-                  ..scale(1.2, 1.2);
+                  ..multiply(Matrix4.diagonal3Values(1.2, 1.2, 1.0));
                 _transformationController.value = newTransform;
               },
             ),
