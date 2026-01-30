@@ -187,6 +187,7 @@ class _EmergencyRequestDetailScreenState
     );
 
     if (confirm != true) return;
+    if (!mounted) return;
 
     setState(() {
       _isLoading = true;
