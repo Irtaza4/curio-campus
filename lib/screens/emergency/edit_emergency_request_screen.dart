@@ -12,9 +12,9 @@ class EditEmergencyRequestScreen extends StatefulWidget {
   final EmergencyRequestModel request;
 
   const EditEmergencyRequestScreen({
-    Key? key,
+    super.key,
     required this.request,
-  }) : super(key: key);
+  });
 
   @override
   State<EditEmergencyRequestScreen> createState() =>
@@ -47,7 +47,7 @@ class _EditEmergencyRequestScreenState
     super.dispose();
   }
 
-  Future<void> _selectDateTime(BuildContext context) async {
+  Future<void> _selectDateTime() async {
     final DateTime? pickedDate = await showDatePicker(
       context: context,
       initialDate: _deadline,
@@ -68,6 +68,7 @@ class _EditEmergencyRequestScreenState
     );
 
     if (pickedDate != null) {
+      if (!mounted) return;
       final TimeOfDay? pickedTime = await showTimePicker(
         context: context,
         initialTime: TimeOfDay.fromDateTime(_deadline),
@@ -219,7 +220,7 @@ class _EditEmergencyRequestScreenState
               ),
               const SizedBox(height: 8),
               InkWell(
-                onTap: () => _selectDateTime(context),
+                onTap: () => _selectDateTime(),
                 borderRadius: BorderRadius.circular(8),
                 child: Builder(
                   builder: (context) {
