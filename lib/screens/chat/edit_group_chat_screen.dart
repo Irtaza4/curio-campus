@@ -6,7 +6,7 @@ import 'package:curio_campus/providers/auth_provider.dart';
 import 'package:curio_campus/providers/chat_provider.dart';
 import 'package:curio_campus/widgets/custom_button.dart';
 import 'package:curio_campus/widgets/custom_text_field.dart';
-import 'package:curio_campus/models/chat_model.dart';
+
 import 'package:curio_campus/models/user_model.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:curio_campus/utils/image_utils.dart';
