@@ -803,7 +803,7 @@ class _ChatScreenState extends State<ChatScreen> {
   Widget _buildMessageContent(
       MessageModel message, bool isCurrentUser, bool isDarkMode) {
     switch (message.type) {
-      case MessageType.call_event:
+      case MessageType.callEvent:
         return CallMessageBubble(
           message: {
             'callType': message.fileUrl == 'video' ? 'video' : 'voice',
