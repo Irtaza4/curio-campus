@@ -15,7 +15,7 @@ import 'package:curio_campus/utils/logger.dart';
 import '../../utils/app_theme.dart';
 
 class MessagesScreen extends StatefulWidget {
-  const MessagesScreen({Key? key}) : super(key: key);
+  const MessagesScreen({super.key});
 
   @override
   State<MessagesScreen> createState() => _MessagesScreenState();
@@ -77,7 +77,8 @@ class _MessagesScreenState extends State<MessagesScreen> {
           Provider.of<ProjectProvider>(context, listen: false)
               .fetchUserById(otherParticipantId)
               .then((user) {
-            if (user != null && mounted) {
+            if (!mounted) return;
+            if (user != null) {
               Navigator.push(
                 context,
                 MaterialPageRoute(
