@@ -886,7 +886,7 @@ class ChatProvider with ChangeNotifier {
         senderAvatar: userAvatar,
         chatId: chatId,
         content: content,
-        type: MessageType.call_event,
+        type: MessageType.callEvent,
         timestamp: now,
         duration: duration,
         fileUrl: callType, // Store call type in fileUrl field
