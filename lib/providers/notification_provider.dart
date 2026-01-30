@@ -21,7 +21,9 @@ class NotificationProvider with ChangeNotifier {
 
   // Get notifications filtered by type
   List<NotificationModel> getNotificationsByType(NotificationType type) {
-    return _notifications.where((notification) => notification.type == type).toList();
+    return _notifications
+        .where((notification) => notification.type == type)
+        .toList();
   }
 
   // Fetch notifications from Firestore
@@ -44,13 +46,14 @@ class NotificationProvider with ChangeNotifier {
 
       _notifications = querySnapshot.docs
           .map((doc) => NotificationModel.fromJson({
-        'id': doc.id,
-        ...doc.data(),
-      }))
+                'id': doc.id,
+                ...doc.data(),
+              }))
           .toList();
 
       // Count unread notifications
-      _unreadCount = _notifications.where((notification) => !notification.isRead).length;
+      _unreadCount =
+          _notifications.where((notification) => !notification.isRead).length;
 
       _isLoading = false;
       notifyListeners();
@@ -91,7 +94,8 @@ class NotificationProvider with ChangeNotifier {
         // If a similar notification exists and was created in the last 5 minutes, don't create a new one
         if (existingNotifications.docs.isNotEmpty) {
           final latestNotification = existingNotifications.docs.first;
-          final latestTimestamp = DateTime.parse(latestNotification.data()['timestamp'] as String);
+          final latestTimestamp =
+              DateTime.parse(latestNotification.data()['timestamp'] as String);
 
           if (now.difference(latestTimestamp).inMinutes < 5) {
             // Just update the existing notification to mark it as unread
@@ -107,7 +111,8 @@ class NotificationProvider with ChangeNotifier {
             });
 
             // Update local list if the notification exists there
-            final index = _notifications.indexWhere((n) => n.id == latestNotification.id);
+            final index =
+                _notifications.indexWhere((n) => n.id == latestNotification.id);
             if (index != -1) {
               _notifications[index] = NotificationModel(
                 id: latestNotification.id,
@@ -177,7 +182,8 @@ class NotificationProvider with ChangeNotifier {
           .update({'isRead': true});
 
       // Update local list
-      final index = _notifications.indexWhere((notification) => notification.id == notificationId);
+      final index = _notifications
+          .indexWhere((notification) => notification.id == notificationId);
       if (index != -1) {
         final notification = _notifications[index];
         if (!notification.isRead) {
@@ -227,18 +233,18 @@ class NotificationProvider with ChangeNotifier {
       await batch.commit();
 
       // Update local list
-      _notifications = _notifications.map((notification) =>
-          NotificationModel(
-            id: notification.id,
-            title: notification.title,
-            message: notification.message,
-            timestamp: notification.timestamp,
-            type: notification.type,
-            relatedId: notification.relatedId,
-            isRead: true,
-            additionalData: notification.additionalData,
-          )
-      ).toList();
+      _notifications = _notifications
+          .map((notification) => NotificationModel(
+                id: notification.id,
+                title: notification.title,
+                message: notification.message,
+                timestamp: notification.timestamp,
+                type: notification.type,
+                relatedId: notification.relatedId,
+                isRead: true,
+                additionalData: notification.additionalData,
+              ))
+          .toList();
 
       _unreadCount = 0;
 
@@ -264,7 +270,8 @@ class NotificationProvider with ChangeNotifier {
           .delete();
 
       // Update local list
-      final index = _notifications.indexWhere((notification) => notification.id == notificationId);
+      final index = _notifications
+          .indexWhere((notification) => notification.id == notificationId);
       if (index != -1) {
         final wasUnread = !_notifications[index].isRead;
         _notifications.removeAt(index);
@@ -547,15 +554,12 @@ class NotificationProvider with ChangeNotifier {
     if (_auth.currentUser == null) return;
 
     try {
-      final userId = _auth.currentUser!.uid;
-
       // Find the notification
       final index = _notifications.indexWhere((n) => n.id == notificationId);
       if (index == -1) return;
 
       // Delete the notification
       await deleteNotification(notificationId);
-
     } catch (e) {
       _errorMessage = e.toString();
       notifyListeners();
