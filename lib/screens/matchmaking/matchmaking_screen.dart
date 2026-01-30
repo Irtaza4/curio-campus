@@ -216,7 +216,7 @@ class _MatchmakingScreenState extends State<MatchmakingScreen> {
                         vertical: 8,
                       ),
                     ),
-                    value: _selectedProject?.id,
+                    initialValue: _selectedProject?.id,
                     items: [
                       const DropdownMenuItem<String>(
                         value: null,
