@@ -1,6 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
-enum MessageType { text, image, file, system, audio, video, call_event }
+enum MessageType { text, image, file, system, audio, video, callEvent }
 
 class MessageModel {
   final String id;
@@ -33,6 +33,14 @@ class MessageModel {
   });
 
   factory MessageModel.fromJson(Map<String, dynamic> json) {
+    MessageType getType(String? typeStr) {
+      if (typeStr == 'call_event') return MessageType.callEvent;
+      return MessageType.values.firstWhere(
+        (e) => e.toString().split('.').last == typeStr,
+        orElse: () => MessageType.text,
+      );
+    }
+
     return MessageModel(
       id: json['id']?.toString() ?? '',
       senderId: json['senderId']?.toString() ?? '',
@@ -40,10 +48,7 @@ class MessageModel {
       senderAvatar: json['senderAvatar']?.toString(),
       chatId: json['chatId']?.toString() ?? '',
       content: json['content']?.toString() ?? '',
-      type: MessageType.values.firstWhere(
-            (e) => e.toString() == 'MessageType.${json['type']}',
-        orElse: () => MessageType.text,
-      ),
+      type: getType(json['type']?.toString()),
       timestamp: _parseTimestamp(json['timestamp']),
       isRead: json['isRead'] as bool? ?? false,
       fileUrl: json['fileUrl']?.toString(),
@@ -64,7 +69,6 @@ class MessageModel {
     }
   }
 
-
   Map<String, dynamic> toJson() {
     return {
       'id': id,
@@ -73,7 +77,9 @@ class MessageModel {
       'senderAvatar': senderAvatar,
       'chatId': chatId,
       'content': content,
-      'type': type.toString().split('.').last,
+      'type': type == MessageType.callEvent
+          ? 'call_event'
+          : type.toString().split('.').last,
       'timestamp': timestamp.toIso8601String(),
       'isRead': isRead,
       'fileUrl': fileUrl,
