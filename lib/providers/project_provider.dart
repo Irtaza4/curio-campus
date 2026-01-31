@@ -520,7 +520,8 @@ class ProjectProvider with ChangeNotifier {
       for (final memberId in project.teamMembers) {
         if (memberId != completedById) {
           // Create a notification
-          if (navigatorKey.currentContext != null) {
+          if (navigatorKey.currentContext != null &&
+              navigatorKey.currentContext!.mounted) {
             final notificationProvider = Provider.of<NotificationProvider>(
               navigatorKey.currentContext!,
               listen: false,
