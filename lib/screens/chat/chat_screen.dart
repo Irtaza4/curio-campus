@@ -177,7 +177,9 @@ class _ChatScreenState extends State<ChatScreen> {
     );
 
     // Scroll to bottom after sending a message
-    _scrollToBottom();
+    if (mounted) {
+      _scrollToBottom();
+    }
   }
 
   // Fixed _initiateCall method to provide required parameters
@@ -610,14 +612,14 @@ class _ChatScreenState extends State<ChatScreen> {
               child: Row(
                 children: [
                   IconButton(
-                    icon: Icon(
+                    icon: const Icon(
                       Icons.image,
                       color: AppTheme.primaryColor,
                     ),
                     onPressed: _pickAndSendImage,
                   ),
                   IconButton(
-                    icon: Icon(
+                    icon: const Icon(
                       Icons.mic,
                       color: AppTheme.primaryColor,
                     ),
@@ -657,7 +659,7 @@ class _ChatScreenState extends State<ChatScreen> {
                   ),
                   const SizedBox(width: 8),
                   IconButton(
-                    icon: Icon(
+                    icon: const Icon(
                       Icons.send,
                       color: AppTheme.primaryColor,
                     ),
