@@ -72,13 +72,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 );
 
                 if (confirm == true) {
-                  final androidInfo = await DeviceInfoPlugin().androidInfo;
-                  if (Platform.isAndroid && androidInfo.version.sdkInt >= 23) {
-                    const intent = AndroidIntent(
-                      action:
-                          'android.settings.IGNORE_BATTERY_OPTIMIZATION_SETTINGS',
-                    );
-                    await intent.launch();
+                  if (Platform.isAndroid) {
+                    final androidInfo = await DeviceInfoPlugin().androidInfo;
+                    if (androidInfo.version.sdkInt >= 23) {
+                      const intent = AndroidIntent(
+                        action:
+                            'android.settings.IGNORE_BATTERY_OPTIMIZATION_SETTINGS',
+                      );
+                      await intent.launch();
+                    }
                   }
                 }
               },
