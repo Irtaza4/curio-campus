@@ -124,8 +124,8 @@ class MoreOptionsSheet extends StatelessWidget {
             ),
             ListTile(
               leading: Icon(Icons.logout, color: AppTheme.errorColor),
-              title:
-                  Text('Logout', style: TextStyle(color: AppTheme.errorColor)),
+              title: const Text('Logout',
+                  style: TextStyle(color: AppTheme.errorColor)),
               onTap: () async {
                 Navigator.pop(context);
                 final confirm = await showDialog<bool>(
