@@ -126,7 +126,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     children: [
                       // Email field
                       const Text(
-                        'NAME',
+                        'EMAIL',
                         style: TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.w500,
@@ -136,7 +136,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       const SizedBox(height: 8),
                       CustomTextField(
                         controller: _emailController,
-                        hintText: 'Your Name',
+                        hintText: 'Your Email',
                         keyboardType: TextInputType.emailAddress,
                         validator: (value) {
                           if (value == null || value.isEmpty) {
