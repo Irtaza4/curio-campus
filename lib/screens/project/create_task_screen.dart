@@ -200,9 +200,11 @@ class _CreateTaskScreenState extends State<CreateTaskScreen> {
     );
 
     if (picked != null && picked != _dueDate) {
-      setState(() {
-        _dueDate = picked;
-      });
+      if (mounted) {
+        setState(() {
+          _dueDate = picked;
+        });
+      }
     }
   }
 
@@ -296,7 +298,7 @@ class _CreateTaskScreenState extends State<CreateTaskScreen> {
                           color: Colors.black87,
                         ),
                       ),
-                      Icon(
+                      const Icon(
                         Icons.calendar_today,
                         color: AppTheme.primaryColor,
                         size: 20,
