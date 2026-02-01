@@ -37,7 +37,8 @@ class MoreOptionsSheet extends StatelessWidget {
           children: [
             if (currentIndex == 0)
               ListTile(
-                leading: Icon(Icons.group_add, color: AppTheme.primaryColor),
+                leading:
+                    const Icon(Icons.group_add, color: AppTheme.primaryColor),
                 title: const Text('Create Group Chat'),
                 onTap: () {
                   Navigator.pop(context);
@@ -50,7 +51,7 @@ class MoreOptionsSheet extends StatelessWidget {
               )
             else if (currentIndex == 1) ...[
               ListTile(
-                leading: Icon(Icons.add_circle_outline,
+                leading: const Icon(Icons.add_circle_outline,
                     color: AppTheme.primaryColor),
                 title: const Text('Create New Project'),
                 onTap: () {
@@ -63,8 +64,8 @@ class MoreOptionsSheet extends StatelessWidget {
                 },
               ),
               ListTile(
-                leading:
-                    Icon(Icons.people_outline, color: AppTheme.primaryColor),
+                leading: const Icon(Icons.people_outline,
+                    color: AppTheme.primaryColor),
                 title: const Text('Find Team Members'),
                 onTap: () {
                   Navigator.pop(context);
@@ -77,7 +78,8 @@ class MoreOptionsSheet extends StatelessWidget {
               ),
             ] else if (currentIndex == 2)
               ListTile(
-                leading: Icon(Icons.add_alert, color: AppTheme.primaryColor),
+                leading:
+                    const Icon(Icons.add_alert, color: AppTheme.primaryColor),
                 title: const Text('Create Emergency Request'),
                 onTap: () {
                   Navigator.pop(context);
@@ -90,7 +92,7 @@ class MoreOptionsSheet extends StatelessWidget {
               )
             else if (currentIndex == 3)
               ListTile(
-                leading: Icon(Icons.edit, color: AppTheme.primaryColor),
+                leading: const Icon(Icons.edit, color: AppTheme.primaryColor),
                 title: const Text('Edit Profile'),
                 onTap: () {
                   Navigator.pop(context);
@@ -103,7 +105,7 @@ class MoreOptionsSheet extends StatelessWidget {
               ),
             const Divider(),
             ListTile(
-              leading: Icon(Icons.notifications_outlined,
+              leading: const Icon(Icons.notifications_outlined,
                   color: AppTheme.primaryColor),
               title: const Text('Notifications'),
               onTap: () {
@@ -112,7 +114,7 @@ class MoreOptionsSheet extends StatelessWidget {
               },
             ),
             ListTile(
-              leading: Icon(Icons.settings, color: AppTheme.primaryColor),
+              leading: const Icon(Icons.settings, color: AppTheme.primaryColor),
               title: const Text('Settings'),
               onTap: () {
                 Navigator.pop(context);
@@ -123,7 +125,7 @@ class MoreOptionsSheet extends StatelessWidget {
               },
             ),
             ListTile(
-              leading: Icon(Icons.logout, color: AppTheme.errorColor),
+              leading: const Icon(Icons.logout, color: AppTheme.errorColor),
               title: const Text('Logout',
                   style: TextStyle(color: AppTheme.errorColor)),
               onTap: () async {
