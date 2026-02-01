@@ -333,7 +333,7 @@ class _CreateGroupChatScreenState extends State<CreateGroupChatScreen> {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Icon(
+                    const Icon(
                       Icons.person_add,
                       color: AppTheme.primaryColor,
                       size: 20,
