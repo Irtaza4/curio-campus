@@ -315,7 +315,7 @@ class _MessagesScreenState extends State<MessagesScreen> {
                 Container(
                   width: 8,
                   height: 8,
-                  decoration: BoxDecoration(
+                  decoration: const BoxDecoration(
                     color: AppTheme.primaryColor,
                     shape: BoxShape.circle,
                   ),
