@@ -411,7 +411,7 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
                                     padding: EdgeInsets.only(right: 16),
                                     child: CircleAvatar(
                                       radius: 24,
-                                      child: Icon(Icons.person, size: 20),
+                                      child: const Icon(Icons.person, size: 20),
                                     ),
                                   );
                                 }
@@ -499,7 +499,7 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
                               ),
                             ),
                             IconButton(
-                              icon: Icon(
+                              icon: const Icon(
                                 Icons.filter_list,
                                 color: AppTheme.primaryColor,
                               ),
@@ -564,7 +564,7 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
                                     ),
                                     child: Row(
                                       children: [
-                                        Icon(
+                                        const Icon(
                                           Icons.add,
                                           size: 20,
                                           color: AppTheme.primaryColor,
