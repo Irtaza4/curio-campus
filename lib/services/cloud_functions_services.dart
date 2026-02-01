@@ -144,7 +144,7 @@ class CloudFunctionsService {
 
       // Try to call with minimal data to test connection
       await callable.call({
-        'requiredSkills': ['test'],
+        'requiredSkills': const ['test'],
         'requesterId': 'test',
         'requesterName': 'test',
         'requestId': 'test',
