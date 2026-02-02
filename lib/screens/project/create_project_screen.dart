@@ -433,7 +433,7 @@ class _CreateProjectScreenState extends State<CreateProjectScreen> {
                         ),
                         child: Row(
                           children: [
-                            Icon(
+                            const Icon(
                               Icons.psychology,
                               size: 20,
                               color: AppTheme.primaryColor,
@@ -518,7 +518,7 @@ class _CreateProjectScreenState extends State<CreateProjectScreen> {
                         ),
                         child: Row(
                           children: [
-                            Icon(
+                            const Icon(
                               Icons.calendar_today,
                               size: 20,
                               color: AppTheme.primaryColor,
@@ -572,7 +572,7 @@ class _CreateProjectScreenState extends State<CreateProjectScreen> {
                         ),
                         child: Row(
                           children: [
-                            Icon(
+                            const Icon(
                               Icons.people,
                               size: 20,
                               color: AppTheme.primaryColor,
