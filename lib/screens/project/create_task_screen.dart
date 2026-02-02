@@ -333,7 +333,7 @@ class _CreateTaskScreenState extends State<CreateTaskScreen> {
                   child: DropdownButton<TaskPriority>(
                     value: _priority,
                     isExpanded: true,
-                    icon: Icon(
+                    icon: const Icon(
                       Icons.arrow_drop_down,
                       color: AppTheme.primaryColor,
                     ),
@@ -396,7 +396,7 @@ class _CreateTaskScreenState extends State<CreateTaskScreen> {
                               : null,
                           isExpanded: true,
                           hint: const Text('Select team member'),
-                          icon: Icon(
+                          icon: const Icon(
                             Icons.arrow_drop_down,
                             color: AppTheme.primaryColor,
                           ),
