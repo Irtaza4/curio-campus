@@ -436,7 +436,7 @@ class _EditGroupChatScreenState extends State<EditGroupChatScreen> {
                   if (_isCurrentUserCreator)
                     TextButton.icon(
                       onPressed: _showAddParticipantsDialog,
-                      icon: Icon(
+                      icon: const Icon(
                         Icons.person_add,
                         color: AppTheme.primaryColor,
                         size: 20,
