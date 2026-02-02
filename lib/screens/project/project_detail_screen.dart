@@ -144,7 +144,7 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
             mainAxisSize: MainAxisSize.min,
             children: [
               ListTile(
-                leading: Icon(Icons.share, color: AppTheme.primaryColor),
+                leading: const Icon(Icons.share, color: AppTheme.primaryColor),
                 title: const Text('Share Project'),
                 onTap: () {
                   Navigator.pop(context);
@@ -166,7 +166,8 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
                   },
                 ),
               ListTile(
-                leading: Icon(Icons.archive, color: AppTheme.primaryColor),
+                leading:
+                    const Icon(Icons.archive, color: AppTheme.primaryColor),
                 title: const Text('Archive Project'),
                 onTap: () {
                   Navigator.pop(context);
@@ -174,7 +175,8 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
                 },
               ),
               ListTile(
-                leading: Icon(Icons.help_outline, color: AppTheme.primaryColor),
+                leading: const Icon(Icons.help_outline,
+                    color: AppTheme.primaryColor),
                 title: const Text('Project Help'),
                 onTap: () {
                   Navigator.pop(context);
