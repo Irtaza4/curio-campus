@@ -142,7 +142,7 @@ class MoreOptionsSheet extends StatelessWidget {
                       ),
                       TextButton(
                         onPressed: () => Navigator.pop(context, true),
-                        child: Text('Logout',
+                        child: const Text('Logout',
                             style: TextStyle(color: AppTheme.errorColor)),
                       ),
                     ],
