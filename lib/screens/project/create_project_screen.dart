@@ -290,7 +290,7 @@ class _CreateProjectScreenState extends State<CreateProjectScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: Text(
+            child: const Text(
               'Done',
               style: TextStyle(
                 color: AppTheme.primaryColor,
