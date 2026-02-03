@@ -57,9 +57,7 @@ class _LoginScreenState extends State<LoginScreen> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
-      backgroundColor: isDark
-          ? AppTheme.darkBackgroundColor
-          : Colors.white, // Adjust background color
+      backgroundColor: isDark ? AppTheme.darkBackgroundColor : Colors.white,
       body: SafeArea(
         child: SingleChildScrollView(
           child: Padding(
@@ -107,7 +105,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       const SizedBox(height: 8),
                       const Text(
                         'Sign in to continue.',
-                        style: TextStyle(
+                        style: const TextStyle(
                           fontSize: 16,
                           color: AppTheme.darkGrayColor,
                         ),
