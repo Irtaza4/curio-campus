@@ -174,7 +174,7 @@ class _CreateEmergencyRequestScreenState
               // Description
               const Text(
                 'Description',
-                style: TextStyle(
+                style: const TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w500,
                 ),
@@ -197,7 +197,7 @@ class _CreateEmergencyRequestScreenState
               // Deadline
               const Text(
                 'Deadline',
-                style: TextStyle(
+                style: const TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w500,
                 ),
