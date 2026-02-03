@@ -592,11 +592,11 @@ class _EditGroupChatScreenState extends State<EditGroupChatScreen> {
                 ),
                 trailing: _isCurrentUserCreator && !isCreator
                     ? IconButton(
-                        icon: Icon(
+                        onPressed: () => _removeMember(participantId),
+                        icon: const Icon(
                           Icons.remove_circle_outline,
                           color: Colors.red,
                         ),
-                        onPressed: () => _removeMember(participantId),
                       )
                     : null,
               ),
