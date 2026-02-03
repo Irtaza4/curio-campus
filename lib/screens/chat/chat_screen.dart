@@ -212,7 +212,7 @@ class _ChatScreenState extends State<ChatScreen> {
             mainAxisSize: MainAxisSize.min,
             children: [
               ListTile(
-                leading: Icon(Icons.call, color: AppTheme.primaryColor),
+                leading: const Icon(Icons.call, color: AppTheme.primaryColor),
                 title: Text(
                   'Voice Call',
                   style: TextStyle(
@@ -227,7 +227,8 @@ class _ChatScreenState extends State<ChatScreen> {
                 },
               ),
               ListTile(
-                leading: Icon(Icons.videocam, color: AppTheme.primaryColor),
+                leading:
+                    const Icon(Icons.videocam, color: AppTheme.primaryColor),
                 title: Text(
                   'Video Call',
                   style: TextStyle(
@@ -389,7 +390,7 @@ class _ChatScreenState extends State<ChatScreen> {
       _isRecording = false;
     });
 
-    // Send the voice message
+    if (!mounted) return;
     Provider.of<ChatProvider>(context, listen: false).sendVoiceMessage(
       chatId: widget.chatId,
       audioBase64: audioBase64,
