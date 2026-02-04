@@ -187,16 +187,7 @@ class NotificationProvider with ChangeNotifier {
       if (index != -1) {
         final notification = _notifications[index];
         if (!notification.isRead) {
-          _notifications[index] = NotificationModel(
-            id: notification.id,
-            title: notification.title,
-            message: notification.message,
-            timestamp: notification.timestamp,
-            type: notification.type,
-            relatedId: notification.relatedId,
-            isRead: true,
-            additionalData: notification.additionalData,
-          );
+          _notifications[index] = notification.copyWith(isRead: true);
           _unreadCount = _unreadCount > 0 ? _unreadCount - 1 : 0;
         }
       }
@@ -234,16 +225,7 @@ class NotificationProvider with ChangeNotifier {
 
       // Update local list
       _notifications = _notifications
-          .map((notification) => NotificationModel(
-                id: notification.id,
-                title: notification.title,
-                message: notification.message,
-                timestamp: notification.timestamp,
-                type: notification.type,
-                relatedId: notification.relatedId,
-                isRead: true,
-                additionalData: notification.additionalData,
-              ))
+          .map((notification) => notification.copyWith(isRead: true))
           .toList();
 
       _unreadCount = 0;
@@ -528,13 +510,7 @@ class NotificationProvider with ChangeNotifier {
       });
 
       // Update local notification
-      _notifications[index] = NotificationModel(
-        id: notification.id,
-        title: notification.title,
-        message: notification.message,
-        timestamp: notification.timestamp,
-        type: notification.type,
-        relatedId: notification.relatedId,
+      _notifications[index] = notification.copyWith(
         isRead: true,
         additionalData: {
           ...additionalData,
