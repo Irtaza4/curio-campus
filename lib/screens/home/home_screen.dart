@@ -55,7 +55,7 @@ class _HomeScreenState extends State<HomeScreen> {
         callService.listenForIncomingCalls(currentUser.uid, context);
 
         // Listen for call status updates like 'ended', 'missed', 'declined'
-        FirebaseFirestore.instance
+        _callSubscription = FirebaseFirestore.instance
             .collection('calls')
             .where('recipientId', isEqualTo: currentUser.uid)
             .snapshots()
