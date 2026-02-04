@@ -137,12 +137,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 Center(
                   child: Column(
                     children: [
-                      Text('Create new',
+                      const Text('Create new',
                           style: TextStyle(
                               fontSize: 32,
                               fontWeight: FontWeight.bold,
                               color: AppTheme.primaryColor)),
-                      Text('Account',
+                      const Text('Account',
                           style: TextStyle(
                               fontSize: 32,
                               fontWeight: FontWeight.bold,
