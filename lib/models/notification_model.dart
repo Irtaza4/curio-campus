@@ -123,4 +123,26 @@ class NotificationModel {
       return '${(difference.inDays / 7).floor()} ${(difference.inDays / 7).floor() == 1 ? 'week' : 'weeks'} ago';
     }
   }
+
+  NotificationModel copyWith({
+    String? id,
+    String? title,
+    String? message,
+    DateTime? timestamp,
+    NotificationType? type,
+    String? relatedId,
+    bool? isRead,
+    Map<String, dynamic>? additionalData,
+  }) {
+    return NotificationModel(
+      id: id ?? this.id,
+      title: title ?? this.title,
+      message: message ?? this.message,
+      timestamp: timestamp ?? this.timestamp,
+      type: type ?? this.type,
+      relatedId: relatedId ?? this.relatedId,
+      isRead: isRead ?? this.isRead,
+      additionalData: additionalData ?? this.additionalData,
+    );
+  }
 }
