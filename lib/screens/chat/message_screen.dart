@@ -257,7 +257,10 @@ class _MessagesScreenState extends State<MessagesScreen> {
         padding: const EdgeInsets.only(right: 16),
         child: const Text(
           'Delete',
-          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+          style: TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.bold,
+          ),
         ),
       ),
       direction: DismissDirection.endToStart,
