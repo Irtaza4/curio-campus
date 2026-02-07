@@ -105,7 +105,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               title: 'Logout',
               titleColor: AppTheme.errorColor,
               iconColor: AppTheme.errorColor,
-              trailing: Icon(Icons.arrow_forward_ios,
+              trailing: const Icon(Icons.arrow_forward_ios,
                   size: 16, color: AppTheme.errorColor),
               onTap: () async {
                 final confirm = await showDialog<bool>(
@@ -120,7 +120,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       ),
                       TextButton(
                         onPressed: () => Navigator.pop(context, true),
-                        child: Text('Logout',
+                        child: const Text('Logout',
                             style: TextStyle(color: AppTheme.errorColor)),
                       ),
                     ],
