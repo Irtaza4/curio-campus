@@ -179,19 +179,21 @@ class _CreateGroupChatScreenState extends State<CreateGroupChatScreen> {
                                     : AppTheme.darkGrayColor,
                               ),
                             ),
-                      Positioned(
+                      const Positioned(
                         right: 0,
                         bottom: 0,
-                        child: Container(
-                          padding: const EdgeInsets.all(4),
-                          decoration: BoxDecoration(
+                        child: const DecoratedBox(
+                          decoration: const BoxDecoration(
                             color: AppTheme.primaryColor,
                             shape: BoxShape.circle,
                           ),
-                          child: const Icon(
-                            Icons.camera_alt,
-                            color: Colors.white,
-                            size: 20,
+                          child: const Padding(
+                            padding: const EdgeInsets.all(4),
+                            child: const Icon(
+                              Icons.camera_alt,
+                              color: Colors.white,
+                              size: 20,
+                            ),
                           ),
                         ),
                       ),
@@ -222,11 +224,9 @@ class _CreateGroupChatScreenState extends State<CreateGroupChatScreen> {
               ),
 
               const SizedBox(height: 24),
-
-              // Participants
               const Text(
                 'Participants',
-                style: TextStyle(
+                style: const TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w500,
                 ),
