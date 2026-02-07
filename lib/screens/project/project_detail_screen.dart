@@ -204,8 +204,8 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
           content: SingleChildScrollView(
             child: ListBody(
               children: const <Widget>[
-                Text('Are you sure you want to delete this project?'),
-                Text('This action cannot be undone.'),
+                const Text('Are you sure you want to delete this project?'),
+                const Text('This action cannot be undone.'),
               ],
             ),
           ),
@@ -564,7 +564,7 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
                                       ),
                                       borderRadius: BorderRadius.circular(8),
                                     ),
-                                    child: Row(
+                                    child: const Row(
                                       children: [
                                         const Icon(
                                           Icons.add,
@@ -574,7 +574,7 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
                                         const SizedBox(width: 8),
                                         const Text(
                                           'Add new sub task',
-                                          style: TextStyle(
+                                          style: const TextStyle(
                                             fontSize: 14,
                                             fontWeight: FontWeight.w500,
                                           ),
