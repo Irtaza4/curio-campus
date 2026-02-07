@@ -305,7 +305,7 @@ class _EditGroupChatScreenState extends State<EditGroupChatScreen> {
                   },
                   child: Text(
                     'Add (${tempSelectedUserIds.length})',
-                    style: TextStyle(
+                    style: const TextStyle(
                       color: AppTheme.primaryColor,
                       fontWeight: FontWeight.bold,
                     ),
