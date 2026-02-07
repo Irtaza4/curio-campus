@@ -602,11 +602,11 @@ class _ChatScreenState extends State<ChatScreen> {
               decoration: BoxDecoration(
                 color: isDarkMode ? AppTheme.darkSurfaceColor : Colors.white,
                 boxShadow: [
-                  BoxShadow(
-                    color: Colors.grey.withValues(alpha: 0.2),
+                  const BoxShadow(
+                    color: Colors.black12,
                     spreadRadius: 1,
                     blurRadius: 3,
-                    offset: const Offset(0, -1),
+                    offset: Offset(0, -1),
                   ),
                 ],
               ),
