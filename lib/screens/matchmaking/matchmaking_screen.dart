@@ -52,11 +52,10 @@ class _MatchmakingScreenState extends State<MatchmakingScreen> {
         }
       });
     } catch (e) {
-      setState(() {
-        _isLoading = false;
-      });
-
       if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Error fetching projects: ${e.toString()}'),
@@ -93,9 +92,11 @@ class _MatchmakingScreenState extends State<MatchmakingScreen> {
         );
       }
     } finally {
-      setState(() {
-        _isLoading = false;
-      });
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
     }
   }
 
