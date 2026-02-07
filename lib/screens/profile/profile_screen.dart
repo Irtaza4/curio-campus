@@ -58,6 +58,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         'profileImageBase64': base64Image,
       });
 
+      if (!mounted) return;
       // Force a rebuild
       setState(() {});
     }
@@ -132,15 +133,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
             .where((project) => project.progress == 100)
             .toList();
 
+        if (!mounted) return;
         setState(() {
           _completedProjects = completedProjects;
           _isLoadingProjects = false;
         });
       } catch (e) {
         debugPrint("Error fetching completed projects: $e");
-        setState(() {
-          _isLoadingProjects = false;
-        });
+        if (mounted) {
+          setState(() {
+            _isLoadingProjects = false;
+          });
+        }
       }
     }
   }
