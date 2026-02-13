@@ -20,7 +20,7 @@ class SkillSelector extends StatefulWidget {
 }
 
 class _SkillSelectorState extends State<SkillSelector> {
-  final List<String> _majorSkills = [
+  static const List<String> _majorSkills = [
     'Dart',
     'Python',
     'Java',
@@ -69,7 +69,7 @@ class _SkillSelectorState extends State<SkillSelector> {
     'Project Management'
   ];
 
-  final List<String> _minorSkills = [
+  static const List<String> _minorSkills = [
     'Flutter',
     'React',
     'Vue.js',
@@ -203,7 +203,7 @@ class _SkillSelectorState extends State<SkillSelector> {
                         fontSize: 16,
                       ),
                     ),
-                    Icon(
+                    const Icon(
                       Icons.add_circle_outline,
                       color: AppTheme.primaryColor,
                     ),
