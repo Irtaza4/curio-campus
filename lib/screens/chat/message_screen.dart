@@ -268,7 +268,7 @@ class _MessagesScreenState extends State<MessagesScreen> {
       child: Container(
         decoration: BoxDecoration(
           color: isDarkMode ? AppTheme.darkSurfaceColor : Colors.white,
-          borderRadius: BorderRadius.circular(8),
+          borderRadius: const BorderRadius.all(Radius.circular(8)),
           boxShadow: [
             BoxShadow(
               color: isDarkMode
