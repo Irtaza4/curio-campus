@@ -210,7 +210,7 @@ class _AudioMessagePlayerState extends State<AudioMessagePlayer> {
         ),
         child: Row(
           children: [
-            Icon(
+            const Icon(
               Icons.error_outline,
               color: Colors.red,
               size: 24,
@@ -226,7 +226,7 @@ class _AudioMessagePlayerState extends State<AudioMessagePlayer> {
               ),
             ),
             IconButton(
-              icon: Icon(
+              icon: const Icon(
                 Icons.refresh,
                 color: AppTheme.primaryColor,
                 size: 20,
