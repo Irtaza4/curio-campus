@@ -637,7 +637,8 @@ class _ChatScreenState extends State<ChatScreen> {
                               : Colors.grey[600],
                         ),
                         border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(24),
+                          borderRadius:
+                              const BorderRadius.all(Radius.circular(24)),
                           borderSide: BorderSide.none,
                         ),
                         filled: true,
