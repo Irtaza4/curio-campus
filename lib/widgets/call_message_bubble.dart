@@ -75,7 +75,7 @@ class CallMessageBubble extends StatelessWidget {
             size: 16,
             color: iconColor,
           ),
-          const SizedBox(width: 8),
+          const SizedBox(width: 12),
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
