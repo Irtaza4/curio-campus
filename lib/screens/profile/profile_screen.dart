@@ -298,7 +298,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       return CircleAvatar(
         radius: 50,
         backgroundColor: Colors.white,
-        child: Icon(
+        child: const Icon(
           Icons.person,
           size: 50,
           color: AppTheme.primaryColor,
@@ -319,7 +319,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       return CircleAvatar(
         radius: 50,
         backgroundColor: Colors.white,
-        child: Icon(
+        child: const Icon(
           Icons.person,
           size: 50,
           color: AppTheme.primaryColor,
@@ -455,7 +455,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           height: 32,
                         ),
                       )
-                    : Icon(
+                    : const Icon(
                         Icons.person,
                         size: 16,
                         color: AppTheme.primaryColor,
@@ -509,7 +509,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   shape: BoxShape.circle,
                   color: AppTheme.primaryColor.withValues(alpha: 0.2),
                 ),
-                child: Icon(
+                child: const Icon(
                   Icons.task_alt,
                   size: 16,
                   color: AppTheme.primaryColor,
