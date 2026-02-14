@@ -30,12 +30,9 @@ class TeamMemberService {
   Future<List<UserModel>> fetchTeamMembers(List<String> userIds) async {
     List<UserModel> members = [];
 
-    for (final userId in userIds) {
-      final member = await fetchTeamMember(userId);
-      if (member != null) {
-        members.add(member);
-      }
-    }
+    final futures = userIds.map((userId) => fetchTeamMember(userId));
+    final results = await Future.wait(futures);
+    members = results.whereType<UserModel>().toList();
 
     return members;
   }
