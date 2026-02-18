@@ -113,9 +113,11 @@ class _EditEmergencyRequestScreenState
         return;
       }
 
-      setState(() {
-        _isLoading = true;
-      });
+      if (mounted) {
+        setState(() {
+          _isLoading = true;
+        });
+      }
 
       final emergencyProvider =
           Provider.of<EmergencyProvider>(context, listen: false);
@@ -128,9 +130,11 @@ class _EditEmergencyRequestScreenState
         deadline: _deadline,
       );
 
-      setState(() {
-        _isLoading = false;
-      });
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
 
       if (success && mounted) {
         Navigator.pop(context, true);
@@ -168,7 +172,7 @@ class _EditEmergencyRequestScreenState
               // Title
               const Text(
                 'Title',
-                style: TextStyle(
+                style: const TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w500,
                 ),
@@ -190,7 +194,7 @@ class _EditEmergencyRequestScreenState
               // Description
               const Text(
                 'Description',
-                style: TextStyle(
+                style: const TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w500,
                 ),
@@ -213,7 +217,7 @@ class _EditEmergencyRequestScreenState
               // Deadline
               const Text(
                 'Deadline',
-                style: TextStyle(
+                style: const TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w500,
                 ),
@@ -271,7 +275,7 @@ class _EditEmergencyRequestScreenState
               // Required skills
               const Text(
                 'Peer Requirements',
-                style: TextStyle(
+                style: const TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w500,
                 ),
