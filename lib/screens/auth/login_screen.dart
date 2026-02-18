@@ -125,7 +125,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       // Email field
                       const Text(
                         'EMAIL',
-                        style: TextStyle(
+                        style: const TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.w500,
                           color: AppTheme.darkGrayColor,
@@ -152,7 +152,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       // Password field
                       const Text(
                         'PASSWORD',
-                        style: TextStyle(
+                        style: const TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.w500,
                           color: AppTheme.darkGrayColor,
@@ -206,7 +206,8 @@ class _LoginScreenState extends State<LoginScreen> {
                         children: [
                           const Text(
                             "Don't have an account?",
-                            style: TextStyle(color: AppTheme.darkGrayColor),
+                            style:
+                                const TextStyle(color: AppTheme.darkGrayColor),
                           ),
                           TextButton(
                             onPressed: () {
@@ -219,7 +220,7 @@ class _LoginScreenState extends State<LoginScreen> {
                             },
                             child: const Text(
                               'Signup!',
-                              style: TextStyle(
+                              style: const TextStyle(
                                 color: AppTheme.primaryColor,
                                 fontWeight: FontWeight.bold,
                               ),
