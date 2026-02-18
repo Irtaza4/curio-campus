@@ -188,7 +188,7 @@ class _SplashScreenState extends State<SplashScreen>
                         width: 200,
                         height: 200,
                         errorBuilder: (context, error, stackTrace) {
-                          return Icon(
+                          return const Icon(
                             Icons.hub,
                             size: 80,
                             color: AppTheme.primaryColor,
@@ -199,7 +199,7 @@ class _SplashScreenState extends State<SplashScreen>
                     const SizedBox(height: 24),
                     Text(
                       'CurioCampus',
-                      style: TextStyle(
+                      style: const TextStyle(
                         fontSize: 36,
                         fontWeight: FontWeight.bold,
                         color: AppTheme.primaryColor,
@@ -207,17 +207,18 @@ class _SplashScreenState extends State<SplashScreen>
                     ),
                     const SizedBox(height: 16),
                     const Text('. Collaborate .',
-                        style: TextStyle(
+                        style: const TextStyle(
                             fontSize: 18, fontWeight: FontWeight.w500)),
                     const Text('. Learn .',
-                        style: TextStyle(
+                        style: const TextStyle(
                             fontSize: 18, fontWeight: FontWeight.w500)),
                     const Text('. Achieve .',
-                        style: TextStyle(
+                        style: const TextStyle(
                             fontSize: 18, fontWeight: FontWeight.w500)),
                     const SizedBox(height: 48),
                     const Text('LOADING ...',
-                        style: TextStyle(fontSize: 14, color: Colors.black54)),
+                        style: const TextStyle(
+                            fontSize: 14, color: Colors.black54)),
                     const SizedBox(height: 8),
                     SizedBox(
                       width: 200,
