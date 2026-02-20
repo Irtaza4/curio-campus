@@ -105,7 +105,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       const SizedBox(height: 8),
                       const Text(
                         'Sign in to continue.',
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 16,
                           color: AppTheme.darkGrayColor,
                         ),
@@ -125,7 +125,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       // Email field
                       const Text(
                         'EMAIL',
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.w500,
                           color: AppTheme.darkGrayColor,
@@ -152,7 +152,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       // Password field
                       const Text(
                         'PASSWORD',
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.w500,
                           color: AppTheme.darkGrayColor,
@@ -206,8 +206,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         children: [
                           const Text(
                             "Don't have an account?",
-                            style:
-                                const TextStyle(color: AppTheme.darkGrayColor),
+                            style: TextStyle(color: AppTheme.darkGrayColor),
                           ),
                           TextButton(
                             onPressed: () {
@@ -220,7 +219,7 @@ class _LoginScreenState extends State<LoginScreen> {
                             },
                             child: const Text(
                               'Signup!',
-                              style: const TextStyle(
+                              style: TextStyle(
                                 color: AppTheme.primaryColor,
                                 fontWeight: FontWeight.bold,
                               ),
