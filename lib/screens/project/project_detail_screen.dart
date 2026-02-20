@@ -204,8 +204,8 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
           content: SingleChildScrollView(
             child: ListBody(
               children: const <Widget>[
-                const Text('Are you sure you want to delete this project?'),
-                const Text('This action cannot be undone.'),
+                Text('Are you sure you want to delete this project?'),
+                Text('This action cannot be undone.'),
               ],
             ),
           ),
@@ -413,7 +413,7 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
                                     padding: EdgeInsets.only(right: 16),
                                     child: CircleAvatar(
                                       radius: 24,
-                                      child: const Icon(Icons.person, size: 20),
+                                      child: Icon(Icons.person, size: 20),
                                     ),
                                   );
                                 }
@@ -566,15 +566,15 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
                                     ),
                                     child: const Row(
                                       children: [
-                                        const Icon(
+                                        Icon(
                                           Icons.add,
                                           size: 20,
                                           color: AppTheme.primaryColor,
                                         ),
-                                        const SizedBox(width: 8),
-                                        const Text(
+                                        SizedBox(width: 8),
+                                        Text(
                                           'Add new sub task',
-                                          style: const TextStyle(
+                                          style: TextStyle(
                                             fontSize: 14,
                                             fontWeight: FontWeight.w500,
                                           ),
