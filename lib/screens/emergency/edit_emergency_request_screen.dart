@@ -172,7 +172,7 @@ class _EditEmergencyRequestScreenState
               // Title
               const Text(
                 'Title',
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w500,
                 ),
@@ -194,7 +194,7 @@ class _EditEmergencyRequestScreenState
               // Description
               const Text(
                 'Description',
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w500,
                 ),
@@ -217,7 +217,7 @@ class _EditEmergencyRequestScreenState
               // Deadline
               const Text(
                 'Deadline',
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w500,
                 ),
@@ -275,7 +275,7 @@ class _EditEmergencyRequestScreenState
               // Required skills
               const Text(
                 'Peer Requirements',
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w500,
                 ),
