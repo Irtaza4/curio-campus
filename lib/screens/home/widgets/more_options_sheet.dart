@@ -35,6 +35,17 @@ class MoreOptionsSheet extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
+            const SizedBox(height: 8),
+            // Bottom sheet drag handle
+            Container(
+              width: 40,
+              height: 4,
+              decoration: BoxDecoration(
+                color: isDarkMode ? Colors.white24 : Colors.grey[300],
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+            const SizedBox(height: 16),
             if (currentIndex == 0)
               ListTile(
                 leading:
@@ -133,17 +144,57 @@ class MoreOptionsSheet extends StatelessWidget {
                 final confirm = await showDialog<bool>(
                   context: context,
                   builder: (context) => AlertDialog(
-                    title: const Text('Logout'),
-                    content: const Text('Are you sure you want to logout?'),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    title: Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            color: AppTheme.errorColor.withValues(alpha: 0.1),
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Icon(
+                            Icons.logout,
+                            color: AppTheme.errorColor,
+                            size: 24,
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        const Text('Logout'),
+                      ],
+                    ),
+                    content: const Text(
+                      'Are you sure you want to logout? You will need to sign in again to access your account.',
+                      style: TextStyle(height: 1.5),
+                    ),
+                    actionsPadding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
                     actions: [
                       TextButton(
                         onPressed: () => Navigator.pop(context, false),
-                        child: const Text('Cancel'),
+                        child: Text(
+                          'Cancel',
+                          style: TextStyle(
+                            color: isDarkMode
+                                ? Colors.white70
+                                : AppTheme.darkGrayColor,
+                          ),
+                        ),
                       ),
-                      TextButton(
+                      ElevatedButton(
                         onPressed: () => Navigator.pop(context, true),
-                        child: const Text('Logout',
-                            style: TextStyle(color: AppTheme.errorColor)),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppTheme.errorColor,
+                          foregroundColor: Colors.white,
+                          elevation: 0,
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 20, vertical: 10),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                        ),
+                        child: const Text('Logout'),
                       ),
                     ],
                   ),
