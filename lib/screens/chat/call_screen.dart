@@ -690,7 +690,7 @@ class _CallScreenState extends State<CallScreen>
                         const CircleAvatar(
                           radius: 16,
                           backgroundColor: Colors.blue,
-                          child: const Icon(Icons.message,
+                          child: Icon(Icons.message,
                               color: Colors.white, size: 16),
                         ),
                         const SizedBox(width: 12),
