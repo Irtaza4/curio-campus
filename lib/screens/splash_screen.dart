@@ -199,7 +199,7 @@ class _SplashScreenState extends State<SplashScreen>
                     const SizedBox(height: 24),
                     Text(
                       'CurioCampus',
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 36,
                         fontWeight: FontWeight.bold,
                         color: AppTheme.primaryColor,
@@ -207,18 +207,17 @@ class _SplashScreenState extends State<SplashScreen>
                     ),
                     const SizedBox(height: 16),
                     const Text('. Collaborate .',
-                        style: const TextStyle(
+                        style: TextStyle(
                             fontSize: 18, fontWeight: FontWeight.w500)),
                     const Text('. Learn .',
-                        style: const TextStyle(
+                        style: TextStyle(
                             fontSize: 18, fontWeight: FontWeight.w500)),
                     const Text('. Achieve .',
-                        style: const TextStyle(
+                        style: TextStyle(
                             fontSize: 18, fontWeight: FontWeight.w500)),
                     const SizedBox(height: 48),
                     const Text('LOADING ...',
-                        style: const TextStyle(
-                            fontSize: 14, color: Colors.black54)),
+                        style: TextStyle(fontSize: 14, color: Colors.black54)),
                     const SizedBox(height: 8),
                     SizedBox(
                       width: 200,
