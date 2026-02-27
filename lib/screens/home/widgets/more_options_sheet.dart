@@ -46,6 +46,24 @@ class MoreOptionsSheet extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 16),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: Row(
+                children: [
+                  Text(
+                    'Actions',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: isDarkMode
+                          ? AppTheme.darkTextColor
+                          : AppTheme.textColor,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 8),
             if (currentIndex == 0)
               ListTile(
                 leading:
