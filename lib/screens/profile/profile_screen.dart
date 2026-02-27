@@ -244,11 +244,43 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             width: double.infinity,
                             child: ElevatedButton(
                               onPressed: () async {
-                                await authProvider.logout();
-                                if (context.mounted) {
-                                  Navigator.of(context).pushReplacement(
+                                final confirm = await showDialog<bool>(
+                                  context: context,
+                                  builder: (context) => AlertDialog(
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(16),
+                                    ),
+                                    title: const Text('Sign Out'),
+                                    content: const Text(
+                                        'Are you sure you want to sign out?'),
+                                    actions: [
+                                      TextButton(
+                                        onPressed: () =>
+                                            Navigator.pop(context, false),
+                                        child: const Text('Cancel'),
+                                      ),
+                                      ElevatedButton(
+                                        onPressed: () =>
+                                            Navigator.pop(context, true),
+                                        style: ElevatedButton.styleFrom(
+                                          backgroundColor: AppTheme.errorColor,
+                                          foregroundColor: Colors.white,
+                                        ),
+                                        child: const Text('Sign Out'),
+                                      ),
+                                    ],
+                                  ),
+                                );
+
+                                if (confirm == true && context.mounted) {
+                                  await authProvider.logout();
+                                  if (context.mounted) {
+                                    Navigator.of(context).pushAndRemoveUntil(
                                       MaterialPageRoute(
-                                          builder: (_) => LoginScreen()));
+                                          builder: (_) => const LoginScreen()),
+                                      (route) => false,
+                                    );
+                                  }
                                 }
                               },
                               style: ElevatedButton.styleFrom(
@@ -256,9 +288,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                     ? AppTheme.darkSurfaceColor
                                     : Colors.white,
                                 foregroundColor: AppTheme.errorColor,
-                                side: BorderSide(color: AppTheme.errorColor),
+                                side: const BorderSide(
+                                    color: AppTheme.errorColor),
                                 padding:
                                     const EdgeInsets.symmetric(vertical: 16),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
                               ),
                               child: const Text(
                                 'Sign Out',
