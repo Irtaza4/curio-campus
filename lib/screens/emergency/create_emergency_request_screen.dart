@@ -214,9 +214,14 @@ class _CreateEmergencyRequestScreenState
                     ),
                     decoration: BoxDecoration(
                       color: isDark
-                          ? Colors.grey[800]
-                          : Colors.grey[300], // background
+                          ? AppTheme.darkInputBackgroundColor
+                          : AppTheme.lightGrayColor, // background
                       borderRadius: BorderRadius.circular(8),
+                      border: Border.all(
+                        color: isDark
+                            ? AppTheme.darkMediumGrayColor
+                            : AppTheme.mediumGrayColor,
+                      ),
                     ),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
