@@ -634,7 +634,7 @@ class _ChatScreenState extends State<ChatScreen> {
                         hintStyle: TextStyle(
                           color: isDarkMode
                               ? AppTheme.darkDarkGrayColor
-                              : Colors.grey[600],
+                              : AppTheme.darkGrayColor,
                         ),
                         border: OutlineInputBorder(
                           borderRadius:
