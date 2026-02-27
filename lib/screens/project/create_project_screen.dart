@@ -391,6 +391,7 @@ class _CreateProjectScreenState extends State<CreateProjectScreen> {
                       hintText: 'Enter project description',
                       labelText: 'Description',
                       maxLines: 3,
+                      maxLength: 500,
                       validator: (value) {
                         if (value == null || value.isEmpty) {
                           return 'Please enter a project description';
