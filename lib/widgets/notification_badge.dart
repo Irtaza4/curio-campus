@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:curio_campus/utils/app_theme.dart';
 
 class NotificationBadge extends StatelessWidget {
   final int count;
@@ -23,12 +24,13 @@ class NotificationBadge extends StatelessWidget {
             child: Container(
               padding: const EdgeInsets.all(2),
               decoration: BoxDecoration(
-                color: Colors.red,
+                color: AppTheme.errorColor,
                 borderRadius: const BorderRadius.all(Radius.circular(10)),
+                border: Border.all(color: Colors.white, width: 1.5),
               ),
               constraints: const BoxConstraints(
-                minWidth: 16,
-                minHeight: 16,
+                minWidth: 18,
+                minHeight: 18,
               ),
               child: Text(
                 count > 9 ? '9+' : count.toString(),
