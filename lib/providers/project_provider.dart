@@ -8,10 +8,10 @@ import 'dart:convert';
 import '../models/project_model.dart';
 import '../models/user_model.dart';
 import '../utils/constants.dart';
-import 'package:provider/provider.dart';
-import '../providers/notification_provider.dart';
 import '../models/task_model.dart';
 import '../utils/navigator_key.dart';
+import 'package:provider/provider.dart';
+import '../providers/notification_provider.dart';
 
 class ProjectProvider with ChangeNotifier {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
@@ -178,7 +178,7 @@ class ProjectProvider with ChangeNotifier {
     }
   }
 
-  // Add the missing methods and properties
+  // Project details and management methods
   Future<UserModel?> fetchUserById(String userId) async {
     try {
       final docSnapshot = await _firestore
