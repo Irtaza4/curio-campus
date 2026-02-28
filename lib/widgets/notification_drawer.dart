@@ -321,12 +321,27 @@ class NotificationDrawer extends StatelessWidget {
 
       case NotificationType.profile:
         Navigator.of(context).popUntil((route) => route.isFirst);
-        Provider.of<NotificationProvider>(context, listen: false)
-            .markAsRead(notification.id);
+        // Assuming there's a profile screen index (e.g., index 3) in the main screen
+        // In a real app, you might use a navigation provider to set the index
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Navigating to your profile...')),
+        );
         break;
 
       case NotificationType.system:
-        Navigator.pop(context);
+        showDialog(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: Text(notification.title),
+            content: Text(notification.message),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text('Close'),
+              ),
+            ],
+          ),
+        );
         break;
 
       case NotificationType.call:
