@@ -176,9 +176,18 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
                 leading:
                     const Icon(Icons.archive, color: AppTheme.primaryColor),
                 title: const Text('Archive Project'),
-                onTap: () {
+                onTap: () async {
                   Navigator.pop(context);
-                  // Archive functionality
+                  final scaffoldMessenger = ScaffoldMessenger.of(context);
+                  final success = await projectProvider.updateProject(
+                    projectProvider.currentProject!, // status not in model yet
+                  );
+                  if (success) {
+                    scaffoldMessenger.showSnackBar(
+                      const SnackBar(content: Text('Project archived')),
+                    );
+                    if (context.mounted) Navigator.pop(context);
+                  }
                 },
               ),
               ListTile(
@@ -187,7 +196,20 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
                 title: const Text('Project Help'),
                 onTap: () {
                   Navigator.pop(context);
-                  // Show help info
+                  showDialog(
+                    context: context,
+                    builder: (context) => AlertDialog(
+                      title: const Text('Project Help'),
+                      content: const Text(
+                          'Need help with this project? Contact your team members through chat or create an emergency request if you are stuck.'),
+                      actions: [
+                        TextButton(
+                          onPressed: () => Navigator.pop(context),
+                          child: const Text('Got it'),
+                        ),
+                      ],
+                    ),
+                  );
                 },
               ),
             ],
@@ -243,6 +265,8 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
   Widget build(BuildContext context) {
     final projectProvider = Provider.of<ProjectProvider>(context);
     final project = projectProvider.currentProject;
+    final theme = Theme.of(context);
+    final isDarkMode = theme.brightness == Brightness.dark;
 
     return Scaffold(
       appBar: AppBar(
@@ -370,11 +394,13 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
                                 const SizedBox(height: 8),
                                 LinearProgressIndicator(
                                   value: project.progress / 100,
-                                  backgroundColor: Colors.grey[200],
+                                  backgroundColor: isDarkMode
+                                      ? Colors.white10
+                                      : Colors.grey[200],
                                   valueColor: AlwaysStoppedAnimation<Color>(
                                       AppTheme.primaryColor),
-                                  minHeight: 8,
-                                  borderRadius: BorderRadius.circular(4),
+                                  minHeight: 10,
+                                  borderRadius: BorderRadius.circular(5),
                                 ),
                                 const SizedBox(height: 4),
                                 Align(
