@@ -219,9 +219,18 @@ class MoreOptionsSheet extends StatelessWidget {
                 );
 
                 if (confirm == true && context.mounted) {
+                  // Show a temporary snackbar or indicator that logging out is in progress
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Logging out...'),
+                      duration: Duration(seconds: 1),
+                    ),
+                  );
+
                   await Provider.of<custom_auth.AuthProvider>(context,
                           listen: false)
                       .logout();
+
                   if (context.mounted) {
                     Navigator.of(context).pushAndRemoveUntil(
                       MaterialPageRoute(builder: (_) => const LoginScreen()),
