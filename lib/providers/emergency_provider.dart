@@ -273,7 +273,7 @@ class EmergencyProvider with ChangeNotifier {
 
       return requestId;
     } catch (e) {
-      // print('❌ Error creating emergency request: $e');
+      debugPrint('❌ Error creating emergency request: $e');
       _isLoading = false;
       _errorMessage = e.toString();
       notifyListeners();
