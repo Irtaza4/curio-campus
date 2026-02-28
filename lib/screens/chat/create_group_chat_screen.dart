@@ -24,6 +24,7 @@ class _CreateGroupChatScreenState extends State<CreateGroupChatScreen> {
   final List<String> _selectedParticipants = [];
   String? _groupImageBase64;
   bool _isLoading = false;
+  bool _isImageLoading = false;
   final ImagePicker _picker = ImagePicker();
 
   @override
@@ -41,6 +42,9 @@ class _CreateGroupChatScreenState extends State<CreateGroupChatScreen> {
     );
 
     if (pickedFile != null) {
+      setState(() {
+        _isImageLoading = true;
+      });
       try {
         final bytes = await File(pickedFile.path).readAsBytes();
 
@@ -74,6 +78,12 @@ class _CreateGroupChatScreenState extends State<CreateGroupChatScreen> {
             backgroundColor: AppTheme.errorColor,
           ),
         );
+      } finally {
+        if (mounted) {
+          setState(() {
+            _isImageLoading = false;
+          });
+        }
       }
     }
   }
@@ -115,7 +125,7 @@ class _CreateGroupChatScreenState extends State<CreateGroupChatScreen> {
       });
 
       if (chatId != null && mounted) {
-        Navigator.pop(context);
+        Navigator.pop(context, chatId);
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('Group chat created successfully'),
@@ -171,13 +181,15 @@ class _CreateGroupChatScreenState extends State<CreateGroupChatScreen> {
                               backgroundColor: isDarkMode
                                   ? AppTheme.darkLightGrayColor
                                   : AppTheme.lightGrayColor,
-                              child: Icon(
-                                Icons.group,
-                                size: 50,
-                                color: isDarkMode
-                                    ? AppTheme.darkDarkGrayColor
-                                    : AppTheme.darkGrayColor,
-                              ),
+                              child: _isImageLoading
+                                  ? const CircularProgressIndicator()
+                                  : Icon(
+                                      Icons.group,
+                                      size: 50,
+                                      color: isDarkMode
+                                          ? AppTheme.darkDarkGrayColor
+                                          : AppTheme.darkGrayColor,
+                                    ),
                             ),
                       const Positioned(
                         right: 0,
@@ -315,9 +327,7 @@ class _CreateGroupChatScreenState extends State<CreateGroupChatScreen> {
             // Add participants button
             InkWell(
               onTap: () {
-                // Convert List<UserModel> to List<Map<String, dynamic>> by calling toMap() on each UserModel
-                final usersMap = users.map((user) => user.toMap()).toList();
-                _showAddParticipantsDialog(usersMap);
+                _showAddParticipantsDialog(users);
               },
               borderRadius: BorderRadius.circular(8),
               child: Container(
@@ -357,7 +367,7 @@ class _CreateGroupChatScreenState extends State<CreateGroupChatScreen> {
     );
   }
 
-  void _showAddParticipantsDialog(List<Map<String, dynamic>> users) {
+  void _showAddParticipantsDialog(List<UserModel> users) {
     final theme = Theme.of(context);
     final isDarkMode = theme.brightness == Brightness.dark;
 
@@ -380,12 +390,12 @@ class _CreateGroupChatScreenState extends State<CreateGroupChatScreen> {
               itemCount: users.length,
               itemBuilder: (context, index) {
                 final user = users[index];
-                final userId = user['id'] as String;
+                final userId = user.id;
                 final isSelected = _selectedParticipants.contains(userId);
 
                 return CheckboxListTile(
                   title: Text(
-                    user['name'] as String,
+                    user.name,
                     style: TextStyle(
                       color: isDarkMode
                           ? AppTheme.darkTextColor
@@ -393,7 +403,7 @@ class _CreateGroupChatScreenState extends State<CreateGroupChatScreen> {
                     ),
                   ),
                   subtitle: Text(
-                    user['email'] as String,
+                    user.email,
                     style: TextStyle(
                       color: isDarkMode
                           ? AppTheme.darkDarkGrayColor
