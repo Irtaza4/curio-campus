@@ -4,6 +4,7 @@ import 'package:curio_campus/utils/app_theme.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:curio_campus/utils/image_utils.dart';
+import 'package:share_plus/share_plus.dart';
 
 class ImageViewerScreen extends StatefulWidget {
   final String? imageUrl;
@@ -94,6 +95,32 @@ class _ImageViewerScreenState extends State<ImageViewerScreen> {
     }
   }
 
+  Future<void> _shareImage() async {
+    final base64String = widget.imageBase64 ?? widget.imageUrl;
+    if (base64String == null) {
+      _showErrorSnackBar('No image data available to share');
+      return;
+    }
+
+    try {
+      final imageData = ImageUtils.safelyDecodeBase64(base64String);
+      if (imageData == null) {
+        _showErrorSnackBar('Failed to decode image data');
+        return;
+      }
+
+      final tempDir = await getTemporaryDirectory();
+      final path =
+          '${tempDir.path}/shared_image_${DateTime.now().millisecondsSinceEpoch}.jpg';
+      final file = File(path);
+      await file.writeAsBytes(imageData);
+
+      await Share.shareXFiles([XFile(path)], text: widget.title);
+    } catch (e) {
+      _showErrorSnackBar('Failed to share image: $e');
+    }
+  }
+
   void _showErrorSnackBar(String message) {
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -129,6 +156,10 @@ class _ImageViewerScreenState extends State<ImageViewerScreen> {
                 valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
               ),
             ),
+          IconButton(
+            icon: const Icon(Icons.share),
+            onPressed: _shareImage,
+          ),
         ],
       ),
       body: Center(
