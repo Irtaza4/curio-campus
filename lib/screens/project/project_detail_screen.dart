@@ -8,6 +8,7 @@ import 'package:intl/intl.dart';
 import 'package:curio_campus/screens/project/create_task_screen.dart';
 import 'package:curio_campus/screens/project/edit_project_screen.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:share_plus/share_plus.dart';
 
 import '../../models/task_model.dart';
 import '../../models/user_model.dart';
@@ -148,7 +149,13 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
                 title: const Text('Share Project'),
                 onTap: () {
                   Navigator.pop(context);
-                  // Share functionality
+                  final project = projectProvider.currentProject;
+                  if (project != null) {
+                    Share.share(
+                      'Check out this project: ${project.name}\n\n${project.description}',
+                      subject: 'Project Share: ${project.name}',
+                    );
+                  }
                 },
               ),
               if (projectProvider.currentProject?.createdBy ==

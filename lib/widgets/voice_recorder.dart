@@ -22,8 +22,10 @@ class VoiceRecorder extends StatefulWidget {
   State<VoiceRecorder> createState() => _VoiceRecorderState();
 }
 
-class _VoiceRecorderState extends State<VoiceRecorder> {
+class _VoiceRecorderState extends State<VoiceRecorder>
+    with SingleTickerProviderStateMixin {
   final AudioRecorder _audioRecorder = AudioRecorder();
+  late AnimationController _pulseController;
   bool _isRecording = false;
   String _recordingPath = '';
   Timer? _timer;
@@ -34,6 +36,10 @@ class _VoiceRecorderState extends State<VoiceRecorder> {
   @override
   void initState() {
     super.initState();
+    _pulseController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1000),
+    )..repeat(reverse: true);
     _checkPermissions();
   }
 
@@ -175,6 +181,7 @@ class _VoiceRecorderState extends State<VoiceRecorder> {
   void dispose() {
     _timer?.cancel();
     _audioRecorder.dispose();
+    _pulseController.dispose();
     super.dispose();
   }
 
@@ -196,13 +203,25 @@ class _VoiceRecorderState extends State<VoiceRecorder> {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Text(
-            _isRecording ? 'Recording...' : 'Voice Message',
-            style: const TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
+          _isRecording
+              ? FadeTransition(
+                  opacity: _pulseController,
+                  child: const Text(
+                    'Recording...',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.red,
+                    ),
+                  ),
+                )
+              : const Text(
+                  'Voice Message',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
           const SizedBox(height: 16),
           if (_isRecording) ...[
             Text(
