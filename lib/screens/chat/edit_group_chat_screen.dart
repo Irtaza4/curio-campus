@@ -518,20 +518,30 @@ class _EditGroupChatScreenState extends State<EditGroupChatScreen> {
                 borderRadius: BorderRadius.circular(8),
               ),
               child: ListTile(
-                leading: CircleAvatar(
-                  backgroundColor: AppTheme.primaryColor,
-                  backgroundImage: user.profileImageBase64 != null
-                      ? MemoryImage(base64Decode(user.profileImageBase64!))
-                      : null,
-                  child: user.profileImageBase64 == null
-                      ? Text(
+                leading: user.profileImageBase64 != null
+                    ? ImageUtils.loadBase64Image(
+                        base64String: user.profileImageBase64,
+                        width: 40,
+                        height: 40,
+                        placeholder: CircleAvatar(
+                          backgroundColor: AppTheme.primaryColor,
+                          child: Text(
+                            user.name.isNotEmpty
+                                ? user.name[0].toUpperCase()
+                                : '?',
+                            style: const TextStyle(color: Colors.white),
+                          ),
+                        ),
+                      )
+                    : CircleAvatar(
+                        backgroundColor: AppTheme.primaryColor,
+                        child: Text(
                           user.name.isNotEmpty
                               ? user.name[0].toUpperCase()
                               : '?',
                           style: const TextStyle(color: Colors.white),
-                        )
-                      : null,
-                ),
+                        ),
+                      ),
                 title: Row(
                   children: [
                     Text(
