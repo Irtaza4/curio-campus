@@ -136,6 +136,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         controller: _emailController,
                         hintText: 'Your Email',
                         keyboardType: TextInputType.emailAddress,
+                        textInputAction: TextInputAction.next,
                         validator: (value) {
                           if (value == null || value.isEmpty) {
                             return 'Please enter your email';
@@ -163,6 +164,8 @@ class _LoginScreenState extends State<LoginScreen> {
                         controller: _passwordController,
                         hintText: '******',
                         obscureText: !_isPasswordVisible,
+                        textInputAction: TextInputAction.done,
+                        onFieldSubmitted: (_) => _login(),
                         suffixIcon: IconButton(
                           icon: Icon(
                             _isPasswordVisible
