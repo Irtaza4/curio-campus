@@ -50,11 +50,20 @@ class MoreOptionsSheet extends StatelessWidget {
               padding: const EdgeInsets.symmetric(horizontal: 16),
               child: Row(
                 children: [
+                  Icon(
+                    Icons.bolt,
+                    color: isDarkMode
+                        ? AppTheme.primaryColor
+                        : AppTheme.primaryColor,
+                    size: 20,
+                  ),
+                  const SizedBox(width: 8),
                   Text(
-                    'Actions',
+                    'Quick Actions',
                     style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
+                      letterSpacing: -0.5,
                       color: isDarkMode
                           ? AppTheme.darkTextColor
                           : AppTheme.textColor,
@@ -191,9 +200,13 @@ class MoreOptionsSheet extends StatelessWidget {
                     actions: [
                       TextButton(
                         onPressed: () => Navigator.pop(context, false),
+                        style: TextButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(horizontal: 16),
+                        ),
                         child: Text(
                           'Cancel',
                           style: TextStyle(
+                            fontWeight: FontWeight.w600,
                             color: isDarkMode
                                 ? Colors.white70
                                 : AppTheme.darkGrayColor,
@@ -207,12 +220,15 @@ class MoreOptionsSheet extends StatelessWidget {
                           foregroundColor: Colors.white,
                           elevation: 0,
                           padding: const EdgeInsets.symmetric(
-                              horizontal: 20, vertical: 10),
+                              horizontal: 24, vertical: 12),
                           shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
+                            borderRadius: BorderRadius.circular(12),
                           ),
                         ),
-                        child: const Text('Logout'),
+                        child: const Text(
+                          'Logout',
+                          style: TextStyle(fontWeight: FontWeight.bold),
+                        ),
                       ),
                     ],
                   ),
