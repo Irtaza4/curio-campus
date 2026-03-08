@@ -161,8 +161,12 @@ class NotificationProvider with ChangeNotifier {
       _unreadCount++;
 
       notifyListeners();
+      _isLoading = false;
+      notifyListeners();
     } catch (e) {
+      _isLoading = false;
       _errorMessage = e.toString();
+      debugPrint('Error adding notification: $e');
       notifyListeners();
     }
   }
@@ -170,6 +174,10 @@ class NotificationProvider with ChangeNotifier {
   // Mark a notification as read
   Future<void> markAsRead(String notificationId) async {
     if (_auth.currentUser == null) return;
+
+    _isLoading = true;
+    _errorMessage = null;
+    notifyListeners();
 
     try {
       final userId = _auth.currentUser!.uid;
@@ -192,8 +200,10 @@ class NotificationProvider with ChangeNotifier {
         }
       }
 
+      _isLoading = false;
       notifyListeners();
     } catch (e) {
+      _isLoading = false;
       _errorMessage = e.toString();
       notifyListeners();
     }
@@ -479,24 +489,40 @@ class NotificationProvider with ChangeNotifier {
   Future<void> acceptChatRequest(String notificationId) async {
     if (_auth.currentUser == null) return;
 
+    _isLoading = true;
+    _errorMessage = null;
+    notifyListeners();
+
     try {
       final userId = _auth.currentUser!.uid;
 
       // Find the notification
       final index = _notifications.indexWhere((n) => n.id == notificationId);
-      if (index == -1) return;
+      if (index == -1) {
+        _isLoading = false;
+        notifyListeners();
+        return;
+      }
 
       final notification = _notifications[index];
       final additionalData = notification.additionalData;
-      if (additionalData == null) return;
+      if (additionalData == null) {
+        _isLoading = false;
+        notifyListeners();
+        return;
+      }
 
       final senderId = additionalData['senderId'] as String?;
       final senderName = additionalData['senderName'] as String?;
       final chatId = additionalData['chatId'] as String?;
 
-      if (senderId == null || senderName == null || chatId == null) return;
+      if (senderId == null || senderName == null || chatId == null) {
+        _isLoading = false;
+        notifyListeners();
+        return;
+      }
 
-      // Mark the notification as read
+      // Mark the notification as read - this will notify listeners too
       await markAsRead(notificationId);
 
       // Update the notification to show it was accepted
@@ -518,8 +544,10 @@ class NotificationProvider with ChangeNotifier {
         },
       );
 
+      _isLoading = false;
       notifyListeners();
     } catch (e) {
+      _isLoading = false;
       _errorMessage = e.toString();
       notifyListeners();
     }
@@ -529,14 +557,26 @@ class NotificationProvider with ChangeNotifier {
   Future<void> rejectChatRequest(String notificationId) async {
     if (_auth.currentUser == null) return;
 
+    _isLoading = true;
+    _errorMessage = null;
+    notifyListeners();
+
     try {
       // Find the notification
       final index = _notifications.indexWhere((n) => n.id == notificationId);
-      if (index == -1) return;
+      if (index == -1) {
+        _isLoading = false;
+        notifyListeners();
+        return;
+      }
 
       // Delete the notification
       await deleteNotification(notificationId);
+
+      _isLoading = false;
+      notifyListeners();
     } catch (e) {
+      _isLoading = false;
       _errorMessage = e.toString();
       notifyListeners();
     }
