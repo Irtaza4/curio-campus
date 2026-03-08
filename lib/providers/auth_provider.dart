@@ -153,6 +153,7 @@ class AuthProvider with ChangeNotifier {
 
         await _saveUserToPrefs();
         await _updateFCMToken();
+        await _subscribeToEmergencyAlerts();
 
         final prefs = await SharedPreferences.getInstance();
         prefs.setString(Constants.userIdKey, _firebaseUser!.uid);
@@ -203,7 +204,7 @@ class AuthProvider with ChangeNotifier {
         if (_userModel != null) {
           prefs.setString(Constants.userNameKey, _userModel!.name);
         }
-        await FirebaseMessaging.instance.subscribeToTopic('emergency_alerts');
+        await _subscribeToEmergencyAlerts();
 
         _isLoading = false;
         notifyListeners();
@@ -225,16 +226,22 @@ class AuthProvider with ChangeNotifier {
 
   Future<void> logout() async {
     _isLoading = true;
+    _errorMessage = null;
     notifyListeners();
 
     try {
       if (_firebaseUser != null) {
-        await _firestore
-            .collection(Constants.usersCollection)
-            .doc(_firebaseUser!.uid)
-            .update({
-          'fcmToken': null,
-        });
+        try {
+          await _firestore
+              .collection(Constants.usersCollection)
+              .doc(_firebaseUser!.uid)
+              .update({
+            'fcmToken': null,
+          });
+        } catch (e) {
+          debugPrint('Error updating FCM token during logout: $e');
+          // Continue with logout even if token update fails
+        }
       }
 
       await _auth.signOut();
@@ -242,16 +249,25 @@ class AuthProvider with ChangeNotifier {
       _userModel = null;
 
       final prefs = await SharedPreferences.getInstance();
-      prefs.remove(Constants.userIdKey);
-      prefs.remove(Constants.userEmailKey);
-      prefs.remove(Constants.userNameKey);
+      await prefs.remove(Constants.userIdKey);
+      await prefs.remove(Constants.userEmailKey);
+      await prefs.remove(Constants.userNameKey);
 
       _isLoading = false;
       notifyListeners();
     } catch (e) {
       _isLoading = false;
-      _errorMessage = e.toString();
+      _errorMessage = 'Logout failed: ${e.toString()}';
+      debugPrint(_errorMessage);
       notifyListeners();
+    }
+  }
+
+  Future<void> _subscribeToEmergencyAlerts() async {
+    try {
+      await FirebaseMessaging.instance.subscribeToTopic('emergency_alerts');
+    } catch (e) {
+      debugPrint('Error subscribing to emergency alerts: $e');
     }
   }
 
@@ -273,7 +289,8 @@ class AuthProvider with ChangeNotifier {
       if (name != null) updatedData['name'] = name;
       if (majorSkills != null) updatedData['majorSkills'] = majorSkills;
       if (minorSkills != null) updatedData['minorSkills'] = minorSkills;
-      if (profileImageBase64 != null) updatedData['profileImageBase64'] = profileImageBase64;
+      if (profileImageBase64 != null)
+        updatedData['profileImageBase64'] = profileImageBase64;
 
       await _firestore
           .collection(Constants.usersCollection)
