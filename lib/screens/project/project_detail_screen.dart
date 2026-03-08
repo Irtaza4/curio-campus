@@ -639,11 +639,21 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(4),
             ),
-            onChanged: (value) {
-              _updateTaskStatus(
-                task.id,
-                value! ? TaskStatus.completed : TaskStatus.pending,
-              );
+            onChanged: (value) async {
+              if (value == true) {
+                final projectProvider =
+                    Provider.of<ProjectProvider>(context, listen: false);
+                await projectProvider.completeTask(
+                  projectId: widget.projectId,
+                  taskId: task.id,
+                  completedById: projectProvider.currentUserId ?? '',
+                );
+              } else {
+                await _updateTaskStatus(
+                  task.id,
+                  TaskStatus.pending,
+                );
+              }
             },
           ),
           const SizedBox(width: 8),
