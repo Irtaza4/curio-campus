@@ -288,7 +288,9 @@ class EmergencyProvider with ChangeNotifier {
     required List<String> requiredSkills,
     required DateTime deadline,
   }) async {
-    if (_auth.currentUser == null) return null;
+    _isLoading = true;
+    _errorMessage = null;
+    notifyListeners();
 
     try {
       final userId = _auth.currentUser!.uid;
@@ -297,7 +299,12 @@ class EmergencyProvider with ChangeNotifier {
           .doc(userId)
           .get();
 
-      if (!userDoc.exists) return null;
+      if (!userDoc.exists) {
+        _isLoading = false;
+        _errorMessage = 'User profile not found';
+        notifyListeners();
+        return null;
+      }
 
       final userData = userDoc.data() as Map<String, dynamic>;
       final userName = userData['name'] as String;
@@ -326,8 +333,8 @@ class EmergencyProvider with ChangeNotifier {
           .set(request.toJson());
 
       // Add to local list
-      _myEmergencyRequests.add(request);
-      _emergencyRequests.add(request);
+      _myEmergencyRequests.insert(0, request);
+      _emergencyRequests.insert(0, request);
 
       // Find users with matching skills and send notifications
       final usersSnapshot =
@@ -380,9 +387,11 @@ class EmergencyProvider with ChangeNotifier {
         requesterName: userName,
       );
 
+      _isLoading = false;
       notifyListeners();
       return requestId;
     } catch (e) {
+      _isLoading = false;
       _errorMessage = e.toString();
       notifyListeners();
       return null;
@@ -490,6 +499,10 @@ class EmergencyProvider with ChangeNotifier {
   Future<bool> resolveEmergencyRequest(String requestId) async {
     if (_auth.currentUser == null) return false;
 
+    _isLoading = true;
+    _errorMessage = null;
+    notifyListeners();
+
     try {
       final userId = _auth.currentUser!.uid;
       final now = DateTime.now();
@@ -536,9 +549,11 @@ class EmergencyProvider with ChangeNotifier {
         });
       }
 
+      _isLoading = false;
       notifyListeners();
       return true;
     } catch (e) {
+      _isLoading = false;
       _errorMessage = e.toString();
       notifyListeners();
       return false;
@@ -571,6 +586,10 @@ class EmergencyProvider with ChangeNotifier {
   Future<bool> deleteEmergencyRequest(String requestId) async {
     if (_auth.currentUser == null) return false;
 
+    _isLoading = true;
+    _errorMessage = null;
+    notifyListeners();
+
     try {
       final userId = _auth.currentUser!.uid;
 
@@ -581,6 +600,7 @@ class EmergencyProvider with ChangeNotifier {
           .get();
 
       if (!requestDoc.exists) {
+        _isLoading = false;
         _errorMessage = 'Request not found';
         notifyListeners();
         return false;
@@ -588,6 +608,7 @@ class EmergencyProvider with ChangeNotifier {
 
       final requestData = requestDoc.data() as Map<String, dynamic>;
       if (requestData['requesterId'] != userId) {
+        _isLoading = false;
         _errorMessage = 'You are not authorized to delete this request';
         notifyListeners();
         return false;
@@ -604,9 +625,11 @@ class EmergencyProvider with ChangeNotifier {
       _emergencyRequests.removeWhere((r) => r.id == requestId);
       _ignoredRequests.removeWhere((r) => r.id == requestId);
 
+      _isLoading = false;
       notifyListeners();
       return true;
     } catch (e) {
+      _isLoading = false;
       _errorMessage = e.toString();
       notifyListeners();
       return false;
