@@ -401,6 +401,10 @@ class ProjectProvider with ChangeNotifier {
     required String taskId,
     required TaskStatus status,
   }) async {
+    _isLoading = true;
+    _errorMessage = null;
+    notifyListeners();
+
     try {
       await _firestore
           .collection(Constants.projectsCollection)
@@ -408,6 +412,32 @@ class ProjectProvider with ChangeNotifier {
           .collection(Constants.tasksCollection)
           .doc(taskId)
           .update({'status': status.toString().split('.').last});
+
+      // Update in memory projects list
+      final pIndex = _projects.indexWhere((p) => p.id == projectId);
+      if (pIndex != -1) {
+        final tasks = List<TaskModel>.from(_projects[pIndex].tasks);
+        final tIndex = tasks.indexWhere((t) => t.id == taskId);
+        if (tIndex != -1) {
+          tasks[tIndex] = tasks[tIndex].copyWith(status: status);
+
+          final completedTasks =
+              tasks.where((t) => t.status == TaskStatus.completed).length;
+          final progress =
+              tasks.isEmpty ? 0 : (completedTasks / tasks.length * 100).round();
+
+          _projects[pIndex] = _projects[pIndex].copyWith(
+            tasks: tasks,
+            progress: progress,
+          );
+
+          // Update project progress in Firestore
+          await _firestore
+              .collection(Constants.projectsCollection)
+              .doc(projectId)
+              .update({'progress': progress});
+        }
+      }
 
       // Update current project if it's the same
       if (_currentProject?.id == projectId) {
@@ -427,18 +457,14 @@ class ProjectProvider with ChangeNotifier {
             tasks: tasks,
             progress: progress,
           );
-
-          // Update project progress in Firestore
-          await _firestore
-              .collection(Constants.projectsCollection)
-              .doc(projectId)
-              .update({'progress': progress});
         }
       }
 
+      _isLoading = false;
       notifyListeners();
       return true;
     } catch (e) {
+      _isLoading = false;
       _errorMessage = e.toString();
       notifyListeners();
       return false;
@@ -453,16 +479,30 @@ class ProjectProvider with ChangeNotifier {
   }) async {
     if (_auth.currentUser == null) return false;
 
+    _isLoading = true;
+    _errorMessage = null;
+    notifyListeners();
+
     try {
       // Find the project
       final projectIndex = _projects.indexWhere((p) => p.id == projectId);
-      if (projectIndex == -1) return false;
+      if (projectIndex == -1) {
+        _isLoading = false;
+        _errorMessage = 'Project not found';
+        notifyListeners();
+        return false;
+      }
 
       final project = _projects[projectIndex];
 
       // Find the task
       final taskIndex = project.tasks.indexWhere((t) => t.id == taskId);
-      if (taskIndex == -1) return false;
+      if (taskIndex == -1) {
+        _isLoading = false;
+        _errorMessage = 'Task not found';
+        notifyListeners();
+        return false;
+      }
 
       final task = project.tasks[taskIndex];
 
@@ -491,26 +531,32 @@ class ProjectProvider with ChangeNotifier {
       updatedTasks[taskIndex] = updatedTask;
 
       // Calculate new progress
-      final completedTasks = updatedTasks.where((t) => t.isCompleted).length;
+      final completedTasksCount =
+          updatedTasks.where((t) => t.isCompleted).length;
       final totalTasks = updatedTasks.length;
-      final progress =
-          totalTasks > 0 ? (completedTasks / totalTasks * 100).round() : 0;
+      final progressValue =
+          totalTasks > 0 ? (completedTasksCount / totalTasks * 100).round() : 0;
 
       // Update the project in Firestore
       await _firestore
           .collection(Constants.projectsCollection)
           .doc(projectId)
           .update({
-        'progress': progress,
+        'progress': progressValue,
       });
 
       // Update the project in local state
       final updatedProject = project.copyWith(
         tasks: updatedTasks,
-        progress: progress,
+        progress: progressValue,
       );
 
       _projects[projectIndex] = updatedProject;
+
+      // Update current project if it fits
+      if (_currentProject?.id == projectId) {
+        _currentProject = updatedProject;
+      }
 
       // Get the user who completed the task once
       final completer = await fetchUserById(completedById);
@@ -518,10 +564,8 @@ class ProjectProvider with ChangeNotifier {
 
       // Send a notification to all team members except the one who completed the task
       for (final memberId in project.teamMembers) {
-        if (memberId != completedById) {
-          // Create a notification
-          if (navigatorKey.currentContext != null &&
-              navigatorKey.currentContext!.mounted) {
+        if (memberId != completedById && navigatorKey.currentContext != null) {
+          try {
             final notificationProvider = Provider.of<NotificationProvider>(
               navigatorKey.currentContext!,
               listen: false,
@@ -533,13 +577,17 @@ class ProjectProvider with ChangeNotifier {
               taskTitle: task.title,
               completedBy: completerName,
             );
+          } catch (e) {
+            debugPrint('Error sending task completion notification: $e');
           }
         }
       }
 
+      _isLoading = false;
       notifyListeners();
       return true;
     } catch (e) {
+      _isLoading = false;
       _errorMessage = e.toString();
       notifyListeners();
       return false;
