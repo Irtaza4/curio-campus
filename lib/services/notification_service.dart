@@ -350,34 +350,43 @@ class NotificationService {
     FirebaseMessaging.onMessageOpenedApp.listen(_handleNotificationTap);
 
     // Subscribe to topics based on user skills
-    final prefs = await SharedPreferences.getInstance();
-    final userId = prefs.getString(Constants.userIdKey);
-    if (userId != null) {
-      final userDoc = await FirebaseFirestore.instance
-          .collection(Constants.usersCollection)
-          .doc(userId)
-          .get();
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final userId = prefs.getString(Constants.userIdKey);
+      if (userId != null) {
+        final userDoc = await FirebaseFirestore.instance
+            .collection(Constants.usersCollection)
+            .doc(userId)
+            .get();
 
-      if (userDoc.exists) {
-        final userData = userDoc.data() as Map<String, dynamic>;
-        final majorSkills = List<String>.from(userData['majorSkills'] ?? []);
-        final minorSkills = List<String>.from(userData['minorSkills'] ?? []);
+        if (userDoc.exists) {
+          final userData = userDoc.data() as Map<String, dynamic>;
+          final majorSkills = List<String>.from(userData['majorSkills'] ?? []);
+          final minorSkills = List<String>.from(userData['minorSkills'] ?? []);
 
-        // Subscribe to topics for each skill
-        for (final skill in [...majorSkills, ...minorSkills]) {
-          final formattedSkill = _formatTopicName(skill);
-          await FirebaseMessaging.instance
-              .subscribeToTopic('skill_$formattedSkill');
+          // Subscribe to topics for each skill
+          for (final skill in [...majorSkills, ...minorSkills]) {
+            final formattedSkill = _formatTopicName(skill);
+            try {
+              await FirebaseMessaging.instance
+                  .subscribeToTopic('skill_$formattedSkill');
 
-          // Save subscribed topics for later unsubscribing
-          final subscribedTopics =
-              prefs.getStringList('subscribed_topics') ?? [];
-          if (!subscribedTopics.contains('skill_$formattedSkill')) {
-            subscribedTopics.add('skill_$formattedSkill');
-            await prefs.setStringList('subscribed_topics', subscribedTopics);
+              // Save subscribed topics for later unsubscribing
+              final subscribedTopics =
+                  prefs.getStringList('subscribed_topics') ?? [];
+              if (!subscribedTopics.contains('skill_$formattedSkill')) {
+                subscribedTopics.add('skill_$formattedSkill');
+                await prefs.setStringList(
+                    'subscribed_topics', subscribedTopics);
+              }
+            } catch (e) {
+              debugPrint('Error subscribing to skill topic $skill: $e');
+            }
           }
         }
       }
+    } catch (e) {
+      debugPrint('Error in setupBackgroundNotifications skills loop: $e');
     }
 
     // Register for background fetch to keep notifications working
@@ -386,13 +395,18 @@ class NotificationService {
 
 // Add this method to register background tasks
   Future<void> _registerBackgroundTasks() async {
-    // This would typically use a package like workmanager or background_fetch
-    // For this example, we'll just set up periodic FCM token refresh
-
-    // Schedule periodic token refresh
-    Timer.periodic(const Duration(hours: 12), (timer) async {
-      await updateFCMToken();
-    });
+    try {
+      // Periodic background task to refresh FCM token every 12 hours
+      Timer.periodic(const Duration(hours: 12), (timer) async {
+        try {
+          await updateFCMToken();
+        } catch (e) {
+          debugPrint('Background FCM token update failed: $e');
+        }
+      });
+    } catch (e) {
+      debugPrint('Error registering background tasks: $e');
+    }
   }
 
   // Create notification channels for Android

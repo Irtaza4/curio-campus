@@ -7,7 +7,6 @@ import 'package:curio_campus/screens/chat/chat_screen.dart';
 import 'package:curio_campus/screens/emergency/emergency_request_detail_screen.dart';
 import 'package:curio_campus/screens/project/project_detail_screen.dart';
 import 'package:curio_campus/providers/chat_provider.dart';
-import 'package:curio_campus/models/chat_model.dart';
 
 import '../services/call_service.dart';
 import 'package:curio_campus/utils/app_theme.dart';
@@ -267,27 +266,35 @@ class NotificationDrawer extends StatelessWidget {
         if (notification.relatedId != null) {
           final chatProvider =
               Provider.of<ChatProvider>(context, listen: false);
-          final chat = chatProvider.chats.firstWhere(
+
+          // Try to find the chat in the provider's list
+          final chatIndex = chatProvider.chats.indexWhere(
             (chat) => chat.id == notification.relatedId,
-            orElse: () => ChatModel(
-              id: notification.relatedId!,
-              name: notification.title,
-              participants: [],
-              type: ChatType.individual,
-              createdAt: DateTime.now(),
-              lastMessageAt: DateTime.now(),
-            ),
           );
 
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (_) => ChatScreen(
-                chatId: chat.id,
-                chatName: chat.name,
+          if (chatIndex != -1) {
+            final chat = chatProvider.chats[chatIndex];
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => ChatScreen(
+                  chatId: chat.id,
+                  chatName: chat.name,
+                ),
               ),
-            ),
-          );
+            );
+          } else {
+            // If not found, navigate with info from notification
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => ChatScreen(
+                  chatId: notification.relatedId!,
+                  chatName: notification.title,
+                ),
+              ),
+            );
+          }
         }
         break;
 
