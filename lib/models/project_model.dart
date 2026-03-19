@@ -93,4 +93,9 @@ class ProjectModel {
       requiredSkills: requiredSkills ?? this.requiredSkills,
     );
   }
+
+  @override
+  String toString() {
+    return 'ProjectModel(id: $id, name: $name, createdBy: $createdBy)';
+  }
 }
