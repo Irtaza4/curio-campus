@@ -94,4 +94,9 @@ class UserModel {
       lastActive: lastActive ?? this.lastActive,
     );
   }
+
+  @override
+  String toString() {
+    return 'UserModel(id: $id, name: $name, email: $email)';
+  }
 }
