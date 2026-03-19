@@ -65,4 +65,9 @@ class ChatModel {
       'creatorId': creatorId, // Added to toJson
     };
   }
+
+  @override
+  String toString() {
+    return 'ChatModel(id: $id, name: $name, type: $type)';
+  }
 }
