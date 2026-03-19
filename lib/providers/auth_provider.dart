@@ -289,8 +289,9 @@ class AuthProvider with ChangeNotifier {
       if (name != null) updatedData['name'] = name;
       if (majorSkills != null) updatedData['majorSkills'] = majorSkills;
       if (minorSkills != null) updatedData['minorSkills'] = minorSkills;
-      if (profileImageBase64 != null)
+      if (profileImageBase64 != null) {
         updatedData['profileImageBase64'] = profileImageBase64;
+      }
 
       await _firestore
           .collection(Constants.usersCollection)
