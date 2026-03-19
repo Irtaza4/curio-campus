@@ -108,4 +108,9 @@ class EmergencyRequestModel {
       responses: responses ?? this.responses,
     );
   }
+
+  @override
+  String toString() {
+    return 'EmergencyRequestModel(id: $id, title: $title, requesterId: $requesterId)';
+  }
 }
