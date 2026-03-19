@@ -145,4 +145,9 @@ class NotificationModel {
       additionalData: additionalData ?? this.additionalData,
     );
   }
+
+  @override
+  String toString() {
+    return 'NotificationModel(id: $id, title: $title, type: $type)';
+  }
 }
