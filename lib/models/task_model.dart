@@ -124,4 +124,9 @@ class TaskModel {
         return TaskPriority.medium;
     }
   }
+
+  @override
+  String toString() {
+    return 'TaskModel(id: $id, title: $title, status: $status)';
+  }
 }
