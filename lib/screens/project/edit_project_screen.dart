@@ -383,7 +383,7 @@ class _EditProjectScreenState extends State<EditProjectScreen> {
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : SingleChildScrollView(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.all(AppTheme.defaultPadding),
               child: Form(
                 key: _formKey,
                 child: Column(
@@ -434,10 +434,11 @@ class _EditProjectScreenState extends State<EditProjectScreen> {
                     const SizedBox(height: 8),
                     InkWell(
                       onTap: _selectRequiredSkills,
+                      borderRadius: BorderRadius.circular(AppTheme.defaultBorderRadius),
                       child: Container(
                         padding: const EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 12,
+                          horizontal: AppTheme.defaultPadding,
+                          vertical: AppTheme.defaultPadding / 1.3,
                         ),
                         decoration: BoxDecoration(
                           border: Border.all(
@@ -445,7 +446,7 @@ class _EditProjectScreenState extends State<EditProjectScreen> {
                                 ? AppTheme.darkMediumGrayColor
                                 : AppTheme.mediumGrayColor,
                           ),
-                          borderRadius: BorderRadius.circular(8),
+                          borderRadius: BorderRadius.circular(AppTheme.defaultBorderRadius),
                           color: isDarkMode
                               ? AppTheme.darkInputBackgroundColor
                               : Colors.transparent,
@@ -492,6 +493,9 @@ class _EditProjectScreenState extends State<EditProjectScreen> {
                             backgroundColor: isDarkMode
                                 ? AppTheme.darkLightGrayColor
                                 : AppTheme.lightGrayColor,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(AppTheme.defaultBorderRadius / 1.5),
+                            ),
                             deleteIcon: const Icon(Icons.close, size: 18),
                             onDeleted: () {
                               setState(() {
@@ -519,10 +523,11 @@ class _EditProjectScreenState extends State<EditProjectScreen> {
                     const SizedBox(height: 8),
                     InkWell(
                       onTap: () => _selectDate(context),
+                      borderRadius: BorderRadius.circular(AppTheme.defaultBorderRadius),
                       child: Container(
                         padding: const EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 12,
+                          horizontal: AppTheme.defaultPadding,
+                          vertical: AppTheme.defaultPadding / 1.3,
                         ),
                         decoration: BoxDecoration(
                           border: Border.all(
@@ -530,7 +535,7 @@ class _EditProjectScreenState extends State<EditProjectScreen> {
                                 ? AppTheme.darkMediumGrayColor
                                 : AppTheme.mediumGrayColor,
                           ),
-                          borderRadius: BorderRadius.circular(8),
+                          borderRadius: BorderRadius.circular(AppTheme.defaultBorderRadius),
                           color: isDarkMode
                               ? AppTheme.darkInputBackgroundColor
                               : Colors.transparent,
@@ -573,10 +578,11 @@ class _EditProjectScreenState extends State<EditProjectScreen> {
                     const SizedBox(height: 8),
                     InkWell(
                       onTap: _selectTeamMembers,
+                      borderRadius: BorderRadius.circular(AppTheme.defaultBorderRadius),
                       child: Container(
                         padding: const EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 12,
+                          horizontal: AppTheme.defaultPadding,
+                          vertical: AppTheme.defaultPadding / 1.3,
                         ),
                         decoration: BoxDecoration(
                           border: Border.all(
@@ -584,7 +590,7 @@ class _EditProjectScreenState extends State<EditProjectScreen> {
                                 ? AppTheme.darkMediumGrayColor
                                 : AppTheme.mediumGrayColor,
                           ),
-                          borderRadius: BorderRadius.circular(8),
+                          borderRadius: BorderRadius.circular(AppTheme.defaultBorderRadius),
                           color: isDarkMode
                               ? AppTheme.darkInputBackgroundColor
                               : Colors.transparent,
