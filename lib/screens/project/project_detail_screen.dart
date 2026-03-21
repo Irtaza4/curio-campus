@@ -291,7 +291,7 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
               : RefreshIndicator(
                   onRefresh: _fetchProjectDetails,
                   child: SingleChildScrollView(
-                    padding: const EdgeInsets.all(16),
+                    padding: const EdgeInsets.all(AppTheme.defaultPadding),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
