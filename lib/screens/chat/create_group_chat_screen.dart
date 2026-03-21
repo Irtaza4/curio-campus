@@ -154,7 +154,7 @@ class _CreateGroupChatScreenState extends State<CreateGroupChatScreen> {
         title: const Text('Create Group Chat'),
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(AppTheme.defaultPadding),
         child: Form(
           key: _formKey,
           child: Column(
@@ -191,17 +191,17 @@ class _CreateGroupChatScreenState extends State<CreateGroupChatScreen> {
                                           : AppTheme.darkGrayColor,
                                     ),
                             ),
-                      const Positioned(
+                      Positioned(
                         right: 0,
                         bottom: 0,
                         child: DecoratedBox(
-                          decoration: BoxDecoration(
+                          decoration: const BoxDecoration(
                             color: AppTheme.primaryColor,
                             shape: BoxShape.circle,
                           ),
                           child: Padding(
-                            padding: EdgeInsets.all(4),
-                            child: Icon(
+                            padding: const EdgeInsets.all(4),
+                            child: const Icon(
                               Icons.camera_alt,
                               color: Colors.white,
                               size: 20,
@@ -284,12 +284,12 @@ class _CreateGroupChatScreenState extends State<CreateGroupChatScreen> {
             if (_selectedParticipants.isNotEmpty) ...[
               Container(
                 width: double.infinity,
-                padding: const EdgeInsets.all(16),
+                padding: const EdgeInsets.all(AppTheme.defaultPadding),
                 decoration: BoxDecoration(
                   color: isDarkMode
                       ? AppTheme.darkLightGrayColor
                       : AppTheme.lightGrayColor,
-                  borderRadius: BorderRadius.circular(8),
+                  borderRadius: BorderRadius.circular(AppTheme.defaultBorderRadius),
                 ),
                 child: Wrap(
                   spacing: 8,
@@ -312,6 +312,9 @@ class _CreateGroupChatScreenState extends State<CreateGroupChatScreen> {
                       backgroundColor:
                           AppTheme.primaryColor.withValues(alpha: 0.1),
                       deleteIconColor: AppTheme.primaryColor,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(AppTheme.defaultBorderRadius / 1.5),
+                      ),
                       onDeleted: () {
                         setState(() {
                           _selectedParticipants.remove(userId);
@@ -329,16 +332,16 @@ class _CreateGroupChatScreenState extends State<CreateGroupChatScreen> {
               onTap: () {
                 _showAddParticipantsDialog(users);
               },
-              borderRadius: BorderRadius.circular(8),
+              borderRadius: BorderRadius.circular(AppTheme.defaultBorderRadius),
               child: Container(
                 width: double.infinity,
                 padding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 16,
+                  horizontal: AppTheme.defaultPadding,
+                  vertical: AppTheme.defaultPadding,
                 ),
                 decoration: BoxDecoration(
                   border: Border.all(color: AppTheme.primaryColor),
-                  borderRadius: BorderRadius.circular(8),
+                  borderRadius: BorderRadius.circular(AppTheme.defaultBorderRadius),
                 ),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
