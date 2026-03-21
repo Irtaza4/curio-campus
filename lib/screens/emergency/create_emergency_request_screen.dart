@@ -143,7 +143,7 @@ class _CreateEmergencyRequestScreenState
         title: const Text('Create Emergency Request'),
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(AppTheme.defaultPadding),
         child: Form(
           key: _formKey,
           child: Column(
@@ -205,18 +205,18 @@ class _CreateEmergencyRequestScreenState
               const SizedBox(height: 8),
               InkWell(
                   onTap: () => _selectDateTime(context),
-                  borderRadius: BorderRadius.circular(8),
+                  borderRadius: BorderRadius.circular(AppTheme.defaultBorderRadius),
                   child: Container(
                     width: double.infinity,
                     padding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 16,
+                      horizontal: AppTheme.defaultPadding,
+                      vertical: AppTheme.defaultPadding,
                     ),
                     decoration: BoxDecoration(
                       color: isDark
                           ? AppTheme.darkInputBackgroundColor
                           : AppTheme.lightGrayColor, // background
-                      borderRadius: BorderRadius.circular(8),
+                      borderRadius: BorderRadius.circular(AppTheme.defaultBorderRadius),
                       border: Border.all(
                         color: isDark
                             ? AppTheme.darkMediumGrayColor
