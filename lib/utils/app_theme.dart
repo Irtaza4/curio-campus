@@ -12,6 +12,11 @@ class AppTheme {
   static const Color errorColor = Color(0xFFE74C3C);
   static const Color successColor = Color(0xFF2ECC71);
 
+  // Constants
+  static const double defaultPadding = 16.0;
+  static const double defaultBorderRadius = 12.0;
+  static const double cardElevation = 4.0;
+
   // Dark theme colors
   static const Color darkPrimaryColor =
       Color(0xFF00A0B0); // Keep the same for brand consistency
