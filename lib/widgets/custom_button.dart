@@ -23,8 +23,8 @@ class CustomButton extends StatelessWidget {
     this.textColor,
     this.width,
     this.height = 50,
-    this.borderRadius = 8,
-    this.padding = const EdgeInsets.symmetric(horizontal: 16),
+    this.borderRadius = AppTheme.defaultBorderRadius,
+    this.padding = const EdgeInsets.symmetric(horizontal: AppTheme.defaultPadding),
   });
 
   @override
