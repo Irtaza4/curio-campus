@@ -188,7 +188,7 @@ class _MessagesScreenState extends State<MessagesScreen> {
     final isDarkMode = theme.brightness == Brightness.dark;
 
     return ListView.separated(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(AppTheme.defaultPadding),
       itemCount: chats.length,
       separatorBuilder: (context, index) => Divider(
         color: isDarkMode
