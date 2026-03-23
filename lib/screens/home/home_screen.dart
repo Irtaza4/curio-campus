@@ -161,7 +161,7 @@ class _HomeScreenState extends State<HomeScreen> {
       isScrollControlled: true,
       backgroundColor: isDarkMode ? AppTheme.darkSurfaceColor : Colors.white,
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(AppTheme.defaultBorderRadius * 2)),
       ),
       builder: (context) {
         return const NotificationDrawer(title: 'Notifications');
