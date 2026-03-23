@@ -166,7 +166,7 @@ class _ProjectsScreenState extends State<ProjectsScreen> {
               : RefreshIndicator(
                   onRefresh: _fetchProjects,
                   child: ListView(
-                    padding: const EdgeInsets.all(16),
+                    padding: const EdgeInsets.all(AppTheme.defaultPadding),
                     children: [
                       if (activeProjects.isNotEmpty) ...[
                         const Text(
@@ -207,17 +207,17 @@ class _ProjectsScreenState extends State<ProjectsScreen> {
 
   Widget _buildProjectCard(ProjectModel project) {
     return Card(
-      margin: const EdgeInsets.only(bottom: 16),
+      margin: const EdgeInsets.only(bottom: AppTheme.defaultPadding),
       elevation: 2,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(AppTheme.defaultBorderRadius),
       ),
       child: InkWell(
         onTap: () => _navigateToProjectDetail(project.id),
         onLongPress: () => _showDeleteProjectDialog(project),
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(AppTheme.defaultBorderRadius),
         child: Padding(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.all(AppTheme.defaultPadding),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -327,7 +327,7 @@ class _ProjectsScreenState extends State<ProjectsScreen> {
                       : AppTheme.primaryColor,
                 ),
                 minHeight: 8,
-                borderRadius: BorderRadius.circular(4),
+                borderRadius: BorderRadius.circular(AppTheme.defaultBorderRadius / 2),
               ),
               const SizedBox(height: 4),
               Align(
