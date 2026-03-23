@@ -37,7 +37,7 @@ class NotificationDrawer extends StatelessWidget {
         return Column(
           children: [
             Padding(
-              padding: const EdgeInsets.all(16.0),
+              padding: const EdgeInsets.all(AppTheme.defaultPadding),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
@@ -129,7 +129,7 @@ class NotificationDrawer extends StatelessWidget {
       background: Container(
         color: AppTheme.errorColor,
         alignment: Alignment.centerRight,
-        padding: const EdgeInsets.only(right: 16),
+        padding: const EdgeInsets.only(right: AppTheme.defaultPadding),
         child: const Icon(Icons.delete, color: Colors.white),
       ),
       direction: DismissDirection.endToStart,
