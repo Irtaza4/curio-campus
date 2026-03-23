@@ -202,7 +202,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
                     // Profile sections
                     Padding(
-                      padding: const EdgeInsets.all(16),
+                      padding: const EdgeInsets.all(AppTheme.defaultPadding),
                       child: Column(
                         children: [
                           _buildProfileSection(
@@ -293,7 +293,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                 padding:
                                     const EdgeInsets.symmetric(vertical: 16),
                                 shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(8),
+                                  borderRadius: BorderRadius.circular(AppTheme.defaultBorderRadius),
                                 ),
                               ),
                               child: const Text(
@@ -377,11 +377,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(AppTheme.defaultPadding),
       decoration: BoxDecoration(
         color:
             isDarkMode ? AppTheme.darkLightGrayColor : AppTheme.lightGrayColor,
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(AppTheme.defaultBorderRadius),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -594,7 +594,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
     return InkWell(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(8),
+      borderRadius: BorderRadius.circular(AppTheme.defaultBorderRadius),
       child: Container(
         width: double.infinity,
         padding: const EdgeInsets.symmetric(
@@ -605,7 +605,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           color: isDarkMode
               ? AppTheme.darkLightGrayColor
               : AppTheme.lightGrayColor,
-          borderRadius: BorderRadius.circular(8),
+          borderRadius: BorderRadius.circular(AppTheme.defaultBorderRadius),
         ),
         child: Row(
           children: [
