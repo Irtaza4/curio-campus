@@ -283,7 +283,7 @@ class _EmergencyScreenState extends State<EmergencyScreen>
                 : RefreshIndicator(
                     onRefresh: _fetchAllEmergencyRequests,
                     child: ListView(
-                      padding: const EdgeInsets.all(16),
+                      padding: const EdgeInsets.all(AppTheme.defaultPadding),
                       children: [
                         // Active requests section
                         if (activeRequests.isNotEmpty) ...[
@@ -359,7 +359,7 @@ class _EmergencyScreenState extends State<EmergencyScreen>
                 : RefreshIndicator(
                     onRefresh: _fetchMyEmergencyRequests,
                     child: ListView.builder(
-                      padding: const EdgeInsets.all(16),
+                      padding: const EdgeInsets.all(AppTheme.defaultPadding),
                       itemCount: myRequests.length,
                       itemBuilder: (context, index) {
                         final request = myRequests[index];
@@ -386,17 +386,17 @@ class _EmergencyScreenState extends State<EmergencyScreen>
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
 
     return Card(
-      margin: const EdgeInsets.only(bottom: 16),
+      margin: const EdgeInsets.only(bottom: AppTheme.defaultPadding),
       elevation: 2,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(AppTheme.defaultBorderRadius),
       ),
       // Fix: Use theme-aware colors instead of hardcoded colors
       color: isIgnored
           ? (isDarkMode ? Colors.grey.shade800 : Colors.grey.shade100)
           : (isDarkMode ? Theme.of(context).cardColor : Colors.white),
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(AppTheme.defaultPadding),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
