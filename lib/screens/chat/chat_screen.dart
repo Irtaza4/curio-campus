@@ -571,7 +571,7 @@ class _ChatScreenState extends State<ChatScreen> {
                         controller: _scrollController,
                         reverse: true,
                         physics: const BouncingScrollPhysics(),
-                        padding: const EdgeInsets.all(16),
+                        padding: const EdgeInsets.all(AppTheme.defaultPadding),
                         itemCount: chatProvider.messages.length,
                         itemBuilder: (context, index) {
                           final message = chatProvider.messages[index];
@@ -589,7 +589,7 @@ class _ChatScreenState extends State<ChatScreen> {
           // Voice recorder (when active)
           if (_isRecording)
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              padding: const EdgeInsets.symmetric(horizontal: AppTheme.defaultPadding, vertical: 8),
               child: VoiceRecorder(
                 onStop: _handleVoiceRecordingComplete,
                 onCancel: _handleVoiceRecordingCancel,
@@ -639,7 +639,7 @@ class _ChatScreenState extends State<ChatScreen> {
                         ),
                         border: OutlineInputBorder(
                           borderRadius:
-                              const BorderRadius.all(Radius.circular(24)),
+                              const BorderRadius.all(Radius.circular(AppTheme.defaultBorderRadius * 3)),
                           borderSide: BorderSide.none,
                         ),
                         filled: true,
@@ -743,7 +743,7 @@ class _ChatScreenState extends State<ChatScreen> {
                           : (isDarkMode
                               ? AppTheme.darkMessageBubbleColor
                               : Colors.grey[200]),
-                      borderRadius: BorderRadius.circular(16),
+                      borderRadius: BorderRadius.circular(AppTheme.defaultBorderRadius * 1.5),
                       border: isDarkMode && !isCurrentUser
                           ? Border.all(
                               color: AppTheme.darkMediumGrayColor, width: 1)
@@ -823,7 +823,7 @@ class _ChatScreenState extends State<ChatScreen> {
         );
       case MessageType.image:
         return ClipRRect(
-          borderRadius: BorderRadius.circular(14),
+          borderRadius: BorderRadius.circular(AppTheme.defaultBorderRadius * 1.2),
           child: GestureDetector(
             onTap: () {
               // Open image viewer when tapped
