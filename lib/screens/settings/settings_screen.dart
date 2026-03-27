@@ -28,7 +28,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         title: const Text('Settings'),
       ),
       body: Padding(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(AppTheme.defaultPadding),
         child: Column(
           children: [
             _buildSettingItem(
@@ -55,6 +55,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 final confirm = await showDialog<bool>(
                   context: context,
                   builder: (context) => AlertDialog(
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(AppTheme.defaultBorderRadius),
+                    ),
                     title: const Text('Background Activity'),
                     content: const Text(
                         'To ensure you receive calls and messages while the app is in the background, please allow background activity. Do you want to continue?'),
