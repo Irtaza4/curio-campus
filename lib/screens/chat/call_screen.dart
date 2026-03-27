@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:agora_rtc_engine/agora_rtc_engine.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:curio_campus/utils/app_theme.dart';
 
 enum CallType { voice, video }
 
@@ -768,10 +769,10 @@ class _CallScreenState extends State<CallScreen>
               height: 180,
               decoration: BoxDecoration(
                 border: Border.all(color: Colors.white, width: 2),
-                borderRadius: BorderRadius.circular(8),
+                borderRadius: BorderRadius.circular(AppTheme.defaultBorderRadius),
               ),
               child: ClipRRect(
-                borderRadius: BorderRadius.circular(6),
+                borderRadius: BorderRadius.circular(AppTheme.defaultBorderRadius - 2),
                 child: AgoraVideoView(
                   controller: VideoViewController(
                     rtcEngine: widget.engine,
