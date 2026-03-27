@@ -148,10 +148,10 @@ class _SkillSelectorState extends State<SkillSelector> {
         .toList();
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      padding: const EdgeInsets.symmetric(horizontal: AppTheme.defaultPadding, vertical: 8),
       decoration: BoxDecoration(
         color: isDarkMode ? Colors.grey[850] : AppTheme.lightGrayColor,
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(AppTheme.defaultBorderRadius),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -165,6 +165,9 @@ class _SkillSelectorState extends State<SkillSelector> {
                   label: Text(skill),
                   backgroundColor: AppTheme.primaryColor.withValues(alpha: 0.1),
                   deleteIconColor: AppTheme.primaryColor,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(AppTheme.defaultBorderRadius / 1.5),
+                  ),
                   onDeleted: () {
                     final updatedSkills =
                         List<String>.from(widget.selectedSkills)..remove(skill);
@@ -180,7 +183,7 @@ class _SkillSelectorState extends State<SkillSelector> {
               onTap: () {
                 _showSkillSelectionDialog(availableSkillsFiltered, isDarkMode);
               },
-              borderRadius: BorderRadius.circular(8),
+              borderRadius: BorderRadius.circular(AppTheme.defaultBorderRadius),
               child: Container(
                 padding:
                     const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
@@ -189,7 +192,7 @@ class _SkillSelectorState extends State<SkillSelector> {
                       color: isDarkMode
                           ? Colors.grey[600]!
                           : Colors.grey.shade400),
-                  borderRadius: BorderRadius.circular(8),
+                  borderRadius: BorderRadius.circular(AppTheme.defaultBorderRadius),
                 ),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
