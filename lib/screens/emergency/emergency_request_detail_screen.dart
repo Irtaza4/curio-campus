@@ -254,7 +254,7 @@ class _EmergencyRequestDetailScreenState
           : _request == null
               ? const Center(child: Text('Request not found'))
               : SingleChildScrollView(
-                  padding: const EdgeInsets.all(16),
+                  padding: const EdgeInsets.all(AppTheme.defaultPadding),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -262,14 +262,14 @@ class _EmergencyRequestDetailScreenState
                       Card(
                         elevation: 2,
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
+                          borderRadius: BorderRadius.circular(AppTheme.defaultBorderRadius),
                         ),
                         // Fix: Add theme-aware card color
                         color: isDarkMode
                             ? Theme.of(context).cardColor
                             : Colors.white,
                         child: Padding(
-                          padding: const EdgeInsets.all(16),
+                          padding: const EdgeInsets.all(AppTheme.defaultPadding),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
@@ -331,21 +331,21 @@ class _EmergencyRequestDetailScreenState
                                       crossAxisAlignment:
                                           CrossAxisAlignment.start,
                                       children: [
-                                        Text(
-                                          widget.isOwnRequest
-                                              ? 'Your Request'
-                                              : _request!.requesterName,
-                                          style: TextStyle(
-                                            fontSize: 18,
-                                            fontWeight: FontWeight.bold,
-                                            // Fix: Use theme-aware color for name
-                                            color: widget.isOwnRequest
-                                                ? AppTheme.primaryColor
-                                                : (isDarkMode
-                                                    ? Colors.white
-                                                    : Colors.black),
-                                          ),
-                                        ),
+                                Text(
+                                  widget.isOwnRequest
+                                      ? 'Your Request'
+                                      : _request!.requesterName,
+                                  style: TextStyle(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.bold,
+                                    // Fix: Use theme-aware color for name
+                                    color: widget.isOwnRequest
+                                        ? AppTheme.primaryColor
+                                        : (isDarkMode
+                                            ? Colors.white
+                                            : Colors.black),
+                                  ),
+                                ),
                                         const SizedBox(height: 4),
                                         Row(
                                           children: [
