@@ -147,7 +147,7 @@ class _MatchmakingScreenState extends State<MatchmakingScreen> {
               showModalBottomSheet(
                 context: context,
                 shape: const RoundedRectangleBorder(
-                  borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+                  borderRadius: BorderRadius.vertical(top: Radius.circular(AppTheme.defaultBorderRadius * 2)),
                 ),
                 builder: (context) {
                   return SafeArea(
@@ -195,7 +195,7 @@ class _MatchmakingScreenState extends State<MatchmakingScreen> {
           // Project selector
           if (_userProjects.isNotEmpty) ...[
             Padding(
-              padding: const EdgeInsets.all(16.0),
+              padding: const EdgeInsets.all(AppTheme.defaultPadding),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -210,7 +210,7 @@ class _MatchmakingScreenState extends State<MatchmakingScreen> {
                   DropdownButtonFormField<String>(
                     decoration: InputDecoration(
                       border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8),
+                        borderRadius: BorderRadius.circular(AppTheme.defaultBorderRadius),
                       ),
                       contentPadding: const EdgeInsets.symmetric(
                         horizontal: 16,
@@ -299,7 +299,7 @@ class _MatchmakingScreenState extends State<MatchmakingScreen> {
                     : RefreshIndicator(
                         onRefresh: _findMatches,
                         child: ListView.builder(
-                          padding: const EdgeInsets.all(16),
+                          padding: const EdgeInsets.all(AppTheme.defaultPadding),
                           itemCount: matches.length,
                           itemBuilder: (context, index) {
                             final match = matches[index];
@@ -315,13 +315,13 @@ class _MatchmakingScreenState extends State<MatchmakingScreen> {
 
   Widget _buildMatchCard(MatchmakingResultModel match) {
     return Card(
-      margin: const EdgeInsets.only(bottom: 16),
+      margin: const EdgeInsets.only(bottom: AppTheme.defaultPadding),
       elevation: 2,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(AppTheme.defaultBorderRadius),
       ),
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(AppTheme.defaultPadding),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
