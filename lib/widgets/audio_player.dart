@@ -186,7 +186,7 @@ class _AudioMessagePlayerState extends State<AudioMessagePlayer> {
         height: 50,
         decoration: BoxDecoration(
           color: isDarkMode ? Colors.grey[800] : Colors.grey[200],
-          borderRadius: BorderRadius.circular(8),
+          borderRadius: BorderRadius.circular(AppTheme.defaultBorderRadius),
         ),
         child: const Center(
           child: SizedBox(
@@ -206,7 +206,7 @@ class _AudioMessagePlayerState extends State<AudioMessagePlayer> {
         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
         decoration: BoxDecoration(
           color: isDarkMode ? Colors.grey[800] : Colors.grey[200],
-          borderRadius: BorderRadius.circular(8),
+          borderRadius: BorderRadius.circular(AppTheme.defaultBorderRadius),
         ),
         child: Row(
           children: [
@@ -242,10 +242,10 @@ class _AudioMessagePlayerState extends State<AudioMessagePlayer> {
 
     return Container(
       width: 200,
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+      padding: const EdgeInsets.symmetric(horizontal: AppTheme.defaultPadding, vertical: 8),
       decoration: BoxDecoration(
         color: isDarkMode ? Colors.grey[800] : Colors.grey[200],
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(AppTheme.defaultBorderRadius),
       ),
       child: Row(
         children: [
