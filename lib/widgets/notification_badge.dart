@@ -22,7 +22,7 @@ class NotificationBadge extends StatelessWidget {
             top: 0,
             right: 0,
             child: Container(
-              padding: const EdgeInsets.all(2),
+              padding: const EdgeInsets.all(AppTheme.defaultPadding / 8),
               decoration: BoxDecoration(
                 color: AppTheme.errorColor,
                 borderRadius: const BorderRadius.all(Radius.circular(10)),
