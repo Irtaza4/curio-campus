@@ -204,8 +204,8 @@ class _ChatScreenState extends State<ChatScreen> {
     showModalBottomSheet(
       context: context,
       backgroundColor: isDarkMode ? AppTheme.darkSurfaceColor : Colors.white,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(AppTheme.defaultBorderRadius * 2)),
       ),
       builder: (context) {
         return SafeArea(
@@ -647,7 +647,7 @@ class _ChatScreenState extends State<ChatScreen> {
                             ? AppTheme.darkInputBackgroundColor
                             : Colors.grey[100],
                         contentPadding: const EdgeInsets.symmetric(
-                          horizontal: 16,
+                          horizontal: AppTheme.defaultPadding,
                           vertical: 8,
                         ),
                       ),
@@ -732,7 +732,7 @@ class _ChatScreenState extends State<ChatScreen> {
                     padding: message.type == MessageType.image
                         ? const EdgeInsets.all(2)
                         : const EdgeInsets.symmetric(
-                            horizontal: 16,
+                            horizontal: AppTheme.defaultPadding,
                             vertical: 10,
                           ),
                     decoration: BoxDecoration(
