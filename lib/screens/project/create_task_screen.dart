@@ -215,7 +215,7 @@ class _CreateTaskScreenState extends State<CreateTaskScreen> {
         title: const Text('Create Task'),
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(AppTheme.defaultPadding),
         child: Form(
           key: _formKey,
           child: Column(
@@ -286,7 +286,7 @@ class _CreateTaskScreenState extends State<CreateTaskScreen> {
                   ),
                   decoration: BoxDecoration(
                     color: AppTheme.lightGrayColor,
-                    borderRadius: BorderRadius.circular(8),
+                    borderRadius: BorderRadius.circular(AppTheme.defaultBorderRadius),
                   ),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -327,7 +327,7 @@ class _CreateTaskScreenState extends State<CreateTaskScreen> {
                 ),
                 decoration: BoxDecoration(
                   color: AppTheme.lightGrayColor,
-                  borderRadius: BorderRadius.circular(8),
+                  borderRadius: BorderRadius.circular(AppTheme.defaultBorderRadius),
                 ),
                 child: DropdownButtonHideUnderline(
                   child: DropdownButton<TaskPriority>(
@@ -385,7 +385,7 @@ class _CreateTaskScreenState extends State<CreateTaskScreen> {
                       ),
                       decoration: BoxDecoration(
                         color: AppTheme.lightGrayColor,
-                        borderRadius: BorderRadius.circular(8),
+                        borderRadius: BorderRadius.circular(AppTheme.defaultBorderRadius),
                       ),
                       child: DropdownButtonHideUnderline(
                         child: DropdownButton<String>(
