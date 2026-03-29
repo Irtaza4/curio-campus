@@ -163,11 +163,14 @@ class _ImageViewerScreenState extends State<ImageViewerScreen> {
         ],
       ),
       body: Center(
-        child: InteractiveViewer(
-          transformationController: _transformationController,
-          minScale: 0.5,
-          maxScale: 4.0,
-          child: _buildImage(),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(AppTheme.defaultBorderRadius * 1.5),
+          child: InteractiveViewer(
+            transformationController: _transformationController,
+            minScale: 0.5,
+            maxScale: 4.0,
+            child: _buildImage(),
+          ),
         ),
       ),
       bottomNavigationBar: BottomAppBar(
