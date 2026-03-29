@@ -211,6 +211,9 @@ class _EditGroupChatScreenState extends State<EditGroupChatScreen> {
                       isDarkMode ? AppTheme.darkTextColor : AppTheme.textColor,
                 ),
               ),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(AppTheme.defaultBorderRadius),
+              ),
               content: SizedBox(
                 width: double.maxFinite,
                 height: 300,
@@ -329,7 +332,7 @@ class _EditGroupChatScreenState extends State<EditGroupChatScreen> {
         title: const Text('Edit Group'),
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(AppTheme.defaultPadding),
         child: Form(
           key: _formKey,
           child: Column(
@@ -515,7 +518,7 @@ class _EditGroupChatScreenState extends State<EditGroupChatScreen> {
                 color: isDarkMode
                     ? AppTheme.darkLightGrayColor
                     : AppTheme.lightGrayColor,
-                borderRadius: BorderRadius.circular(8),
+                borderRadius: BorderRadius.circular(AppTheme.defaultBorderRadius),
               ),
               child: ListTile(
                 leading: user.profileImageBase64 != null
