@@ -66,7 +66,7 @@ class CallMessageBubble extends StatelessWidget {
     }
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      padding: const EdgeInsets.all(AppTheme.defaultPadding / 1.5),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -75,8 +75,9 @@ class CallMessageBubble extends StatelessWidget {
             size: 16,
             color: iconColor,
           ),
-          const SizedBox(width: 12),
-          Column(
+          const SizedBox(width: AppTheme.defaultPadding),
+          Expanded(
+            child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
@@ -124,6 +125,7 @@ class CallMessageBubble extends StatelessWidget {
               ),
             ],
           ),
+        ),
         ],
       ),
     );
