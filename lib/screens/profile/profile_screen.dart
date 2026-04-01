@@ -248,7 +248,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                   context: context,
                                   builder: (context) => AlertDialog(
                                     shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(16),
+                                      borderRadius: BorderRadius.circular(AppTheme.defaultBorderRadius * 1.5),
                                     ),
                                     title: const Text('Sign Out'),
                                     content: const Text(
