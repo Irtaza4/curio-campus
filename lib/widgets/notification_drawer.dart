@@ -192,7 +192,10 @@ class NotificationDrawer extends StatelessWidget {
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.green,
                       foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      padding: const EdgeInsets.symmetric(horizontal: AppTheme.defaultPadding),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(AppTheme.defaultBorderRadius / 2),
+                      ),
                     ),
                     child: const Text('Accept'),
                   ),
@@ -205,7 +208,10 @@ class NotificationDrawer extends StatelessWidget {
                     style: OutlinedButton.styleFrom(
                       foregroundColor: Colors.red,
                       side: const BorderSide(color: Colors.red),
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      padding: const EdgeInsets.symmetric(horizontal: AppTheme.defaultPadding),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(AppTheme.defaultBorderRadius / 2),
+                      ),
                     ),
                     child: const Text('Reject'),
                   ),
