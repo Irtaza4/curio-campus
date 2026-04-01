@@ -165,6 +165,9 @@ class _EmergencyScreenState extends State<EmergencyScreen>
     final bool? confirm = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(AppTheme.defaultBorderRadius * 1.5),
+        ),
         title: const Text('Delete Request'),
         content: Text('Are you sure you want to delete "${request.title}"?'),
         actions: [
@@ -172,10 +175,12 @@ class _EmergencyScreenState extends State<EmergencyScreen>
             onPressed: () => Navigator.pop(context, false),
             child: const Text('Cancel'),
           ),
-          TextButton(
+          ElevatedButton(
             onPressed: () => Navigator.pop(context, true),
-            style: TextButton.styleFrom(
-              foregroundColor: Colors.red,
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppTheme.errorColor,
+              foregroundColor: Colors.white,
+              elevation: 0,
             ),
             child: const Text('Delete'),
           ),
@@ -556,7 +561,7 @@ class _EmergencyScreenState extends State<EmergencyScreen>
                           color: isIgnored
                               ? Colors.grey.withValues(alpha: 0.1)
                               : AppTheme.primaryColor.withValues(alpha: 0.1),
-                          borderRadius: BorderRadius.circular(16),
+                          borderRadius: BorderRadius.circular(AppTheme.defaultBorderRadius / 2),
                         ),
                         child: Text(
                           skill,
@@ -599,7 +604,7 @@ class _EmergencyScreenState extends State<EmergencyScreen>
                       ),
                       decoration: BoxDecoration(
                         color: Colors.green.withValues(alpha: 0.2),
-                        borderRadius: BorderRadius.circular(16),
+                        borderRadius: BorderRadius.circular(AppTheme.defaultBorderRadius),
                       ),
                       child: const Text(
                         'Resolved',
@@ -620,7 +625,7 @@ class _EmergencyScreenState extends State<EmergencyScreen>
                       ),
                       decoration: BoxDecoration(
                         color: Colors.grey.withValues(alpha: 0.2),
-                        borderRadius: BorderRadius.circular(16),
+                        borderRadius: BorderRadius.circular(AppTheme.defaultBorderRadius),
                       ),
                       child: const Text(
                         'Ignored',
