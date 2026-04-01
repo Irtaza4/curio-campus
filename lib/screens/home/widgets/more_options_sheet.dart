@@ -28,7 +28,7 @@ class MoreOptionsSheet extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(
         color: isDarkMode ? AppTheme.darkSurfaceColor : Colors.white,
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(AppTheme.defaultBorderRadius * 2)),
       ),
       child: SafeArea(
         child: Column(
@@ -41,12 +41,12 @@ class MoreOptionsSheet extends StatelessWidget {
               height: 4,
               decoration: BoxDecoration(
                 color: isDarkMode ? Colors.white24 : Colors.grey[300],
-                borderRadius: BorderRadius.circular(2),
+                borderRadius: BorderRadius.circular(AppTheme.defaultBorderRadius / 4),
               ),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: AppTheme.defaultPadding),
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
+              padding: const EdgeInsets.symmetric(horizontal: AppTheme.defaultPadding),
               child: Row(
                 children: [
                   Icon(
@@ -171,7 +171,7 @@ class MoreOptionsSheet extends StatelessWidget {
                   context: context,
                   builder: (context) => AlertDialog(
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16),
+                      borderRadius: BorderRadius.circular(AppTheme.defaultBorderRadius * 1.5),
                     ),
                     title: Row(
                       children: [
@@ -219,9 +219,9 @@ class MoreOptionsSheet extends StatelessWidget {
                           foregroundColor: Colors.white,
                           elevation: 0,
                           padding: const EdgeInsets.symmetric(
-                              horizontal: 24, vertical: 12),
+                              horizontal: AppTheme.defaultPadding * 1.5, vertical: 12),
                           shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
+                            borderRadius: BorderRadius.circular(AppTheme.defaultBorderRadius),
                           ),
                         ),
                         child: const Text(
