@@ -242,7 +242,7 @@ class _ProjectsScreenState extends State<ProjectsScreen> {
                     ),
                     decoration: BoxDecoration(
                       color: _getDeadlineColor(project.deadline),
-                      borderRadius: BorderRadius.circular(16),
+                      borderRadius: BorderRadius.circular(AppTheme.defaultBorderRadius),
                     ),
                     child: Text(
                       _formatDeadline(project.deadline),
