@@ -434,7 +434,7 @@ class _EmergencyScreenState extends State<EmergencyScreen>
                           color: isIgnored
                               ? Colors.grey
                               : (isDarkMode
-                                  ? Colors.white
+                                  ? AppTheme.darkTextColor
                                   : AppTheme.primaryColor),
                         ),
                       ),
