@@ -592,10 +592,12 @@ class _CallScreenState extends State<CallScreen>
                               Text(
                                 isOutgoingCall
                                     ? 'Calling...'
-                                    : _callStatus.capitalize(),
+                                    : _callStatus.toUpperCase(),
                                 style: TextStyle(
                                   color: Colors.white.withValues(alpha: 0.7),
-                                  fontSize: 16,
+                                  fontSize: 14,
+                                  letterSpacing: 1.2,
+                                  fontWeight: FontWeight.bold,
                                 ),
                                 textAlign: TextAlign.center,
                               ),
@@ -772,7 +774,7 @@ class _CallScreenState extends State<CallScreen>
                 borderRadius: BorderRadius.circular(AppTheme.defaultBorderRadius),
               ),
               child: ClipRRect(
-                borderRadius: BorderRadius.circular(AppTheme.defaultBorderRadius - 2),
+                borderRadius: BorderRadius.circular(AppTheme.defaultBorderRadius),
                 child: AgoraVideoView(
                   controller: VideoViewController(
                     rtcEngine: widget.engine,
