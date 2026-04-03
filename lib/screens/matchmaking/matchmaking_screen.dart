@@ -146,7 +146,7 @@ class _MatchmakingScreenState extends State<MatchmakingScreen> {
             onPressed: () {
               showModalBottomSheet(
                 context: context,
-                shape: const RoundedRectangleBorder(
+                shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.vertical(top: Radius.circular(AppTheme.defaultBorderRadius * 2)),
                 ),
                 builder: (context) {
@@ -256,7 +256,7 @@ class _MatchmakingScreenState extends State<MatchmakingScreen> {
                           ),
                           decoration: BoxDecoration(
                             color: AppTheme.primaryColor.withValues(alpha: 0.1),
-                            borderRadius: BorderRadius.circular(16),
+                            borderRadius: BorderRadius.circular(AppTheme.defaultBorderRadius),
                           ),
                           child: Text(
                             skill,
