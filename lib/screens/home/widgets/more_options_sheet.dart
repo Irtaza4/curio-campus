@@ -41,7 +41,7 @@ class MoreOptionsSheet extends StatelessWidget {
               height: 4,
               decoration: BoxDecoration(
                 color: isDarkMode ? Colors.white24 : Colors.grey[300],
-                borderRadius: BorderRadius.circular(AppTheme.defaultBorderRadius / 4),
+                borderRadius: BorderRadius.circular(AppTheme.defaultBorderRadius),
               ),
             ),
             const SizedBox(height: AppTheme.defaultPadding),
