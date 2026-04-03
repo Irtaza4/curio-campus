@@ -166,7 +166,7 @@ class _SkillSelectorState extends State<SkillSelector> {
                   backgroundColor: AppTheme.primaryColor.withValues(alpha: 0.1),
                   deleteIconColor: AppTheme.primaryColor,
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(AppTheme.defaultBorderRadius / 1.5),
+                    borderRadius: BorderRadius.circular(AppTheme.defaultBorderRadius),
                   ),
                   onDeleted: () {
                     final updatedSkills =
