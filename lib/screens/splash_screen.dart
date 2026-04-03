@@ -22,7 +22,6 @@ class SplashScreen extends StatefulWidget {
 
 class _SplashScreenState extends State<SplashScreen>
     with SingleTickerProviderStateMixin {
-
   late AnimationController _controller;
   late Animation<double> _opacityAnimation;
   late Animation<double> _scaleAnimation;
@@ -223,7 +222,8 @@ class _SplashScreenState extends State<SplashScreen>
                     SizedBox(
                       width: 200,
                       child: ClipRRect(
-                        borderRadius: BorderRadius.circular(4),
+                        borderRadius: BorderRadius.circular(
+                            AppTheme.defaultBorderRadius / 3),
                         child: LinearProgressIndicator(
                           value: _controller.value,
                           backgroundColor: Colors.grey[300],
