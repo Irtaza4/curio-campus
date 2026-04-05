@@ -66,12 +66,17 @@ class _LoginScreenState extends State<LoginScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 // Back button
-                IconButton(
-                  icon: Icon(Icons.arrow_back,
-                      color: isDark ? Colors.white : AppTheme.primaryColor),
-                  onPressed: () {
-                    Navigator.pop(context);
-                  },
+                InkWell(
+                  onTap: () => Navigator.pop(context),
+                  borderRadius: BorderRadius.circular(AppTheme.defaultBorderRadius / 2),
+                  child: Container(
+                    padding: const EdgeInsets.all(8),
+                    child: Icon(
+                      Icons.arrow_back_ios_new,
+                      size: 20,
+                      color: isDark ? Colors.white : AppTheme.primaryColor,
+                    ),
+                  ),
                 ),
 
                 const SizedBox(height: 20),
@@ -169,9 +174,10 @@ class _LoginScreenState extends State<LoginScreen> {
                         suffixIcon: IconButton(
                           icon: Icon(
                             _isPasswordVisible
-                                ? Icons.visibility_off
-                                : Icons.visibility,
-                            color: isDark ? Colors.white : Colors.grey,
+                                ? Icons.visibility_off_rounded
+                                : Icons.visibility_rounded,
+                            color: isDark ? Colors.white70 : Colors.grey[600],
+                            size: 22,
                           ),
                           onPressed: () {
                             setState(() {
