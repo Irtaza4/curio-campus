@@ -48,6 +48,15 @@ class CustomTextField extends StatelessWidget {
     final fillColor = isDarkMode ? Colors.grey[800] : AppTheme.lightGrayColor;
     final hintColor = isDarkMode ? Colors.grey[400] : Colors.grey[600];
 
+    OutlineInputBorder _buildBorder({Color? color, double width = 0}) {
+      return OutlineInputBorder(
+        borderRadius: const BorderRadius.all(Radius.circular(AppTheme.defaultBorderRadius)),
+        borderSide: color != null
+            ? BorderSide(color: color, width: width)
+            : BorderSide.none,
+      );
+    }
+
     return TextFormField(
       controller: controller,
       obscureText: obscureText,
@@ -79,22 +88,10 @@ class CustomTextField extends StatelessWidget {
           horizontal: AppTheme.defaultPadding,
           vertical: AppTheme.defaultPadding,
         ),
-        border: const OutlineInputBorder(
-          borderRadius: BorderRadius.all(Radius.circular(AppTheme.defaultBorderRadius)),
-          borderSide: BorderSide.none,
-        ),
-        focusedBorder: const OutlineInputBorder(
-          borderRadius: BorderRadius.all(Radius.circular(AppTheme.defaultBorderRadius)),
-          borderSide: BorderSide(color: AppTheme.primaryColor, width: 2),
-        ),
-        errorBorder: const OutlineInputBorder(
-          borderRadius: BorderRadius.all(Radius.circular(AppTheme.defaultBorderRadius)),
-          borderSide: BorderSide(color: Colors.red, width: 1),
-        ),
-        focusedErrorBorder: const OutlineInputBorder(
-          borderRadius: BorderRadius.all(Radius.circular(AppTheme.defaultBorderRadius)),
-          borderSide: BorderSide(color: Colors.red, width: 2),
-        ),
+        border: _buildBorder(),
+        focusedBorder: _buildBorder(color: AppTheme.primaryColor, width: 2),
+        errorBorder: _buildBorder(color: Colors.red, width: 1),
+        focusedErrorBorder: _buildBorder(color: Colors.red, width: 2),
         errorStyle: const TextStyle(color: Colors.red),
       ),
     );
