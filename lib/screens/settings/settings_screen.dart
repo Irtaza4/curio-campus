@@ -114,17 +114,30 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 final confirm = await showDialog<bool>(
                   context: context,
                   builder: (context) => AlertDialog(
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(AppTheme.defaultBorderRadius * 1.5),
+                    ),
                     title: const Text('Logout'),
                     content: const Text('Are you sure you want to logout?'),
                     actions: [
                       TextButton(
                         onPressed: () => Navigator.pop(context, false),
-                        child: const Text('Cancel'),
+                        child: Text(
+                          'Cancel',
+                          style: TextStyle(
+                            color: isDarkMode ? Colors.white70 : AppTheme.darkGrayColor,
+                          ),
+                        ),
                       ),
                       TextButton(
                         onPressed: () => Navigator.pop(context, true),
-                        child: const Text('Logout',
-                            style: TextStyle(color: AppTheme.errorColor)),
+                        child: const Text(
+                          'Logout',
+                          style: TextStyle(
+                            color: AppTheme.errorColor,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
                       ),
                     ],
                   ),
