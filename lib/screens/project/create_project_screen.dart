@@ -476,8 +476,7 @@ class _CreateProjectScreenState extends State<CreateProjectScreen> {
                                 ? AppTheme.darkLightGrayColor
                                 : AppTheme.lightGrayColor,
                             shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(
-                                  AppTheme.defaultBorderRadius / 1.5),
+                              borderRadius: BorderRadius.circular(AppTheme.defaultBorderRadius),
                             ),
                             deleteIcon: const Icon(Icons.close, size: 18),
                             onDeleted: () {
