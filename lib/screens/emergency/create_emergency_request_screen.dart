@@ -215,7 +215,7 @@ class _CreateEmergencyRequestScreenState
                     decoration: BoxDecoration(
                       color: isDark
                           ? AppTheme.darkInputBackgroundColor
-                          : AppTheme.lightGrayColor, // background
+                          : AppTheme.lightGrayColor,
                       borderRadius: BorderRadius.circular(AppTheme.defaultBorderRadius),
                       border: Border.all(
                         color: isDark
