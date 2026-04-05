@@ -66,9 +66,9 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error picking image: ${e.toString()}'),
-            backgroundColor: Theme.of(context).colorScheme.error,
+          const SnackBar(
+            content: Text('Error picking image'),
+            backgroundColor: AppTheme.errorColor,
           ),
         );
       }
@@ -94,9 +94,9 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             });
 
             ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: const Text('Failed to upload profile image'),
-                backgroundColor: Theme.of(context).colorScheme.error,
+              const SnackBar(
+                content: Text('Failed to upload profile image'),
+                backgroundColor: AppTheme.errorColor,
               ),
             );
           }
@@ -201,12 +201,15 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                                   ),
                                 ),
                               )
-                            : CircleAvatar(
-                                radius: 60,
-                                backgroundColor:
-                                    theme.colorScheme.surfaceContainerHighest,
+                            : Container(
+                                width: 120,
+                                height: 120,
+                                decoration: BoxDecoration(
+                                  color: theme.colorScheme.surfaceContainerHighest,
+                                  shape: BoxShape.circle,
+                                ),
                                 child: Icon(
-                                  Icons.person,
+                                  Icons.person_rounded,
                                   size: 60,
                                   color: theme.colorScheme.primary,
                                 ),
