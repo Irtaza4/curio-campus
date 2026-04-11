@@ -211,7 +211,7 @@ class _VoiceRecorderState extends State<VoiceRecorder>
                     style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
-                      color: Colors.red,
+                      color: AppTheme.errorColor,
                     ),
                   ),
                 )
@@ -259,11 +259,11 @@ class _VoiceRecorderState extends State<VoiceRecorder>
               else ...[
                 IconButton(
                   onPressed: _cancelRecording,
-                  icon: const Icon(Icons.cancel, color: Colors.red, size: 32),
+                  icon: const Icon(Icons.cancel_rounded, color: AppTheme.errorColor, size: 32),
                 ),
                 IconButton(
                   onPressed: _stopRecording,
-                  icon: const Icon(Icons.stop_circle,
+                  icon: const Icon(Icons.stop_circle_rounded,
                       color: Colors.green, size: 32),
                 ),
               ],
