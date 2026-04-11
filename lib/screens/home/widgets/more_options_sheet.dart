@@ -163,52 +163,45 @@ class MoreOptionsSheet extends StatelessWidget {
             ),
             ListTile(
               leading: const Icon(Icons.logout, color: AppTheme.errorColor),
-              title: const Text('Logout',
-                  style: TextStyle(color: AppTheme.errorColor)),
+              title: Text(
+                'Logout',
+                style: TextStyle(
+                  color: AppTheme.errorColor,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
               onTap: () async {
                 Navigator.pop(context);
                 final confirm = await showDialog<bool>(
                   context: context,
                   builder: (context) => AlertDialog(
+                    backgroundColor: isDarkMode ? AppTheme.darkSurfaceColor : Colors.white,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(AppTheme.defaultBorderRadius * 1.5),
                     ),
-                    title: Row(
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.all(8),
-                          decoration: BoxDecoration(
-                            color: AppTheme.errorColor.withValues(alpha: 0.1),
-                            shape: BoxShape.circle,
-                          ),
-                          child: const Icon(
-                            Icons.logout,
-                            color: AppTheme.errorColor,
-                            size: 24,
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        const Text('Logout'),
-                      ],
+                    title: Text(
+                      'Logout',
+                      style: TextStyle(
+                        color: isDarkMode ? AppTheme.darkTextColor : AppTheme.textColor,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
-                    content: const Text(
+                    content: Text(
                       'Are you sure you want to logout? You will need to sign in again to access your account.',
-                      style: TextStyle(height: 1.5),
+                      style: TextStyle(
+                        color: isDarkMode ? AppTheme.darkTextColor : AppTheme.textColor,
+                        height: 1.5,
+                      ),
                     ),
                     actionsPadding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
                     actions: [
                       TextButton(
                         onPressed: () => Navigator.pop(context, false),
-                        style: TextButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(horizontal: 16),
-                        ),
                         child: Text(
                           'Cancel',
                           style: TextStyle(
                             fontWeight: FontWeight.w600,
-                            color: isDarkMode
-                                ? Colors.white70
-                                : AppTheme.darkGrayColor,
+                            color: isDarkMode ? Colors.white70 : AppTheme.darkGrayColor,
                           ),
                         ),
                       ),
@@ -234,17 +227,7 @@ class MoreOptionsSheet extends StatelessWidget {
                 );
 
                 if (confirm == true && context.mounted) {
-                  // Show a temporary snackbar or indicator that logging out is in progress
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Logging out...'),
-                      duration: Duration(seconds: 1),
-                    ),
-                  );
-
-                  await Provider.of<custom_auth.AuthProvider>(context,
-                          listen: false)
-                      .logout();
+                  await Provider.of<custom_auth.AuthProvider>(context, listen: false).logout();
 
                   if (context.mounted) {
                     Navigator.of(context).pushAndRemoveUntil(
