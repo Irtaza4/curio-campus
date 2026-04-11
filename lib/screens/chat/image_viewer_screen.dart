@@ -126,7 +126,7 @@ class _ImageViewerScreenState extends State<ImageViewerScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(message),
-          backgroundColor: Colors.red,
+          backgroundColor: AppTheme.errorColor,
           duration: const Duration(seconds: 3),
         ),
       );
@@ -235,8 +235,8 @@ class _ImageViewerScreenState extends State<ImageViewerScreen> {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Icon(
-                  Icons.error_outline,
-                  color: Colors.red,
+                  Icons.error_outline_rounded,
+                  color: AppTheme.errorColor,
                   size: 48,
                 ),
                 SizedBox(height: 16),
@@ -264,8 +264,8 @@ class _ImageViewerScreenState extends State<ImageViewerScreen> {
               mainAxisSize: MainAxisSize.min,
               children: [
                 const Icon(
-                  Icons.broken_image,
-                  color: Colors.red,
+                  Icons.broken_image_rounded,
+                  color: AppTheme.errorColor,
                   size: 48,
                 ),
                 const SizedBox(height: 16),
