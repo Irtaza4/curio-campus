@@ -211,8 +211,8 @@ class _AudioMessagePlayerState extends State<AudioMessagePlayer> {
         child: Row(
           children: [
             const Icon(
-              Icons.error_outline,
-              color: Colors.red,
+              Icons.error_outline_rounded,
+              color: AppTheme.errorColor,
               size: 24,
             ),
             const SizedBox(width: 8),
@@ -244,7 +244,7 @@ class _AudioMessagePlayerState extends State<AudioMessagePlayer> {
       width: 200,
       padding: const EdgeInsets.symmetric(horizontal: AppTheme.defaultPadding, vertical: 8),
       decoration: BoxDecoration(
-        color: isDarkMode ? Colors.grey[800] : Colors.grey[200],
+        color: isDarkMode ? AppTheme.darkInputBackgroundColor : Colors.grey[200],
         borderRadius: BorderRadius.circular(AppTheme.defaultBorderRadius),
       ),
       child: Row(
