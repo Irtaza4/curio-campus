@@ -142,7 +142,7 @@ class _ChatScreenState extends State<ChatScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Error fetching messages: ${e.toString()}'),
-            backgroundColor: Colors.red,
+            backgroundColor: AppTheme.errorColor,
           ),
         );
       }
@@ -245,9 +245,9 @@ class _ChatScreenState extends State<ChatScreen> {
               ),
               const Divider(),
               ListTile(
-                leading: const Icon(Icons.logout, color: Colors.red),
+                leading: const Icon(Icons.logout_rounded, color: AppTheme.errorColor),
                 title:
-                    const Text('Logout', style: TextStyle(color: Colors.red)),
+                    const Text('Logout', style: TextStyle(color: AppTheme.errorColor)),
                 onTap: () async {
                   Navigator.pop(context);
                   final confirm = await showDialog<bool>(
@@ -277,7 +277,7 @@ class _ChatScreenState extends State<ChatScreen> {
                         TextButton(
                           onPressed: () => Navigator.pop(context, true),
                           child: const Text('Logout',
-                              style: TextStyle(color: Colors.red)),
+                              style: TextStyle(color: AppTheme.errorColor, fontWeight: FontWeight.bold)),
                         ),
                       ],
                     ),
@@ -366,7 +366,7 @@ class _ChatScreenState extends State<ChatScreen> {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text('Error sending image: ${e.toString()}'),
-              backgroundColor: Colors.red,
+              backgroundColor: AppTheme.errorColor,
             ),
           );
         }
@@ -430,7 +430,7 @@ class _ChatScreenState extends State<ChatScreen> {
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
-            child: const Text('Delete', style: TextStyle(color: Colors.red)),
+            child: const Text('Delete', style: TextStyle(color: AppTheme.errorColor, fontWeight: FontWeight.bold)),
           ),
         ],
       ),
