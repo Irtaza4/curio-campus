@@ -199,10 +199,10 @@ class _CreateGroupChatScreenState extends State<CreateGroupChatScreen> {
                             color: AppTheme.primaryColor,
                             shape: BoxShape.circle,
                           ),
-                          child: Padding(
-                            padding: const EdgeInsets.all(4),
-                            child: const Icon(
-                              Icons.camera_alt,
+                          child: const Padding(
+                            padding: EdgeInsets.all(4),
+                            child: Icon(
+                              Icons.camera_alt_rounded,
                               color: Colors.white,
                               size: 20,
                             ),
@@ -313,7 +313,7 @@ class _CreateGroupChatScreenState extends State<CreateGroupChatScreen> {
                           AppTheme.primaryColor.withValues(alpha: 0.1),
                       deleteIconColor: AppTheme.primaryColor,
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(AppTheme.defaultBorderRadius / 1.5),
+                        borderRadius: BorderRadius.circular(AppTheme.defaultBorderRadius / 2),
                       ),
                       onDeleted: () {
                         setState(() {
