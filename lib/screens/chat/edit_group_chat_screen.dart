@@ -106,7 +106,7 @@ class _EditGroupChatScreenState extends State<EditGroupChatScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Error processing image: ${e.toString()}'),
-            backgroundColor: Colors.red,
+            backgroundColor: AppTheme.errorColor,
           ),
         );
       }
@@ -139,7 +139,7 @@ class _EditGroupChatScreenState extends State<EditGroupChatScreen> {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
               content: Text('Group chat updated successfully'),
-              backgroundColor: Colors.green,
+              backgroundColor: AppTheme.successColor,
             ),
           );
         }
@@ -152,7 +152,7 @@ class _EditGroupChatScreenState extends State<EditGroupChatScreen> {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text('Failed to update group chat: ${e.toString()}'),
-              backgroundColor: Colors.red,
+              backgroundColor: AppTheme.errorColor,
             ),
           );
         }
@@ -607,8 +607,8 @@ class _EditGroupChatScreenState extends State<EditGroupChatScreen> {
                     ? IconButton(
                         onPressed: () => _removeMember(participantId),
                         icon: const Icon(
-                          Icons.remove_circle_outline,
-                          color: Colors.red,
+                          Icons.remove_circle_outline_rounded,
+                          color: AppTheme.errorColor,
                         ),
                       )
                     : null,
