@@ -20,6 +20,7 @@ import 'package:curio_campus/utils/navigator_key.dart';
 import 'package:curio_campus/services/call_service.dart';
 import 'package:http/http.dart' as http;
 import 'dart:async';
+import 'package:curio_campus/utils/app_theme.dart';
 
 class NotificationService {
   static final NotificationService _instance = NotificationService._internal();
@@ -697,7 +698,7 @@ class NotificationService {
     required String channelId,
     required String channelName,
     required String channelDescription,
-    Color color = Colors.teal,
+    Color color = AppTheme.primaryColor,
   }) async {
     await _flutterLocalNotificationsPlugin.show(
       id,
