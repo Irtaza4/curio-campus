@@ -45,7 +45,7 @@ class _ProjectsScreenState extends State<ProjectsScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Error fetching projects: $e'),
-            backgroundColor: Colors.red,
+            backgroundColor: AppTheme.errorColor,
           ),
         );
       }
@@ -121,7 +121,7 @@ class _ProjectsScreenState extends State<ProjectsScreen> {
                 );
               }
             },
-            child: const Text('Delete', style: TextStyle(color: Colors.red)),
+            child: const Text('Delete', style: TextStyle(color: AppTheme.errorColor, fontWeight: FontWeight.bold)),
           ),
         ],
       ),
@@ -313,7 +313,7 @@ class _ProjectsScreenState extends State<ProjectsScreen> {
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
                   color: project.progress == 100
-                      ? Colors.green
+                      ? AppTheme.successColor
                       : AppTheme.primaryColor,
                 ),
               ),
@@ -323,7 +323,7 @@ class _ProjectsScreenState extends State<ProjectsScreen> {
                 backgroundColor: Colors.grey[200],
                 valueColor: AlwaysStoppedAnimation<Color>(
                   project.progress == 100
-                      ? Colors.green
+                      ? AppTheme.successColor
                       : AppTheme.primaryColor,
                 ),
                 minHeight: 8,
@@ -337,7 +337,7 @@ class _ProjectsScreenState extends State<ProjectsScreen> {
                   style: TextStyle(
                     fontSize: 12,
                     color: project.progress == 100
-                        ? Colors.green
+                        ? AppTheme.successColor
                         : AppTheme.primaryColor,
                     fontWeight: FontWeight.bold,
                   ),
@@ -355,9 +355,9 @@ class _ProjectsScreenState extends State<ProjectsScreen> {
     final difference = deadline.difference(now).inDays;
 
     if (difference < 0) {
-      return Colors.red;
+      return AppTheme.errorColor;
     } else if (difference < 3) {
-      return Colors.orange;
+      return Colors.orangeAccent;
     } else {
       return AppTheme.primaryColor;
     }
