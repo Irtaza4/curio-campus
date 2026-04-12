@@ -50,7 +50,7 @@ class _EmergencyRequestDetailScreenState
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Error fetching request details: $e'),
-            backgroundColor: Colors.red,
+            backgroundColor: AppTheme.errorColor,
           ),
         );
       }
@@ -80,7 +80,7 @@ class _EmergencyRequestDetailScreenState
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('Request resolved successfully'),
-            backgroundColor: Colors.green,
+            backgroundColor: AppTheme.successColor,
           ),
         );
         _fetchRequestDetails();
@@ -90,7 +90,7 @@ class _EmergencyRequestDetailScreenState
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Error resolving request: $e'),
-            backgroundColor: Colors.red,
+            backgroundColor: AppTheme.errorColor,
           ),
         );
       }
@@ -141,7 +141,7 @@ class _EmergencyRequestDetailScreenState
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Error creating chat: $e'),
-            backgroundColor: Colors.red,
+            backgroundColor: AppTheme.errorColor,
           ),
         );
       }
@@ -179,7 +179,10 @@ class _EmergencyRequestDetailScreenState
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
-            style: TextButton.styleFrom(foregroundColor: Colors.red),
+            style: TextButton.styleFrom(
+              foregroundColor: AppTheme.errorColor,
+              textStyle: const TextStyle(fontWeight: FontWeight.bold),
+            ),
             child: const Text('Delete'),
           ),
         ],
@@ -203,7 +206,7 @@ class _EmergencyRequestDetailScreenState
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('Request deleted successfully'),
-            backgroundColor: Colors.green,
+            backgroundColor: AppTheme.successColor,
           ),
         );
         Navigator.pop(context, true);
@@ -213,7 +216,7 @@ class _EmergencyRequestDetailScreenState
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Error deleting request: $e'),
-            backgroundColor: Colors.red,
+            backgroundColor: AppTheme.errorColor,
           ),
         );
       }
@@ -442,7 +445,7 @@ class _EmergencyRequestDetailScreenState
                                     vertical: 6,
                                   ),
                                   decoration: BoxDecoration(
-                                    color: Colors.green,
+                                    color: AppTheme.successColor,
                                     borderRadius: BorderRadius.circular(16),
                                   ),
                                   child: const Row(
@@ -538,7 +541,7 @@ class _EmergencyRequestDetailScreenState
                                   ),
                                   label: const Text('Mark as Resolved'),
                                   style: ElevatedButton.styleFrom(
-                                    backgroundColor: Colors.green,
+                                    backgroundColor: AppTheme.successColor,
                                     padding: const EdgeInsets.symmetric(
                                         vertical: 12),
                                   ),
@@ -571,7 +574,7 @@ class _EmergencyRequestDetailScreenState
                                   ),
                                   label: const Text('Mark as Resolved'),
                                   style: ElevatedButton.styleFrom(
-                                    backgroundColor: Colors.green,
+                                    backgroundColor: AppTheme.successColor,
                                     padding: const EdgeInsets.symmetric(
                                         vertical: 12),
                                   ),
@@ -606,9 +609,9 @@ class _EmergencyRequestDetailScreenState
     final difference = deadline.difference(now).inHours;
 
     if (difference < 0) {
-      return Colors.red;
+      return AppTheme.errorColor;
     } else if (difference < 24) {
-      return Colors.orange;
+      return Colors.orangeAccent;
     } else {
       return AppTheme.primaryColor;
     }
