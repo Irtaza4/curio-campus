@@ -162,9 +162,9 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
               if (projectProvider.currentProject?.createdBy ==
                   projectProvider.currentUserId)
                 ListTile(
-                  leading: const Icon(Icons.delete, color: Colors.red),
-                  title: const Text('Delete Project',
-                      style: TextStyle(color: Colors.red)),
+                  leading: const Icon(Icons.delete_rounded, color: AppTheme.errorColor),
+                title: const Text('Delete Project',
+                    style: TextStyle(color: AppTheme.errorColor)),
                   onTap: () async {
                     Navigator.pop(context);
                     final project = projectProvider.currentProject;
@@ -247,7 +247,7 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
               },
             ),
             TextButton(
-              child: const Text('Delete', style: TextStyle(color: Colors.red)),
+              child: const Text('Delete', style: TextStyle(color: AppTheme.errorColor, fontWeight: FontWeight.bold)),
               onPressed: () async {
                 Navigator.of(dialogContext).pop();
                 await projectProvider.deleteProject(project.id);
@@ -400,8 +400,8 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
                                       : Colors.grey[200],
                                   valueColor: AlwaysStoppedAnimation<Color>(
                                       AppTheme.primaryColor),
-                                  minHeight: 10,
-                                  borderRadius: BorderRadius.circular(5),
+                                  minHeight: 8,
+                                  borderRadius: BorderRadius.circular(AppTheme.defaultBorderRadius / 2),
                                 ),
                                 const SizedBox(height: 4),
                                 Align(
@@ -714,9 +714,9 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
     final difference = deadline.difference(now).inDays;
 
     if (difference < 0) {
-      return Colors.red;
+      return AppTheme.errorColor;
     } else if (difference < 3) {
-      return Colors.orange;
+      return Colors.orangeAccent;
     } else {
       return AppTheme.primaryColor;
     }
