@@ -494,7 +494,7 @@ class _EditProjectScreenState extends State<EditProjectScreen> {
                                 ? AppTheme.darkLightGrayColor
                                 : AppTheme.lightGrayColor,
                             shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(AppTheme.defaultBorderRadius / 1.5),
+                              borderRadius: BorderRadius.circular(AppTheme.defaultBorderRadius / 2),
                             ),
                             deleteIcon: const Icon(Icons.close, size: 18),
                             onDeleted: () {
@@ -653,6 +653,9 @@ class _EditProjectScreenState extends State<EditProjectScreen> {
                             backgroundColor: isDarkMode
                                 ? AppTheme.darkLightGrayColor
                                 : AppTheme.lightGrayColor,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(AppTheme.defaultBorderRadius / 2),
+                            ),
                             deleteIcon: const Icon(Icons.close, size: 18),
                             onDeleted: () {
                               setState(() {
