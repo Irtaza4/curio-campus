@@ -207,7 +207,7 @@ class _SkillSelectorState extends State<SkillSelector> {
                       ),
                     ),
                     const Icon(
-                      Icons.add_circle_outline,
+                      Icons.add_circle_outline_rounded,
                       color: AppTheme.primaryColor,
                     ),
                   ],
@@ -274,7 +274,7 @@ class _SkillSelectorState extends State<SkillSelector> {
                             color: isDarkMode
                                 ? Colors.grey[400]
                                 : Colors.grey[600]),
-                        prefixIcon: Icon(Icons.search,
+                        prefixIcon: Icon(Icons.search_rounded,
                             color: isDarkMode
                                 ? Colors.grey[300]
                                 : Colors.grey[700]),
