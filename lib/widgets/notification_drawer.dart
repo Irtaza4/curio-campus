@@ -34,6 +34,7 @@ class NotificationDrawer extends StatelessWidget {
       maxChildSize: 0.9,
       expand: false,
       builder: (context, scrollController) {
+        final isDarkMode = Theme.of(context).brightness == Brightness.dark;
         return Column(
           children: [
             Padding(
@@ -130,7 +131,7 @@ class NotificationDrawer extends StatelessWidget {
         color: AppTheme.errorColor,
         alignment: Alignment.centerRight,
         padding: const EdgeInsets.only(right: AppTheme.defaultPadding),
-        child: const Icon(Icons.delete, color: Colors.white),
+        child: const Icon(Icons.delete_rounded, color: Colors.white),
       ),
       direction: DismissDirection.endToStart,
       onDismissed: (direction) {
@@ -190,7 +191,7 @@ class NotificationDrawer extends StatelessWidget {
                       }
                     },
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.green,
+                      backgroundColor: AppTheme.successColor,
                       foregroundColor: Colors.white,
                       padding: const EdgeInsets.symmetric(horizontal: AppTheme.defaultPadding),
                       shape: RoundedRectangleBorder(
@@ -206,8 +207,8 @@ class NotificationDrawer extends StatelessWidget {
                           .rejectChatRequest(notification.id);
                     },
                     style: OutlinedButton.styleFrom(
-                      foregroundColor: Colors.red,
-                      side: const BorderSide(color: Colors.red),
+                      foregroundColor: AppTheme.errorColor,
+                      side: const BorderSide(color: AppTheme.errorColor),
                       padding: const EdgeInsets.symmetric(horizontal: AppTheme.defaultPadding),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(AppTheme.defaultBorderRadius / 2),
@@ -225,12 +226,12 @@ class NotificationDrawer extends StatelessWidget {
               padding: const EdgeInsets.only(left: 72, right: 16, bottom: 8),
               child: Row(
                 children: [
-                  Icon(Icons.check_circle, color: Colors.green, size: 16),
+                  const Icon(Icons.check_circle_rounded, color: AppTheme.successColor, size: 16),
                   const SizedBox(width: 4),
-                  Text(
+                  const Text(
                     'Task completed',
                     style: TextStyle(
-                      color: Colors.green,
+                      color: AppTheme.successColor,
                       fontWeight: FontWeight.bold,
                       fontSize: 12,
                     ),
@@ -245,12 +246,12 @@ class NotificationDrawer extends StatelessWidget {
               padding: const EdgeInsets.only(left: 72, right: 16, bottom: 8),
               child: Row(
                 children: [
-                  Icon(Icons.priority_high, color: Colors.orange, size: 16),
+                  const Icon(Icons.priority_high_rounded, color: Colors.orangeAccent, size: 16),
                   const SizedBox(width: 4),
-                  Text(
+                  const Text(
                     'Matches your skills',
                     style: TextStyle(
-                      color: Colors.orange,
+                      color: Colors.orangeAccent,
                       fontWeight: FontWeight.bold,
                       fontSize: 12,
                     ),

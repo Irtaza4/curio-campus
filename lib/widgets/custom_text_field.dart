@@ -90,9 +90,9 @@ class CustomTextField extends StatelessWidget {
         ),
         border: _buildBorder(),
         focusedBorder: _buildBorder(color: AppTheme.primaryColor, width: 2),
-        errorBorder: _buildBorder(color: Colors.red, width: 1),
-        focusedErrorBorder: _buildBorder(color: Colors.red, width: 2),
-        errorStyle: const TextStyle(color: Colors.red),
+        errorBorder: _buildBorder(color: AppTheme.errorColor, width: 1),
+        focusedErrorBorder: _buildBorder(color: AppTheme.errorColor, width: 2),
+        errorStyle: const TextStyle(color: AppTheme.errorColor),
       ),
     );
   }
