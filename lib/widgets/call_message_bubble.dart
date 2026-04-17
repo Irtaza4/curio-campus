@@ -40,29 +40,29 @@ class CallMessageBubble extends StatelessWidget {
     switch (status) {
       case 'ended':
         if (duration > 0) {
-          icon = Icons.call;
+          icon = Icons.call_rounded;
           statusText = isOutgoing ? 'Outgoing call' : 'Incoming call';
-          iconColor = Colors.green;
+          iconColor = AppTheme.successColor;
         } else {
-          icon = isOutgoing ? Icons.call_made : Icons.call_received;
+          icon = isOutgoing ? Icons.call_made_rounded : Icons.call_received_rounded;
           statusText = 'Missed call';
-          iconColor = Colors.red;
+          iconColor = AppTheme.errorColor;
         }
         break;
       case 'missed':
-        icon = isOutgoing ? Icons.call_made : Icons.call_received;
+        icon = isOutgoing ? Icons.call_made_rounded : Icons.call_received_rounded;
         statusText = 'Missed call';
-        iconColor = Colors.red;
+        iconColor = AppTheme.errorColor;
         break;
       case 'declined':
-        icon = isOutgoing ? Icons.call_made : Icons.call_received;
+        icon = isOutgoing ? Icons.call_made_rounded : Icons.call_received_rounded;
         statusText = 'Call declined';
-        iconColor = Colors.orange;
+        iconColor = Colors.orangeAccent;
         break;
       default:
-        icon = isOutgoing ? Icons.call_made : Icons.call_received;
+        icon = isOutgoing ? Icons.call_made_rounded : Icons.call_received_rounded;
         statusText = 'Call';
-        iconColor = Colors.blue;
+        iconColor = AppTheme.primaryColor;
     }
 
     return Container(

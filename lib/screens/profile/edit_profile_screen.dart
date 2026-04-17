@@ -122,7 +122,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('Profile updated successfully'),
-            backgroundColor: Colors.green,
+            backgroundColor: AppTheme.successColor,
           ),
         );
       } else if (mounted) {
@@ -130,7 +130,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           SnackBar(
             content:
                 Text(authProvider.errorMessage ?? 'Failed to update profile'),
-            backgroundColor: Theme.of(context).colorScheme.error,
+            backgroundColor: AppTheme.errorColor,
           ),
         );
       }
@@ -226,7 +226,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                             shape: BoxShape.circle,
                           ),
                           child: const Icon(
-                            Icons.camera_alt,
+                            Icons.camera_alt_rounded,
                             color: Colors.white,
                             size: 20,
                           ),
