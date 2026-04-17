@@ -424,7 +424,7 @@ class _CallScreenState extends State<CallScreen>
               TextButton(
                 onPressed: () => Navigator.pop(context, true),
                 child:
-                    const Text('End Call', style: TextStyle(color: Colors.red)),
+                    const Text('End Call', style: TextStyle(color: AppTheme.errorColor)),
               ),
             ],
           ),
@@ -692,8 +692,8 @@ class _CallScreenState extends State<CallScreen>
                       children: [
                         const CircleAvatar(
                           radius: 16,
-                          backgroundColor: Colors.blue,
-                          child: Icon(Icons.message,
+                          backgroundColor: AppTheme.primaryColor,
+                          child: Icon(Icons.message_rounded,
                               color: Colors.white, size: 16),
                         ),
                         const SizedBox(width: 12),
@@ -722,7 +722,7 @@ class _CallScreenState extends State<CallScreen>
                             ],
                           ),
                         ),
-                        const Icon(Icons.close,
+                        const Icon(Icons.close_rounded,
                             color: Colors.white54, size: 16),
                       ],
                     ),

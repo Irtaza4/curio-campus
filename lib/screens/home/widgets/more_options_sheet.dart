@@ -50,7 +50,7 @@ class MoreOptionsSheet extends StatelessWidget {
               child: Row(
                 children: [
                   Icon(
-                    Icons.bolt,
+                    Icons.bolt_rounded,
                     color: isDarkMode
                         ? AppTheme.primaryColor
                         : AppTheme.primaryColor,
@@ -75,7 +75,7 @@ class MoreOptionsSheet extends StatelessWidget {
             if (currentIndex == 0)
               ListTile(
                 leading:
-                    const Icon(Icons.group_add, color: AppTheme.primaryColor),
+                    const Icon(Icons.group_add_rounded, color: AppTheme.primaryColor),
                 title: const Text('Create Group Chat'),
                 onTap: () {
                   Navigator.pop(context);
@@ -88,7 +88,7 @@ class MoreOptionsSheet extends StatelessWidget {
               )
             else if (currentIndex == 1) ...[
               ListTile(
-                leading: const Icon(Icons.add_circle_outline,
+                leading: const Icon(Icons.add_circle_outline_rounded,
                     color: AppTheme.primaryColor),
                 title: const Text('Create New Project'),
                 onTap: () {
@@ -101,7 +101,7 @@ class MoreOptionsSheet extends StatelessWidget {
                 },
               ),
               ListTile(
-                leading: const Icon(Icons.people_outline,
+                leading: const Icon(Icons.people_outline_rounded,
                     color: AppTheme.primaryColor),
                 title: const Text('Find Team Members'),
                 onTap: () {
@@ -116,7 +116,7 @@ class MoreOptionsSheet extends StatelessWidget {
             ] else if (currentIndex == 2)
               ListTile(
                 leading:
-                    const Icon(Icons.add_alert, color: AppTheme.primaryColor),
+                    const Icon(Icons.add_alert_rounded, color: AppTheme.primaryColor),
                 title: const Text('Create Emergency Request'),
                 onTap: () {
                   Navigator.pop(context);
@@ -129,7 +129,7 @@ class MoreOptionsSheet extends StatelessWidget {
               )
             else if (currentIndex == 3)
               ListTile(
-                leading: const Icon(Icons.edit, color: AppTheme.primaryColor),
+                leading: const Icon(Icons.edit_rounded, color: AppTheme.primaryColor),
                 title: const Text('Edit Profile'),
                 onTap: () {
                   Navigator.pop(context);
@@ -142,7 +142,7 @@ class MoreOptionsSheet extends StatelessWidget {
               ),
             const Divider(),
             ListTile(
-              leading: const Icon(Icons.notifications_outlined,
+              leading: const Icon(Icons.notifications_outlined_rounded,
                   color: AppTheme.primaryColor),
               title: const Text('Notifications'),
               onTap: () {
@@ -151,7 +151,7 @@ class MoreOptionsSheet extends StatelessWidget {
               },
             ),
             ListTile(
-              leading: const Icon(Icons.settings, color: AppTheme.primaryColor),
+              leading: const Icon(Icons.settings_rounded, color: AppTheme.primaryColor),
               title: const Text('Settings'),
               onTap: () {
                 Navigator.pop(context);
@@ -162,7 +162,7 @@ class MoreOptionsSheet extends StatelessWidget {
               },
             ),
             ListTile(
-              leading: const Icon(Icons.logout, color: AppTheme.errorColor),
+              leading: const Icon(Icons.logout_rounded, color: AppTheme.errorColor),
               title: Text(
                 'Logout',
                 style: TextStyle(
