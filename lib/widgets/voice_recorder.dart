@@ -245,7 +245,7 @@ class _VoiceRecorderState extends State<VoiceRecorder>
               if (!_isRecording && !_isProcessing)
                 ElevatedButton.icon(
                   onPressed: _startRecording,
-                  icon: const Icon(Icons.mic),
+                  icon: const Icon(Icons.mic_rounded),
                   label: const Text('Start Recording'),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppTheme.primaryColor,
@@ -264,7 +264,7 @@ class _VoiceRecorderState extends State<VoiceRecorder>
                 IconButton(
                   onPressed: _stopRecording,
                   icon: const Icon(Icons.stop_circle_rounded,
-                      color: Colors.green, size: 32),
+                      color: AppTheme.successColor, size: 32),
                 ),
               ],
             ],
