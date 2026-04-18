@@ -800,11 +800,11 @@ class _CallScreenState extends State<CallScreen>
             width: 64,
             height: 64,
             decoration: const BoxDecoration(
-              color: Colors.red,
+              color: AppTheme.errorColor,
               shape: BoxShape.circle,
             ),
             child: IconButton(
-              icon: const Icon(Icons.call_end, color: Colors.white, size: 30),
+              icon: const Icon(Icons.call_end_rounded, color: Colors.white, size: 30),
               onPressed: _endCall,
             ),
           ),
@@ -829,30 +829,30 @@ class _CallScreenState extends State<CallScreen>
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             _buildCallButton(
-              icon: _isMuted ? Icons.mic_off : Icons.mic,
+              icon: _isMuted ? Icons.mic_off_rounded : Icons.mic_rounded,
               label: _isMuted ? 'Unmute' : 'Mute',
               onPressed: _toggleMute,
               backgroundColor: Colors.white.withValues(alpha: 0.2),
             ),
             const SizedBox(width: 16),
             _buildCallButton(
-              icon: Icons.call_end,
+              icon: Icons.call_end_rounded,
               label: 'End',
               onPressed: _endCall,
-              backgroundColor: Colors.red,
+              backgroundColor: AppTheme.errorColor,
               iconColor: Colors.white,
             ),
             const SizedBox(width: 16),
             if (widget.callType == CallType.video) ...[
               _buildCallButton(
-                icon: _isCameraOff ? Icons.videocam_off : Icons.videocam,
+                icon: _isCameraOff ? Icons.videocam_off_rounded : Icons.videocam_rounded,
                 label: _isCameraOff ? 'Camera On' : 'Camera Off',
                 onPressed: _toggleCamera,
                 backgroundColor: Colors.white.withValues(alpha: 0.2),
               ),
             ] else
               _buildCallButton(
-                icon: _isSpeakerOn ? Icons.volume_up : Icons.volume_down,
+                icon: _isSpeakerOn ? Icons.volume_up_rounded : Icons.volume_down_rounded,
                 label: _isSpeakerOn ? 'Speaker Off' : 'Speaker On',
                 onPressed: _toggleSpeaker,
                 backgroundColor: Colors.white.withValues(alpha: 0.2),
