@@ -459,7 +459,7 @@ class _ChatScreenState extends State<ChatScreen> {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text('Failed to delete message: $e'),
-              backgroundColor: Colors.red,
+              backgroundColor: AppTheme.errorColor,
               duration: const Duration(seconds: 3),
             ),
           );
@@ -528,24 +528,24 @@ class _ChatScreenState extends State<ChatScreen> {
           // Call button
           if (currentChat.type == ChatType.individual)
             IconButton(
-              icon: const Icon(Icons.call),
+              icon: const Icon(Icons.call_rounded),
               onPressed: () => _initiateCall(false),
             ),
           // Video call button
           if (currentChat.type == ChatType.individual)
             IconButton(
-              icon: const Icon(Icons.videocam),
+              icon: const Icon(Icons.videocam_rounded),
               onPressed: () => _initiateCall(true),
             ),
           // Only show edit button for group chats
           if (currentChat.type == ChatType.group)
             IconButton(
-              icon: const Icon(Icons.edit),
+              icon: const Icon(Icons.edit_rounded),
               onPressed: () => _navigateToEditGroupChat(currentChat),
             ),
           // More options
           IconButton(
-            icon: const Icon(Icons.more_vert),
+            icon: const Icon(Icons.more_vert_rounded),
             onPressed: _showMoreOptions,
           ),
         ],
@@ -857,7 +857,7 @@ class _ChatScreenState extends State<ChatScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Icon(
-              Icons.video_library,
+              Icons.video_library_rounded,
               color: isCurrentUser ? Colors.white70 : Colors.black54,
               size: 24,
             ),
@@ -879,7 +879,7 @@ class _ChatScreenState extends State<ChatScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Icon(
-              Icons.insert_drive_file,
+              Icons.insert_drive_file_rounded,
               color: isCurrentUser ? Colors.white70 : Colors.black54,
               size: 24,
             ),
@@ -928,7 +928,7 @@ class _ChatScreenState extends State<ChatScreen> {
         height: 200,
         color: Colors.grey[300],
         child: const Icon(
-          Icons.broken_image,
+          Icons.broken_image_rounded,
           color: Colors.grey,
           size: 50,
         ),
