@@ -227,7 +227,7 @@ class _AudioMessagePlayerState extends State<AudioMessagePlayer> {
             ),
             IconButton(
               icon: const Icon(
-                Icons.refresh,
+                Icons.refresh_rounded,
                 color: AppTheme.primaryColor,
                 size: 20,
               ),
@@ -251,7 +251,7 @@ class _AudioMessagePlayerState extends State<AudioMessagePlayer> {
         children: [
           IconButton(
             icon: Icon(
-              _isPlaying ? Icons.pause : Icons.play_arrow,
+              _isPlaying ? Icons.pause_rounded : Icons.play_arrow_rounded,
               color: AppTheme.primaryColor,
             ),
             onPressed: _playPause,
