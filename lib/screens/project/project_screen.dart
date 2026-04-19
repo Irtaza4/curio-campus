@@ -200,7 +200,7 @@ class _ProjectsScreenState extends State<ProjectsScreen> {
         heroTag: 'projects_fab',
         onPressed: _navigateToCreateProject,
         backgroundColor: AppTheme.primaryColor,
-        child: const Icon(Icons.add, color: Colors.white),
+        child: const Icon(Icons.add_rounded, color: Colors.white),
       ),
     );
   }
@@ -268,7 +268,7 @@ class _ProjectsScreenState extends State<ProjectsScreen> {
               Row(
                 children: [
                   const Icon(
-                    Icons.people_outline,
+                    Icons.people_outline_rounded,
                     size: 16,
                     color: Colors.grey,
                   ),
@@ -282,7 +282,7 @@ class _ProjectsScreenState extends State<ProjectsScreen> {
                   ),
                   const SizedBox(width: 16),
                   const Icon(
-                    Icons.task_alt,
+                    Icons.task_alt_rounded,
                     size: 16,
                     color: Colors.grey,
                   ),
