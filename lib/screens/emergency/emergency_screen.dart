@@ -51,7 +51,7 @@ class _EmergencyScreenState extends State<EmergencyScreen>
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Error fetching emergency requests: ${e.toString()}'),
-            backgroundColor: Colors.red,
+            backgroundColor: AppTheme.errorColor,
           ),
         );
       }
@@ -73,7 +73,7 @@ class _EmergencyScreenState extends State<EmergencyScreen>
           SnackBar(
             content:
                 Text('Error fetching your emergency requests: ${e.toString()}'),
-            backgroundColor: Colors.red,
+            backgroundColor: AppTheme.errorColor,
           ),
         );
       }
@@ -118,7 +118,7 @@ class _EmergencyScreenState extends State<EmergencyScreen>
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('Request moved to ignored list'),
-            backgroundColor: Colors.green,
+            backgroundColor: AppTheme.successColor,
           ),
         );
       }
@@ -127,7 +127,7 @@ class _EmergencyScreenState extends State<EmergencyScreen>
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Error ignoring request: ${e.toString()}'),
-            backgroundColor: Colors.red,
+            backgroundColor: AppTheme.errorColor,
           ),
         );
       }
@@ -144,7 +144,7 @@ class _EmergencyScreenState extends State<EmergencyScreen>
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('Request moved back to active list'),
-            backgroundColor: Colors.green,
+            backgroundColor: AppTheme.successColor,
           ),
         );
       }
@@ -153,7 +153,7 @@ class _EmergencyScreenState extends State<EmergencyScreen>
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Error unignoring request: ${e.toString()}'),
-            backgroundColor: Colors.red,
+            backgroundColor: AppTheme.errorColor,
           ),
         );
       }
@@ -201,7 +201,7 @@ class _EmergencyScreenState extends State<EmergencyScreen>
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
               content: Text('Request deleted successfully'),
-              backgroundColor: Colors.green,
+              backgroundColor: AppTheme.successColor,
             ),
           );
           // Refresh the lists
@@ -259,7 +259,7 @@ class _EmergencyScreenState extends State<EmergencyScreen>
         heroTag: 'emergency_fab',
         onPressed: _navigateToCreateEmergencyRequest,
         backgroundColor: AppTheme.primaryColor,
-        child: const Icon(Icons.add, color: Colors.white),
+        child: const Icon(Icons.add_rounded, color: Colors.white),
       ),
     );
   }
@@ -445,7 +445,7 @@ class _EmergencyScreenState extends State<EmergencyScreen>
                             if (isIgnored)
                               TextButton.icon(
                                 onPressed: onUnignore,
-                                icon: const Icon(Icons.restore, size: 18),
+                                icon: const Icon(Icons.restore_rounded, size: 18),
                                 label: const Text('Restore'),
                                 style: TextButton.styleFrom(
                                   foregroundColor: Colors.blue,
@@ -456,7 +456,7 @@ class _EmergencyScreenState extends State<EmergencyScreen>
                               TextButton.icon(
                                 onPressed: onIgnore,
                                 icon:
-                                    const Icon(Icons.visibility_off, size: 18),
+                                    const Icon(Icons.visibility_off_rounded, size: 18),
                                 label: const Text('Ignore'),
                                 style: TextButton.styleFrom(
                                   foregroundColor: Colors.grey,
@@ -472,7 +472,7 @@ class _EmergencyScreenState extends State<EmergencyScreen>
                                 Padding(
                                   padding: EdgeInsets.only(top: 2),
                                   child: IconButton(
-                                    icon: const Icon(Icons.edit, size: 20),
+                                    icon: const Icon(Icons.edit_rounded, size: 20),
                                     color: AppTheme.primaryColor,
                                     onPressed: () =>
                                         _navigateToEditEmergencyRequest(
@@ -484,7 +484,7 @@ class _EmergencyScreenState extends State<EmergencyScreen>
                                   ),
                                 ),
                                 IconButton(
-                                  icon: const Icon(Icons.delete, size: 20),
+                                  icon: const Icon(Icons.delete_rounded, size: 20),
                                   color: Colors.red,
                                   onPressed: onDelete,
                                   constraints: const BoxConstraints(),
@@ -578,7 +578,7 @@ class _EmergencyScreenState extends State<EmergencyScreen>
                   Row(
                     children: [
                       Icon(
-                        Icons.access_time,
+                        Icons.access_time_rounded,
                         size: 12,
                         // Fix: Use theme-aware icon color
                         color: isDarkMode ? Colors.grey[400] : Colors.grey[600],
@@ -610,7 +610,7 @@ class _EmergencyScreenState extends State<EmergencyScreen>
                         'Resolved',
                         style: TextStyle(
                           fontSize: 12,
-                          color: Colors.green,
+                          color: AppTheme.successColor,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
