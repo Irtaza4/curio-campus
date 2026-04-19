@@ -355,12 +355,12 @@ class _EditGroupChatScreenState extends State<EditGroupChatScreen> {
                                     ? AppTheme.darkLightGrayColor
                                     : AppTheme.lightGrayColor,
                                 child: Icon(
-                                  Icons.group,
-                                  size: 50,
-                                  color: isDarkMode
-                                      ? AppTheme.darkDarkGrayColor
-                                      : AppTheme.darkGrayColor,
-                                ),
+                                   Icons.group_rounded,
+                                   size: 50,
+                                   color: isDarkMode
+                                       ? AppTheme.darkDarkGrayColor
+                                       : AppTheme.darkGrayColor,
+                                 ),
                               ),
                             )
                           : CircleAvatar(
@@ -386,7 +386,7 @@ class _EditGroupChatScreenState extends State<EditGroupChatScreen> {
                             shape: BoxShape.circle,
                           ),
                           child: const Icon(
-                            Icons.camera_alt,
+                            Icons.camera_alt_rounded,
                             color: Colors.white,
                             size: 20,
                           ),
@@ -440,7 +440,7 @@ class _EditGroupChatScreenState extends State<EditGroupChatScreen> {
                     TextButton.icon(
                       onPressed: _showAddParticipantsDialog,
                       icon: const Icon(
-                        Icons.person_add,
+                        Icons.person_add_rounded,
                         color: AppTheme.primaryColor,
                         size: 20,
                       ),
