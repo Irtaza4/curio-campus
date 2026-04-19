@@ -98,7 +98,7 @@ class ImageUtils {
       radius: size / 2,
       backgroundColor: backgroundColor,
       child: Icon(
-        Icons.group,
+        Icons.group_rounded,
         color: iconColor,
         size: size / 2,
       ),
@@ -152,7 +152,7 @@ class ImageUtils {
       color: color.withValues(alpha: 0.3),
       child: Center(
         child: Icon(
-          Icons.image,
+          Icons.image_rounded,
           color: color.withValues(alpha: 0.7),
           size: (width != null && height != null)
               ? (width < height ? width / 3 : height / 3)
