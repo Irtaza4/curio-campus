@@ -59,7 +59,7 @@ class _MatchmakingScreenState extends State<MatchmakingScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Error fetching projects: ${e.toString()}'),
-            backgroundColor: Colors.red,
+            backgroundColor: AppTheme.errorColor,
           ),
         );
       }
@@ -87,7 +87,7 @@ class _MatchmakingScreenState extends State<MatchmakingScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Error finding matches: ${e.toString()}'),
-            backgroundColor: Colors.red,
+            backgroundColor: AppTheme.errorColor,
           ),
         );
       }
@@ -138,11 +138,11 @@ class _MatchmakingScreenState extends State<MatchmakingScreen> {
         title: const Text('Find Team Members'),
         actions: [
           IconButton(
-            icon: const Icon(Icons.refresh),
+            icon: const Icon(Icons.refresh_rounded),
             onPressed: _findMatches,
           ),
           IconButton(
-            icon: const Icon(Icons.more_vert),
+            icon: const Icon(Icons.more_vert_rounded),
             onPressed: () {
               showModalBottomSheet(
                 context: context,
@@ -155,7 +155,7 @@ class _MatchmakingScreenState extends State<MatchmakingScreen> {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         ListTile(
-                          leading: Icon(Icons.filter_list,
+                          leading: Icon(Icons.filter_list_rounded,
                               color: AppTheme.primaryColor),
                           title: const Text('Filter Options'),
                           onTap: () {
@@ -165,7 +165,7 @@ class _MatchmakingScreenState extends State<MatchmakingScreen> {
                         ),
                         ListTile(
                           leading:
-                              Icon(Icons.sort, color: AppTheme.primaryColor),
+                              Icon(Icons.sort_rounded, color: AppTheme.primaryColor),
                           title: const Text('Sort By'),
                           onTap: () {
                             Navigator.pop(context);
@@ -173,7 +173,7 @@ class _MatchmakingScreenState extends State<MatchmakingScreen> {
                           },
                         ),
                         ListTile(
-                          leading: Icon(Icons.help_outline,
+                          leading: Icon(Icons.help_outline_rounded,
                               color: AppTheme.primaryColor),
                           title: const Text('How Matchmaking Works'),
                           onTap: () {
@@ -362,7 +362,7 @@ class _MatchmakingScreenState extends State<MatchmakingScreen> {
                       Row(
                         children: [
                           Icon(
-                            Icons.star,
+                            Icons.star_rounded,
                             color: Colors.amber,
                             size: 18,
                           ),
