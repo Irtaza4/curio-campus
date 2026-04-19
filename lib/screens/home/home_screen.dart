@@ -189,19 +189,19 @@ class _HomeScreenState extends State<HomeScreen> {
         actions: [
           if (_currentIndex == 1)
             IconButton(
-              icon: const Icon(Icons.add),
+              icon: const Icon(Icons.add_rounded),
               onPressed: _navigateToCreateProject,
               tooltip: 'Create New Project',
             ),
           NotificationBadge(
             count: unreadCount,
             child: IconButton(
-              icon: const Icon(Icons.notifications),
+              icon: const Icon(Icons.notifications_rounded),
               onPressed: _showNotifications,
             ),
           ),
           IconButton(
-            icon: const Icon(Icons.more_vert),
+            icon: const Icon(Icons.more_vert_rounded),
             onPressed: _showMoreOptions,
           ),
         ],
@@ -229,8 +229,8 @@ class _HomeScreenState extends State<HomeScreen> {
             label: 'Projects',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.emergency_outlined),
-            activeIcon: Icon(Icons.emergency),
+            icon: Icon(Icons.emergency_outlined), // Usually ok
+            activeIcon: Icon(Icons.emergency_rounded),
             label: 'Emergency',
           ),
           BottomNavigationBarItem(
@@ -253,7 +253,7 @@ class _HomeScreenState extends State<HomeScreen> {
             MaterialPageRoute(builder: (_) => const MatchmakingScreen()),
           ),
           backgroundColor: AppTheme.primaryColor,
-          child: const Icon(Icons.people_alt, color: Colors.white),
+          child: const Icon(Icons.people_alt_rounded, color: Colors.white),
         );
       case 2:
         return FloatingActionButton(
@@ -263,7 +263,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 builder: (_) => const CreateEmergencyRequestScreen()),
           ),
           backgroundColor: AppTheme.primaryColor,
-          child: const Icon(Icons.add, color: Colors.white),
+          child: const Icon(Icons.add_rounded, color: Colors.white),
         );
       default:
         return null;
