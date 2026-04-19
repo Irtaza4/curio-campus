@@ -178,7 +178,7 @@ class _MessagesScreenState extends State<MessagesScreen> {
           );
         },
         backgroundColor: AppTheme.primaryColor,
-        child: const Icon(Icons.add, color: Colors.white),
+        child: const Icon(Icons.add_rounded, color: Colors.white),
       ),
     );
   }
@@ -252,7 +252,7 @@ class _MessagesScreenState extends State<MessagesScreen> {
     return Dismissible(
       key: Key(chat.id),
       background: Container(
-        color: Colors.red,
+        color: AppTheme.errorColor,
         alignment: Alignment.centerRight,
         padding: const EdgeInsets.only(right: 16),
         child: const Text(
@@ -405,7 +405,7 @@ class _MessagesScreenState extends State<MessagesScreen> {
         child: SizedBox(
           width: size,
           height: size,
-          child: placeholder ?? const Icon(Icons.person),
+          child: placeholder ?? const Icon(Icons.person_rounded),
         ),
       );
     }
