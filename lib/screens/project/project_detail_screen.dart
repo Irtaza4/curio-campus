@@ -146,7 +146,7 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
             mainAxisSize: MainAxisSize.min,
             children: [
               ListTile(
-                leading: const Icon(Icons.share, color: AppTheme.primaryColor),
+                leading: const Icon(Icons.share_rounded, color: AppTheme.primaryColor),
                 title: const Text('Share Project'),
                 onTap: () {
                   Navigator.pop(context);
@@ -175,7 +175,7 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
                 ),
               ListTile(
                 leading:
-                    const Icon(Icons.archive, color: AppTheme.primaryColor),
+                    const Icon(Icons.archive_rounded, color: AppTheme.primaryColor),
                 title: const Text('Archive Project'),
                 onTap: () async {
                   Navigator.pop(context);
@@ -192,7 +192,7 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
                 },
               ),
               ListTile(
-                leading: const Icon(Icons.help_outline,
+                leading: const Icon(Icons.help_outline_rounded,
                     color: AppTheme.primaryColor),
                 title: const Text('Project Help'),
                 onTap: () {
@@ -275,11 +275,11 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
         actions: [
           if (project?.createdBy == projectProvider.currentUserId)
             IconButton(
-              icon: const Icon(Icons.edit),
+              icon: const Icon(Icons.edit_rounded, color: Colors.white),
               onPressed: _editProject,
             ),
           IconButton(
-            icon: const Icon(Icons.more_vert),
+            icon: const Icon(Icons.more_vert_rounded),
             onPressed: _showMoreOptions,
           ),
         ],
@@ -536,7 +536,7 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
                             ),
                             IconButton(
                               icon: const Icon(
-                                Icons.filter_list,
+                                Icons.filter_list_rounded,
                                 color: AppTheme.primaryColor,
                               ),
                               onPressed: () {
@@ -601,7 +601,7 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
                                     child: const Row(
                                       children: [
                                         Icon(
-                                          Icons.add,
+                                          Icons.add_rounded,
                                           size: 20,
                                           color: AppTheme.primaryColor,
                                         ),
@@ -686,10 +686,10 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
                 const SizedBox(height: 4),
                 Row(
                   children: [
-                    Icon(
-                      Icons.calendar_today,
-                      size: 12,
-                      color: Colors.grey[600],
+                    const Icon(
+                      Icons.people_outline_rounded,
+                      size: 16,
+                      color: Colors.grey,
                     ),
                     const SizedBox(width: 4),
                     Text(
