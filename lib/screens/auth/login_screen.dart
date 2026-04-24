@@ -72,7 +72,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   child: Container(
                     padding: const EdgeInsets.all(8),
                     child: Icon(
-                      Icons.arrow_back_ios_new,
+                      Icons.arrow_back_ios_new_rounded,
                       size: 20,
                       color: isDark ? Colors.white : AppTheme.primaryColor,
                     ),
@@ -91,7 +91,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         height: 200,
                         errorBuilder: (context, error, stackTrace) {
                           return Icon(
-                            Icons.hub,
+                            Icons.hub_rounded,
                             size: 80,
                             color:
                                 isDark ? Colors.white : AppTheme.primaryColor,
