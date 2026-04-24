@@ -127,7 +127,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 IconButton(
-                  icon: const Icon(Icons.arrow_back,
+                  icon: const Icon(Icons.arrow_back_rounded,
                       color: AppTheme.primaryColor),
                   onPressed: () {
                     Navigator.pop(context);
@@ -175,7 +175,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                             ? FileImage(_profileImage!)
                             : null,
                         child: _profileImage == null
-                            ? Icon(Icons.person,
+                            ? Icon(Icons.person_rounded,
                                 size: 50, color: AppTheme.primaryColor)
                             : null,
                       ),
@@ -190,7 +190,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                               color: AppTheme.primaryColor,
                               shape: BoxShape.circle,
                             ),
-                            child: const Icon(Icons.camera_alt,
+                            child: const Icon(Icons.camera_alt_rounded,
                                 color: Colors.white, size: 20),
                           ),
                         ),
@@ -252,8 +252,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         suffixIcon: IconButton(
                           icon: Icon(
                             _isPasswordVisible
-                                ? Icons.visibility_off
-                                : Icons.visibility,
+                                ? Icons.visibility_off_rounded
+                                : Icons.visibility_rounded,
                             color: Colors.grey,
                           ),
                           onPressed: () => setState(
