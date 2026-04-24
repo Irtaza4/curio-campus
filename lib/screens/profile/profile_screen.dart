@@ -226,7 +226,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           ),
                           const SizedBox(height: 24),
                           _buildActionButton(
-                            icon: Icons.settings,
+                            icon: Icons.settings_rounded,
                             label: 'Settings',
                             onTap: () {
                               // Navigate to settings screen
@@ -324,7 +324,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               _loadTeamMembersAndProjects()); // Reload data when returning from edit screen
         },
         backgroundColor: AppTheme.primaryColor,
-        child: const Icon(Icons.edit, color: Colors.white),
+        child: const Icon(Icons.edit_rounded, color: Colors.white),
       ),
     );
   }
@@ -416,7 +416,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             _buildSimpleList(
                 items,
                 title.contains("SKILLS")
-                    ? Icons.check_circle
+                    ? Icons.check_circle_rounded
                     : title.contains("TEAM")
                         ? Icons.person
                         : Icons.task_alt)
@@ -492,7 +492,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         ),
                       )
                     : const Icon(
-                        Icons.person,
+                        Icons.person_rounded,
                         size: 16,
                         color: AppTheme.primaryColor,
                       ),
@@ -546,7 +546,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   color: AppTheme.primaryColor.withValues(alpha: 0.2),
                 ),
                 child: const Icon(
-                  Icons.task_alt,
+                  Icons.task_alt_rounded,
                   size: 16,
                   color: AppTheme.primaryColor,
                 ),
