@@ -32,7 +32,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         child: Column(
           children: [
             _buildSettingItem(
-              icon: isDarkMode ? Icons.dark_mode : Icons.light_mode,
+              icon: isDarkMode ? Icons.dark_mode_rounded : Icons.light_mode_rounded,
               title: 'Dark Mode',
               trailing: Switch.adaptive(
                 value: themeProvider.isDarkMode,
@@ -48,9 +48,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
             ),
             const Divider(),
             _buildSettingItem(
-              icon: Icons.battery_alert,
+              icon: Icons.battery_alert_rounded,
               title: 'Background Activity',
-              trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+              trailing: const Icon(Icons.arrow_forward_ios_rounded, size: 16),
               onTap: () async {
                 final confirm = await showDialog<bool>(
                   context: context,
@@ -90,9 +90,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
             ),
             const Divider(),
             _buildSettingItem(
-              icon: Icons.edit,
+              icon: Icons.edit_rounded,
               title: 'Edit Profile',
-              trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+              trailing: const Icon(Icons.arrow_forward_ios_rounded, size: 16),
               onTap: () {
                 Navigator.push(
                   context,
@@ -104,7 +104,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             ),
             const Divider(),
             _buildSettingItem(
-              icon: Icons.logout,
+              icon: Icons.logout_rounded,
               title: 'Logout',
               titleColor: AppTheme.errorColor,
               iconColor: AppTheme.errorColor,
