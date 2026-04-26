@@ -213,7 +213,7 @@ class _ChatScreenState extends State<ChatScreen> {
             mainAxisSize: MainAxisSize.min,
             children: [
               ListTile(
-                leading: const Icon(Icons.call, color: AppTheme.primaryColor),
+                leading: const Icon(Icons.call_rounded, color: AppTheme.primaryColor),
                 title: Text(
                   'Voice Call',
                   style: TextStyle(
@@ -229,7 +229,7 @@ class _ChatScreenState extends State<ChatScreen> {
               ),
               ListTile(
                 leading:
-                    const Icon(Icons.videocam, color: AppTheme.primaryColor),
+                    const Icon(Icons.videocam_rounded, color: AppTheme.primaryColor),
                 title: Text(
                   'Video Call',
                   style: TextStyle(
@@ -615,14 +615,14 @@ class _ChatScreenState extends State<ChatScreen> {
                 children: [
                   IconButton(
                     icon: const Icon(
-                      Icons.image,
+                      Icons.image_rounded,
                       color: AppTheme.primaryColor,
                     ),
                     onPressed: _pickAndSendImage,
                   ),
                   IconButton(
                     icon: const Icon(
-                      Icons.mic,
+                      Icons.mic_rounded,
                       color: AppTheme.primaryColor,
                     ),
                     onPressed: _toggleVoiceRecording,
@@ -663,7 +663,7 @@ class _ChatScreenState extends State<ChatScreen> {
                   const SizedBox(width: 8),
                   IconButton(
                     icon: const Icon(
-                      Icons.send,
+                      Icons.send_rounded,
                       color: AppTheme.primaryColor,
                     ),
                     onPressed: _sendMessage,
