@@ -37,7 +37,7 @@ class _CreateEmergencyRequestScreenState
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('Please select at least one required skill'),
-            backgroundColor: Colors.red,
+            backgroundColor: AppTheme.errorColor,
           ),
         );
         return;
@@ -66,7 +66,7 @@ class _CreateEmergencyRequestScreenState
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('Emergency request created successfully'),
-            backgroundColor: Colors.green,
+            backgroundColor: AppTheme.successColor,
           ),
         );
       } else if (mounted) {
@@ -74,7 +74,7 @@ class _CreateEmergencyRequestScreenState
           SnackBar(
             content: Text(emergencyProvider.errorMessage ??
                 'Failed to create emergency request'),
-            backgroundColor: Colors.red,
+            backgroundColor: AppTheme.errorColor,
           ),
         );
       }
@@ -235,7 +235,7 @@ class _CreateEmergencyRequestScreenState
                           ),
                         ),
                         Icon(
-                          Icons.calendar_today,
+                          Icons.calendar_today_rounded,
                           color: theme.colorScheme.primary,
                           size: 20,
                         ),
