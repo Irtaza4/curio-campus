@@ -246,7 +246,7 @@ class _EmergencyRequestDetailScreenState
               onPressed: _editRequest,
             ),
             IconButton(
-              icon: const Icon(Icons.delete),
+              icon: const Icon(Icons.delete_rounded),
               onPressed: _deleteRequest,
             ),
           ],
@@ -353,7 +353,7 @@ class _EmergencyRequestDetailScreenState
                                         Row(
                                           children: [
                                             Icon(
-                                              Icons.access_time,
+                                              Icons.access_time_rounded,
                                               size: 14,
                                               // Fix: Use theme-aware icon color
                                               color: isDarkMode
@@ -420,7 +420,7 @@ class _EmergencyRequestDetailScreenState
                                   mainAxisSize: MainAxisSize.min,
                                   children: [
                                     const Icon(
-                                      Icons.timer,
+                                      Icons.timer_rounded,
                                       color: Colors.white,
                                       size: 16,
                                     ),
@@ -452,7 +452,7 @@ class _EmergencyRequestDetailScreenState
                                     mainAxisSize: MainAxisSize.min,
                                     children: [
                                       Icon(
-                                        Icons.check_circle,
+                                    Icons.check_circle_rounded,
                                         color: Colors.white,
                                         size: 16,
                                       ),
@@ -555,7 +555,7 @@ class _EmergencyRequestDetailScreenState
                               Expanded(
                                 child: ElevatedButton.icon(
                                   onPressed: _contactRequester,
-                                  icon: const Icon(Icons.chat,
+                                  icon: const Icon(Icons.chat_rounded,
                                       color: Colors.white),
                                   label: const Text('Contact Requester'),
                                   style: ElevatedButton.styleFrom(
