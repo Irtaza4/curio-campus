@@ -447,7 +447,7 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
                                     padding: EdgeInsets.only(right: 16),
                                     child: CircleAvatar(
                                       radius: 24,
-                                      child: Icon(Icons.person, size: 20),
+                                      child: Icon(Icons.person_rounded, size: 20),
                                     ),
                                   );
                                 }

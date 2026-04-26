@@ -454,7 +454,7 @@ class _EditProjectScreenState extends State<EditProjectScreen> {
                         child: Row(
                           children: [
                             Icon(
-                              Icons.psychology,
+                              Icons.psychology_rounded,
                               size: 20,
                               color: AppTheme.primaryColor,
                             ),
@@ -496,7 +496,7 @@ class _EditProjectScreenState extends State<EditProjectScreen> {
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(AppTheme.defaultBorderRadius / 2),
                             ),
-                            deleteIcon: const Icon(Icons.close, size: 18),
+                            deleteIcon: const Icon(Icons.close_rounded, size: 18),
                             onDeleted: () {
                               setState(() {
                                 _selectedSkills.remove(skill);
@@ -543,7 +543,7 @@ class _EditProjectScreenState extends State<EditProjectScreen> {
                         child: Row(
                           children: [
                             Icon(
-                              Icons.calendar_today,
+                              Icons.calendar_today_rounded,
                               size: 20,
                               color: AppTheme.primaryColor,
                             ),
@@ -598,7 +598,7 @@ class _EditProjectScreenState extends State<EditProjectScreen> {
                         child: Row(
                           children: [
                             Icon(
-                              Icons.people,
+                              Icons.people_rounded,
                               size: 20,
                               color: AppTheme.primaryColor,
                             ),

@@ -154,7 +154,7 @@ class _CreateTaskScreenState extends State<CreateTaskScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('Task created successfully'),
-            backgroundColor: Colors.green,
+            backgroundColor: AppTheme.successColor,
           ),
         );
       } else if (mounted) {
@@ -299,7 +299,7 @@ class _CreateTaskScreenState extends State<CreateTaskScreen> {
                         ),
                       ),
                       const Icon(
-                        Icons.calendar_today,
+                        Icons.calendar_today_rounded,
                         color: AppTheme.primaryColor,
                         size: 20,
                       ),
@@ -343,7 +343,7 @@ class _CreateTaskScreenState extends State<CreateTaskScreen> {
                         child: Row(
                           children: [
                             Icon(
-                              Icons.flag,
+                              Icons.flag_rounded,
                               color: _getPriorityColor(priority),
                               size: 20,
                             ),
@@ -435,11 +435,11 @@ class _CreateTaskScreenState extends State<CreateTaskScreen> {
   Color _getPriorityColor(TaskPriority priority) {
     switch (priority) {
       case TaskPriority.low:
-        return Colors.green;
+        return AppTheme.successColor;
       case TaskPriority.medium:
-        return Colors.orange;
+        return Colors.orangeAccent;
       case TaskPriority.high:
-        return Colors.red;
+        return AppTheme.errorColor;
     }
   }
 
