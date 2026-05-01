@@ -195,7 +195,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                                   backgroundColor:
                                       theme.colorScheme.surfaceContainerHighest,
                                   child: Icon(
-                                    Icons.person,
+                                    Icons.person_rounded,
                                     size: 60,
                                     color: theme.colorScheme.primary,
                                   ),
