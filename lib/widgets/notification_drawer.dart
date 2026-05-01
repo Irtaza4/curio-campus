@@ -57,6 +57,7 @@ class NotificationDrawer extends StatelessWidget {
                           ScaffoldMessenger.of(context).showSnackBar(
                             const SnackBar(
                               content: Text('All notifications marked as read'),
+                              backgroundColor: AppTheme.successColor,
                             ),
                           );
                         }
