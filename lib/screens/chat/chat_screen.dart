@@ -945,7 +945,7 @@ class _ChatScreenState extends State<ChatScreen> {
           height: 200,
           color: Colors.grey[300],
           child: const Icon(
-            Icons.broken_image,
+            Icons.broken_image_rounded,
             color: Colors.grey,
             size: 50,
           ),
@@ -964,7 +964,7 @@ class _ChatScreenState extends State<ChatScreen> {
             height: 200,
             color: Colors.grey[300],
             child: const Icon(
-              Icons.broken_image,
+              Icons.broken_image_rounded,
               color: Colors.grey,
               size: 50,
             ),
@@ -978,7 +978,7 @@ class _ChatScreenState extends State<ChatScreen> {
         height: 200,
         color: Colors.grey[300],
         child: const Icon(
-          Icons.broken_image,
+          Icons.broken_image_rounded,
           color: Colors.grey,
           size: 50,
         ),
