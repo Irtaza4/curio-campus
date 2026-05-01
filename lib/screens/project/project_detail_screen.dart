@@ -671,8 +671,8 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
                         ? TextDecoration.lineThrough
                         : null,
                     color: task.status == TaskStatus.completed
-                        ? Colors.grey
-                        : Colors.black87,
+                        ? (isDarkMode ? AppTheme.darkDarkGrayColor : Colors.grey)
+                        : (isDarkMode ? AppTheme.darkTextColor : Colors.black87),
                   ),
                 ),
                 const SizedBox(height: 4),
@@ -680,7 +680,7 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
                   task.description,
                   style: TextStyle(
                     fontSize: 14,
-                    color: Colors.grey[600],
+                    color: isDarkMode ? AppTheme.darkDarkGrayColor : Colors.grey[600],
                   ),
                 ),
                 const SizedBox(height: 4),
@@ -696,7 +696,7 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
                       'Due ${DateFormat('MMM d').format(task.dueDate)}',
                       style: TextStyle(
                         fontSize: 12,
-                        color: Colors.grey[600],
+                        color: isDarkMode ? AppTheme.darkDarkGrayColor : Colors.grey[600],
                       ),
                     ),
                   ],
