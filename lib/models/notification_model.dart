@@ -76,34 +76,34 @@ class NotificationModel {
   IconData getIcon() {
     switch (type) {
       case NotificationType.chat:
-        return Icons.chat_bubble_outline;
+        return Icons.chat_bubble_rounded;
       case NotificationType.emergency:
         return Icons.warning_amber_rounded;
       case NotificationType.project:
-        return Icons.assignment_outlined;
+        return Icons.assignment_rounded;
       case NotificationType.profile:
-        return Icons.person_outline;
+        return Icons.person_rounded;
       case NotificationType.call: // ✅ Added icon
-        return Icons.call_outlined;
+        return Icons.call_rounded;
       case NotificationType.system:
-        return Icons.notifications_none;
+        return Icons.notifications_rounded;
     }
   }
 
   Color getColor() {
     switch (type) {
       case NotificationType.chat:
-        return Colors.blue;
+        return AppTheme.primaryColor;
       case NotificationType.emergency:
-        return Colors.orange;
+        return Colors.orangeAccent;
       case NotificationType.project:
-        return Colors.green;
+        return AppTheme.successColor;
       case NotificationType.profile:
-        return Colors.purple;
+        return Colors.purpleAccent;
       case NotificationType.call: // ✅ Added color
-        return Colors.purple;
+        return Colors.purpleAccent;
       case NotificationType.system:
-        return Colors.grey;
+        return AppTheme.darkGrayColor;
     }
   }
 
