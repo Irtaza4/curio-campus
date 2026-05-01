@@ -132,6 +132,7 @@ class _MatchmakingScreenState extends State<MatchmakingScreen> {
   Widget build(BuildContext context) {
     final matchmakingProvider = Provider.of<MatchmakingProvider>(context);
     final matches = matchmakingProvider.matchResults;
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
       appBar: AppBar(
@@ -211,7 +212,10 @@ class _MatchmakingScreenState extends State<MatchmakingScreen> {
                     decoration: InputDecoration(
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(AppTheme.defaultBorderRadius),
+                        borderSide: BorderSide.none,
                       ),
+                      filled: true,
+                      fillColor: isDarkMode ? AppTheme.darkInputBackgroundColor : AppTheme.lightGrayColor,
                       contentPadding: const EdgeInsets.symmetric(
                         horizontal: 16,
                         vertical: 8,
@@ -441,7 +445,7 @@ class _MatchmakingScreenState extends State<MatchmakingScreen> {
                       padding: const EdgeInsets.symmetric(horizontal: 16),
                       minimumSize: const Size(100, 36),
                     ),
-                    child: const Text('Chat'),
+                    child: const Text('Chat', style: TextStyle(fontWeight: FontWeight.bold)),
                   ),
                 ],
               ),
