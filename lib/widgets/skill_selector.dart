@@ -150,7 +150,7 @@ class _SkillSelectorState extends State<SkillSelector> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: AppTheme.defaultPadding, vertical: 8),
       decoration: BoxDecoration(
-        color: isDarkMode ? Colors.grey[850] : AppTheme.lightGrayColor,
+        color: isDarkMode ? AppTheme.darkInputBackgroundColor : AppTheme.lightGrayColor,
         borderRadius: BorderRadius.circular(AppTheme.defaultBorderRadius),
       ),
       child: Column(
@@ -253,7 +253,7 @@ class _SkillSelectorState extends State<SkillSelector> {
                 .toList();
 
             return AlertDialog(
-              backgroundColor: isDarkMode ? Colors.grey[900] : null,
+              backgroundColor: isDarkMode ? AppTheme.darkSurfaceColor : null,
               title: Text(
                 widget.title ?? 'Select a Skill',
                 style:
@@ -280,7 +280,7 @@ class _SkillSelectorState extends State<SkillSelector> {
                                 : Colors.grey[700]),
                         filled: true,
                         fillColor:
-                            isDarkMode ? Colors.grey[800] : Colors.grey[100],
+                            isDarkMode ? AppTheme.darkInputBackgroundColor : Colors.grey[100],
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(8),
                           borderSide: BorderSide.none,
