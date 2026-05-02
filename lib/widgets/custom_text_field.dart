@@ -44,9 +44,9 @@ class CustomTextField extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
-    final textColor = isDarkMode ? Colors.white : Colors.black87;
-    final fillColor = isDarkMode ? Colors.grey[800] : AppTheme.lightGrayColor;
-    final hintColor = isDarkMode ? Colors.grey[400] : Colors.grey[600];
+    final textColor = isDarkMode ? AppTheme.darkTextColor : AppTheme.textColor;
+    final fillColor = isDarkMode ? AppTheme.darkSurfaceColor : AppTheme.lightGrayColor;
+    final hintColor = isDarkMode ? AppTheme.darkDarkGrayColor : AppTheme.darkGrayColor;
 
     OutlineInputBorder _buildBorder({Color? color, double width = 0}) {
       return OutlineInputBorder(

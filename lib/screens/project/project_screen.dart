@@ -206,6 +206,7 @@ class _ProjectsScreenState extends State<ProjectsScreen> {
   }
 
   Widget _buildProjectCard(ProjectModel project) {
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
     return Card(
       margin: const EdgeInsets.only(bottom: AppTheme.defaultPadding),
       elevation: 2,
@@ -259,7 +260,7 @@ class _ProjectsScreenState extends State<ProjectsScreen> {
                 project.description,
                 style: TextStyle(
                   fontSize: 14,
-                  color: Colors.grey[600],
+                  color: isDarkMode ? AppTheme.darkDarkGrayColor : AppTheme.darkGrayColor,
                 ),
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
@@ -267,31 +268,31 @@ class _ProjectsScreenState extends State<ProjectsScreen> {
               const SizedBox(height: 16),
               Row(
                 children: [
-                  const Icon(
+                  Icon(
                     Icons.people_outline_rounded,
                     size: 16,
-                    color: Colors.grey,
+                    color: isDarkMode ? AppTheme.darkDarkGrayColor : AppTheme.darkGrayColor,
                   ),
                   const SizedBox(width: 4),
                   Text(
                     '${project.teamMembers.length} members',
                     style: TextStyle(
                       fontSize: 12,
-                      color: Colors.grey[600],
+                      color: isDarkMode ? AppTheme.darkDarkGrayColor : AppTheme.darkGrayColor,
                     ),
                   ),
                   const SizedBox(width: 16),
-                  const Icon(
+                  Icon(
                     Icons.task_alt_rounded,
                     size: 16,
-                    color: Colors.grey,
+                    color: isDarkMode ? AppTheme.darkDarkGrayColor : AppTheme.darkGrayColor,
                   ),
                   const SizedBox(width: 4),
                   Text(
                     '${project.tasks.length} tasks',
                     style: TextStyle(
                       fontSize: 12,
-                      color: Colors.grey[600],
+                      color: isDarkMode ? AppTheme.darkDarkGrayColor : AppTheme.darkGrayColor,
                     ),
                   ),
                 ],
@@ -320,7 +321,7 @@ class _ProjectsScreenState extends State<ProjectsScreen> {
               const SizedBox(height: 8),
               LinearProgressIndicator(
                 value: project.progress / 100,
-                backgroundColor: Colors.grey[200],
+                backgroundColor: isDarkMode ? AppTheme.darkMediumGrayColor : Colors.grey[200],
                 valueColor: AlwaysStoppedAnimation<Color>(
                   project.progress == 100
                       ? AppTheme.successColor
