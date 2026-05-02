@@ -144,7 +144,7 @@ class ImageUtils {
   static Widget getPlaceholderImage({
     double? width,
     double? height,
-    Color color = Colors.grey,
+    Color color = AppTheme.darkGrayColor,
   }) {
     return Container(
       width: width,
