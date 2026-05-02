@@ -89,7 +89,7 @@ class CallMessageBubble extends StatelessWidget {
                       ? Colors.white
                       : (isDarkMode
                           ? AppTheme.darkMessageTextColor
-                          : Colors.black87),
+                          : AppTheme.textColor),
                 ),
               ),
               Row(
@@ -98,11 +98,11 @@ class CallMessageBubble extends StatelessWidget {
                     statusText,
                     style: TextStyle(
                       color: isCurrentUser
-                          ? Colors.white70
+                          ? Colors.white.withValues(alpha: 0.7)
                           : (isDarkMode
                               ? AppTheme.darkMessageTextColor
                                   .withValues(alpha: 0.7)
-                              : Colors.grey[600]),
+                              : AppTheme.darkGrayColor),
                       fontSize: 12,
                     ),
                   ),
@@ -112,11 +112,11 @@ class CallMessageBubble extends StatelessWidget {
                       '• $durationString',
                       style: TextStyle(
                         color: isCurrentUser
-                            ? Colors.white70
+                            ? Colors.white.withValues(alpha: 0.7)
                             : (isDarkMode
                                 ? AppTheme.darkMessageTextColor
                                     .withValues(alpha: 0.7)
-                                : Colors.grey[600]),
+                                : AppTheme.darkGrayColor),
                         fontSize: 12,
                       ),
                     ),

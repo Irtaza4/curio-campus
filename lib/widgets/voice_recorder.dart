@@ -234,7 +234,7 @@ class _VoiceRecorderState extends State<VoiceRecorder>
             const SizedBox(height: 8),
             LinearProgressIndicator(
               value: null, // Indeterminate
-              backgroundColor: Colors.grey[300],
+              backgroundColor: AppTheme.mediumGrayColor,
               valueColor: AlwaysStoppedAnimation<Color>(AppTheme.primaryColor),
             ),
           ],
