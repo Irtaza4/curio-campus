@@ -513,7 +513,7 @@ class _CallScreenState extends State<CallScreen>
                                     scale: _pulseAnimation.value,
                                     child: CircleAvatar(
                                       radius: 60,
-                                      backgroundColor: Colors.blue,
+                                      backgroundColor: AppTheme.primaryColor,
                                       backgroundImage:
                                           widget.profileImageBase64 != null &&
                                                   widget.profileImageBase64!
@@ -550,7 +550,7 @@ class _CallScreenState extends State<CallScreen>
                             else
                               CircleAvatar(
                                 radius: 60,
-                                backgroundColor: Colors.blue,
+                                backgroundColor: AppTheme.primaryColor,
                                 backgroundImage: widget.profileImageBase64 !=
                                             null &&
                                         widget.profileImageBase64!.isNotEmpty
@@ -629,8 +629,8 @@ class _CallScreenState extends State<CallScreen>
                                           ? Icons.signal_cellular_alt_1_bar
                                           : Icons.signal_cellular_alt,
                                       color: _networkQualityPoor
-                                          ? Colors.orange
-                                          : Colors.green,
+                                          ? Colors.orangeAccent
+                                          : AppTheme.successColor,
                                       size: 16,
                                     ),
                                     const SizedBox(width: 4),
@@ -640,8 +640,8 @@ class _CallScreenState extends State<CallScreen>
                                           : 'Good connection',
                                       style: TextStyle(
                                         color: _networkQualityPoor
-                                            ? Colors.orange
-                                            : Colors.green,
+                                            ? Colors.orangeAccent
+                                            : AppTheme.successColor,
                                         fontSize: 12,
                                       ),
                                     ),
