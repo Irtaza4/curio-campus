@@ -368,13 +368,13 @@ class _EditGroupChatScreenState extends State<EditGroupChatScreen> {
                               backgroundColor: isDarkMode
                                   ? AppTheme.darkLightGrayColor
                                   : AppTheme.lightGrayColor,
-                              child: Icon(
-                                Icons.group,
-                                size: 50,
-                                color: isDarkMode
-                                    ? AppTheme.darkDarkGrayColor
-                                    : AppTheme.darkGrayColor,
-                              ),
+                                child: Icon(
+                                  Icons.group_rounded,
+                                  size: 50,
+                                  color: isDarkMode
+                                      ? AppTheme.darkDarkGrayColor
+                                      : AppTheme.darkGrayColor,
+                                ),
                             ),
                       Positioned(
                         right: 0,
