@@ -144,7 +144,7 @@ class _ImageViewerScreenState extends State<ImageViewerScreen> {
         actions: [
           if (!_isSaving)
             IconButton(
-              icon: const Icon(Icons.download),
+              icon: const Icon(Icons.download_rounded),
               onPressed: _downloadImage,
             )
           else
@@ -157,7 +157,7 @@ class _ImageViewerScreenState extends State<ImageViewerScreen> {
               ),
             ),
           IconButton(
-            icon: const Icon(Icons.share),
+            icon: const Icon(Icons.share_rounded),
             onPressed: _shareImage,
           ),
         ],
@@ -179,7 +179,7 @@ class _ImageViewerScreenState extends State<ImageViewerScreen> {
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: [
             IconButton(
-              icon: const Icon(Icons.zoom_out, color: Colors.white),
+              icon: const Icon(Icons.zoom_out_rounded, color: Colors.white),
               onPressed: () {
                 final Matrix4 currentTransform =
                     _transformationController.value;
@@ -189,7 +189,7 @@ class _ImageViewerScreenState extends State<ImageViewerScreen> {
               },
             ),
             IconButton(
-              icon: const Icon(Icons.zoom_in, color: Colors.white),
+              icon: const Icon(Icons.zoom_in_rounded, color: Colors.white),
               onPressed: () {
                 final Matrix4 currentTransform =
                     _transformationController.value;
@@ -199,7 +199,7 @@ class _ImageViewerScreenState extends State<ImageViewerScreen> {
               },
             ),
             IconButton(
-              icon: const Icon(Icons.refresh, color: Colors.white),
+              icon: const Icon(Icons.refresh_rounded, color: Colors.white),
               onPressed: () {
                 _transformationController.value = Matrix4.identity();
               },
@@ -288,8 +288,8 @@ class _ImageViewerScreenState extends State<ImageViewerScreen> {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   const Icon(
-                    Icons.broken_image,
-                    color: Colors.red,
+                    Icons.broken_image_rounded,
+                    color: AppTheme.errorColor,
                     size: 48,
                   ),
                   const SizedBox(height: 16),
@@ -309,8 +309,8 @@ class _ImageViewerScreenState extends State<ImageViewerScreen> {
             mainAxisSize: MainAxisSize.min,
             children: [
               const Icon(
-                Icons.broken_image,
-                color: Colors.red,
+                Icons.broken_image_rounded,
+                color: AppTheme.errorColor,
                 size: 48,
               ),
               const SizedBox(height: 16),
@@ -329,7 +329,7 @@ class _ImageViewerScreenState extends State<ImageViewerScreen> {
           mainAxisSize: MainAxisSize.min,
           children: [
             const Icon(
-              Icons.image_not_supported,
+              Icons.image_not_supported_rounded,
               color: Colors.white,
               size: 48,
             ),
