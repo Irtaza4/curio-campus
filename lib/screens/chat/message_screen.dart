@@ -310,7 +310,7 @@ class _MessagesScreenState extends State<MessagesScreen> {
                   fontSize: 12,
                   color: isDarkMode
                       ? AppTheme.darkDarkGrayColor
-                      : Colors.grey[600],
+                      : AppTheme.darkGrayColor,
                 ),
               ),
               const SizedBox(height: 4),

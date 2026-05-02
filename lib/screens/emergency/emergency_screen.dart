@@ -214,7 +214,7 @@ class _EmergencyScreenState extends State<EmergencyScreen>
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Error deleting request: ${e.toString()}'),
-            backgroundColor: Colors.red,
+            backgroundColor: AppTheme.errorColor,
           ),
         );
       }
@@ -408,7 +408,7 @@ class _EmergencyScreenState extends State<EmergencyScreen>
             // Avatar
             CircleAvatar(
               radius: 24,
-              backgroundColor: isIgnored ? Colors.grey : AppTheme.primaryColor,
+              backgroundColor: isIgnored ? AppTheme.darkGrayColor : AppTheme.primaryColor,
               child: ImageUtils.getUserPlaceholder(
                 initial: request.requesterName.isNotEmpty
                     ? request.requesterName[0].toUpperCase()
@@ -432,7 +432,7 @@ class _EmergencyScreenState extends State<EmergencyScreen>
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
                           color: isIgnored
-                              ? Colors.grey
+                              ? AppTheme.darkGrayColor
                               : (isDarkMode
                                   ? AppTheme.darkTextColor
                                   : AppTheme.primaryColor),
@@ -448,7 +448,7 @@ class _EmergencyScreenState extends State<EmergencyScreen>
                                 icon: const Icon(Icons.restore_rounded, size: 18),
                                 label: const Text('Restore'),
                                 style: TextButton.styleFrom(
-                                  foregroundColor: Colors.blue,
+                                  foregroundColor: AppTheme.primaryColor,
                                   minimumSize: const Size(0, 30),
                                 ),
                               )
@@ -459,7 +459,7 @@ class _EmergencyScreenState extends State<EmergencyScreen>
                                     const Icon(Icons.visibility_off_rounded, size: 18),
                                 label: const Text('Ignore'),
                                 style: TextButton.styleFrom(
-                                  foregroundColor: Colors.grey,
+                                  foregroundColor: AppTheme.darkGrayColor,
                                   minimumSize: const Size(0, 30),
                                 ),
                               ),
@@ -485,7 +485,7 @@ class _EmergencyScreenState extends State<EmergencyScreen>
                                 ),
                                 IconButton(
                                   icon: const Icon(Icons.delete_rounded, size: 20),
-                                  color: Colors.red,
+                                  color: AppTheme.errorColor,
                                   onPressed: onDelete,
                                   constraints: const BoxConstraints(),
                                   padding: EdgeInsets.zero,
@@ -509,7 +509,7 @@ class _EmergencyScreenState extends State<EmergencyScreen>
                             },
                             style: ElevatedButton.styleFrom(
                               backgroundColor: isIgnored
-                                  ? Colors.grey
+                                  ? AppTheme.darkGrayColor
                                   : AppTheme.primaryColor,
                               foregroundColor: Colors.white,
                               padding: const EdgeInsets.symmetric(
@@ -568,7 +568,7 @@ class _EmergencyScreenState extends State<EmergencyScreen>
                           style: TextStyle(
                             fontSize: 12,
                             color:
-                                isIgnored ? Colors.grey : AppTheme.primaryColor,
+                                isIgnored ? AppTheme.darkGrayColor : AppTheme.primaryColor,
                           ),
                         ),
                       );
@@ -631,7 +631,7 @@ class _EmergencyScreenState extends State<EmergencyScreen>
                         'Ignored',
                         style: TextStyle(
                           fontSize: 12,
-                          color: Colors.grey,
+                          color: AppTheme.darkGrayColor,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
