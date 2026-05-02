@@ -182,7 +182,7 @@ class _CreateGroupChatScreenState extends State<CreateGroupChatScreen> {
                                   ? AppTheme.darkLightGrayColor
                                   : AppTheme.lightGrayColor,
                               child: _isImageLoading
-                                  ? const CircularProgressIndicator()
+                                  ? const CircularProgressIndicator(color: AppTheme.primaryColor)
                                   : Icon(
                                       Icons.group_rounded,
                                       size: 50,
