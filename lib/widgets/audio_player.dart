@@ -185,7 +185,7 @@ class _AudioMessagePlayerState extends State<AudioMessagePlayer> {
         width: 200,
         height: 50,
         decoration: BoxDecoration(
-          color: isDarkMode ? Colors.grey[800] : Colors.grey[200],
+          color: isDarkMode ? AppTheme.darkSurfaceColor : AppTheme.lightGrayColor,
           borderRadius: BorderRadius.circular(AppTheme.defaultBorderRadius),
         ),
         child: const Center(
@@ -205,7 +205,7 @@ class _AudioMessagePlayerState extends State<AudioMessagePlayer> {
         width: 200,
         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
         decoration: BoxDecoration(
-          color: isDarkMode ? Colors.grey[800] : Colors.grey[200],
+          color: isDarkMode ? AppTheme.darkSurfaceColor : AppTheme.lightGrayColor,
           borderRadius: BorderRadius.circular(AppTheme.defaultBorderRadius),
         ),
         child: Row(
@@ -220,7 +220,7 @@ class _AudioMessagePlayerState extends State<AudioMessagePlayer> {
               child: Text(
                 'Error loading audio',
                 style: TextStyle(
-                  color: isDarkMode ? Colors.white70 : Colors.black87,
+                  color: isDarkMode ? AppTheme.darkTextColor : AppTheme.textColor,
                   fontSize: 12,
                 ),
               ),
@@ -244,7 +244,7 @@ class _AudioMessagePlayerState extends State<AudioMessagePlayer> {
       width: 200,
       padding: const EdgeInsets.symmetric(horizontal: AppTheme.defaultPadding, vertical: 8),
       decoration: BoxDecoration(
-        color: isDarkMode ? AppTheme.darkInputBackgroundColor : Colors.grey[200],
+        color: isDarkMode ? AppTheme.darkInputBackgroundColor : AppTheme.lightGrayColor,
         borderRadius: BorderRadius.circular(AppTheme.defaultBorderRadius),
       ),
       child: Row(
@@ -274,7 +274,7 @@ class _AudioMessagePlayerState extends State<AudioMessagePlayer> {
                         const RoundSliderOverlayShape(overlayRadius: 14),
                     activeTrackColor: AppTheme.primaryColor,
                     inactiveTrackColor:
-                        isDarkMode ? Colors.grey[600] : Colors.grey[300],
+                        isDarkMode ? AppTheme.darkMediumGrayColor : AppTheme.mediumGrayColor,
                     thumbColor: AppTheme.primaryColor,
                     overlayColor: AppTheme.primaryColor.withValues(alpha: 0.2),
                   ),
@@ -304,7 +304,7 @@ class _AudioMessagePlayerState extends State<AudioMessagePlayer> {
                         style: TextStyle(
                           fontSize: 10,
                           color:
-                              isDarkMode ? Colors.grey[400] : Colors.grey[600],
+                              isDarkMode ? AppTheme.darkDarkGrayColor : AppTheme.darkGrayColor,
                         ),
                       ),
                       Text(
@@ -312,7 +312,7 @@ class _AudioMessagePlayerState extends State<AudioMessagePlayer> {
                         style: TextStyle(
                           fontSize: 10,
                           color:
-                              isDarkMode ? Colors.grey[400] : Colors.grey[600],
+                              isDarkMode ? AppTheme.darkDarkGrayColor : AppTheme.darkGrayColor,
                         ),
                       ),
                     ],
