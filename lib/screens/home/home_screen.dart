@@ -229,7 +229,7 @@ class _HomeScreenState extends State<HomeScreen> {
             label: 'Projects',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.emergency_outlined), // Usually ok
+            icon: Icon(Icons.emergency_rounded), // Usually ok
             activeIcon: Icon(Icons.emergency_rounded),
             label: 'Emergency',
           ),
