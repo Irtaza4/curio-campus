@@ -79,7 +79,7 @@ class NotificationDrawer extends StatelessWidget {
                               'No notifications',
                               style: TextStyle(
                                 fontSize: 16,
-                                color: Colors.grey,
+                                color: isDarkMode ? AppTheme.darkDarkGrayColor : AppTheme.darkGrayColor,
                               ),
                             ),
                           ),
@@ -112,6 +112,8 @@ class NotificationDrawer extends StatelessWidget {
     NotificationModel notification,
     NotificationProvider notificationProvider,
   ) {
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+    
     // Check if this is a chat request notification
     final additionalData = notification.additionalData;
     final bool isChatRequest = additionalData != null &&
@@ -158,7 +160,7 @@ class NotificationDrawer extends StatelessWidget {
               notification.getTimeAgo(),
               style: TextStyle(
                 fontSize: 12,
-                color: Colors.grey[600],
+                color: isDarkMode ? AppTheme.darkDarkGrayColor : AppTheme.darkGrayColor,
               ),
             ),
             onTap: () async {
