@@ -190,8 +190,8 @@ class _SkillSelectorState extends State<SkillSelector> {
                 decoration: BoxDecoration(
                   border: Border.all(
                       color: isDarkMode
-                          ? Colors.grey[600]!
-                          : Colors.grey.shade400),
+                          ? AppTheme.darkMediumGrayColor
+                          : AppTheme.mediumGrayColor),
                   borderRadius: BorderRadius.circular(AppTheme.defaultBorderRadius),
                 ),
                 child: Row(
@@ -201,8 +201,8 @@ class _SkillSelectorState extends State<SkillSelector> {
                       'Select a skill',
                       style: TextStyle(
                         color: isDarkMode
-                            ? Colors.grey[300]
-                            : Colors.grey.shade700,
+                            ? AppTheme.darkDarkGrayColor
+                            : AppTheme.darkGrayColor,
                         fontSize: 16,
                       ),
                     ),
@@ -220,7 +220,7 @@ class _SkillSelectorState extends State<SkillSelector> {
               child: Text(
                 'All available skills have been selected',
                 style: TextStyle(
-                  color: isDarkMode ? Colors.grey[400] : Colors.grey,
+                  color: isDarkMode ? AppTheme.darkDarkGrayColor : AppTheme.darkGrayColor,
                   fontStyle: FontStyle.italic,
                 ),
               ),
@@ -272,15 +272,15 @@ class _SkillSelectorState extends State<SkillSelector> {
                         hintText: 'Search skills...',
                         hintStyle: TextStyle(
                             color: isDarkMode
-                                ? Colors.grey[400]
-                                : Colors.grey[600]),
+                                ? AppTheme.darkDarkGrayColor
+                                : AppTheme.darkGrayColor),
                         prefixIcon: Icon(Icons.search_rounded,
                             color: isDarkMode
-                                ? Colors.grey[300]
-                                : Colors.grey[700]),
+                                ? AppTheme.darkDarkGrayColor
+                                : AppTheme.darkGrayColor),
                         filled: true,
                         fillColor:
-                            isDarkMode ? AppTheme.darkInputBackgroundColor : Colors.grey[100],
+                            isDarkMode ? AppTheme.darkInputBackgroundColor : AppTheme.lightGrayColor,
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(8),
                           borderSide: BorderSide.none,
@@ -301,8 +301,8 @@ class _SkillSelectorState extends State<SkillSelector> {
                               backgroundColor: showingMajorSkills
                                   ? AppTheme.primaryColor
                                   : (isDarkMode
-                                      ? Colors.grey[700]
-                                      : Colors.grey.shade300),
+                                      ? AppTheme.darkSurfaceColor
+                                      : AppTheme.mediumGrayColor),
                               foregroundColor: showingMajorSkills
                                   ? Colors.white
                                   : (isDarkMode ? Colors.white : Colors.black),
@@ -319,8 +319,8 @@ class _SkillSelectorState extends State<SkillSelector> {
                               backgroundColor: !showingMajorSkills
                                   ? AppTheme.primaryColor
                                   : (isDarkMode
-                                      ? Colors.grey[700]
-                                      : Colors.grey.shade300),
+                                      ? AppTheme.darkSurfaceColor
+                                      : AppTheme.mediumGrayColor),
                               foregroundColor: !showingMajorSkills
                                   ? Colors.white
                                   : (isDarkMode ? Colors.white : Colors.black),
