@@ -231,7 +231,7 @@ class _CreateEmergencyRequestScreenState
                               .format(_deadline),
                           style: TextStyle(
                             fontSize: 16,
-                            color: isDark ? Colors.white : Colors.black87,
+                            color: isDark ? AppTheme.darkTextColor : AppTheme.textColor,
                           ),
                         ),
                         Icon(
