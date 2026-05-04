@@ -242,7 +242,7 @@ class _EmergencyRequestDetailScreenState
               _request != null &&
               !_request!.isResolved) ...[
             IconButton(
-              icon: const Icon(Icons.edit),
+              icon: const Icon(Icons.edit_rounded),
               onPressed: _editRequest,
             ),
             IconButton(
@@ -345,8 +345,8 @@ class _EmergencyRequestDetailScreenState
                                     color: widget.isOwnRequest
                                         ? AppTheme.primaryColor
                                         : (isDarkMode
-                                            ? Colors.white
-                                            : Colors.black),
+                                            ? AppTheme.darkTextColor
+                                            : AppTheme.textColor),
                                   ),
                                 ),
                                         const SizedBox(height: 4),
@@ -388,7 +388,7 @@ class _EmergencyRequestDetailScreenState
                                   fontWeight: FontWeight.bold,
                                   // Fix: Use theme-aware text color
                                   color:
-                                      isDarkMode ? Colors.white : Colors.black,
+                                      isDarkMode ? AppTheme.darkTextColor : AppTheme.textColor,
                                 ),
                               ),
                               const SizedBox(height: 8),
@@ -400,8 +400,8 @@ class _EmergencyRequestDetailScreenState
                                   fontSize: 16,
                                   // Fix: Use theme-aware text color
                                   color: isDarkMode
-                                      ? Colors.white70
-                                      : Colors.black,
+                                      ? AppTheme.darkTextColor
+                                      : AppTheme.textColor,
                                 ),
                               ),
                               const SizedBox(height: 16),
@@ -523,7 +523,7 @@ class _EmergencyRequestDetailScreenState
                               Expanded(
                                 child: ElevatedButton.icon(
                                   onPressed: _editRequest,
-                                  icon: const Icon(Icons.edit),
+                                  icon: const Icon(Icons.edit_rounded),
                                   label: const Text('Edit Request'),
                                   style: ElevatedButton.styleFrom(
                                     padding: const EdgeInsets.symmetric(
@@ -536,7 +536,7 @@ class _EmergencyRequestDetailScreenState
                                 child: ElevatedButton.icon(
                                   onPressed: _resolveRequest,
                                   icon: const Icon(
-                                    Icons.check_circle,
+                                    Icons.check_circle_rounded,
                                     color: Colors.white,
                                   ),
                                   label: const Text('Mark as Resolved'),
@@ -569,7 +569,7 @@ class _EmergencyRequestDetailScreenState
                                 child: ElevatedButton.icon(
                                   onPressed: _resolveRequest,
                                   icon: const Icon(
-                                    Icons.check_circle,
+                                    Icons.check_circle_rounded,
                                     color: Colors.white,
                                   ),
                                   label: const Text('Mark as Resolved'),
@@ -588,7 +588,7 @@ class _EmergencyRequestDetailScreenState
                           ElevatedButton.icon(
                             onPressed: _contactRequester,
                             icon: const Icon(
-                              Icons.chat,
+                              Icons.chat_rounded,
                               color: Colors.white,
                             ),
                             label: const Text('Contact Requester'),
