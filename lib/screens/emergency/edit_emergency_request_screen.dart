@@ -239,7 +239,7 @@ class _EditEmergencyRequestScreenState
                       ),
                       decoration: BoxDecoration(
                         color: isDark
-                            ? AppTheme.darkMediumGrayColor
+                            ? AppTheme.darkInputBackgroundColor
                             : AppTheme
                                 .lightGrayColor, // Change container color based on theme
                         borderRadius: BorderRadius.circular(AppTheme.defaultBorderRadius),
@@ -253,9 +253,8 @@ class _EditEmergencyRequestScreenState
                             style: TextStyle(
                               fontSize: 16,
                               color: isDark
-                                  ? Colors.white70
-                                  : Colors
-                                      .black87, // Change text color based on theme
+                                  ? AppTheme.darkTextColor
+                                  : AppTheme.textColor, // Change text color based on theme
                             ),
                           ),
                           Icon(
