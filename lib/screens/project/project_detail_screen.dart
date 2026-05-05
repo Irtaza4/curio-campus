@@ -594,7 +594,7 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
                                     ),
                                     decoration: BoxDecoration(
                                       border: Border.all(
-                                        color: Colors.grey[300]!,
+                                        color: isDarkMode ? AppTheme.darkMediumGrayColor : AppTheme.mediumGrayColor,
                                       ),
                                       borderRadius: BorderRadius.circular(8),
                                     ),
@@ -629,6 +629,7 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
   }
 
   Widget _buildTaskItem(TaskModel task) {
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
       child: Row(
@@ -671,8 +672,8 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
                         ? TextDecoration.lineThrough
                         : null,
                     color: task.status == TaskStatus.completed
-                        ? (isDarkMode ? AppTheme.darkDarkGrayColor : Colors.grey)
-                        : (isDarkMode ? AppTheme.darkTextColor : Colors.black87),
+                        ? (isDarkMode ? AppTheme.darkDarkGrayColor : AppTheme.darkGrayColor)
+                        : (isDarkMode ? AppTheme.darkTextColor : AppTheme.textColor),
                   ),
                 ),
                 const SizedBox(height: 4),
