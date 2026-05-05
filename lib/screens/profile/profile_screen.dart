@@ -331,15 +331,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   Widget _buildProfileAvatar(String? base64Image) {
     if (base64Image == null || base64Image.isEmpty) {
-      return CircleAvatar(
-        radius: 50,
-        backgroundColor: Colors.white,
+        backgroundColor: isDarkMode ? AppTheme.darkSurfaceColor : Colors.white,
         child: const Icon(
-          Icons.person,
+          Icons.person_rounded,
           size: 50,
           color: AppTheme.primaryColor,
         ),
-      );
     }
 
     try {
@@ -347,7 +344,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
       final image = MemoryImage(base64Decode(base64Image));
       return CircleAvatar(
         radius: 50,
-        backgroundColor: Colors.white,
         backgroundImage: image,
       );
     } catch (e) {
@@ -356,7 +352,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         radius: 50,
         backgroundColor: Colors.white,
         child: const Icon(
-          Icons.person,
+          Icons.person_rounded,
           size: 50,
           color: AppTheme.primaryColor,
         ),
@@ -418,8 +414,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 title.contains("SKILLS")
                     ? Icons.check_circle_rounded
                     : title.contains("TEAM")
-                        ? Icons.person
-                        : Icons.task_alt)
+                        ? Icons.person_rounded
+                        : Icons.task_alt_rounded)
           else
             Text(
               content,
