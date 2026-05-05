@@ -118,7 +118,7 @@ class _CreateTaskScreenState extends State<CreateTaskScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('Please assign the task to a team member'),
-            backgroundColor: Colors.red,
+            backgroundColor: AppTheme.errorColor,
           ),
         );
         return;
@@ -162,7 +162,7 @@ class _CreateTaskScreenState extends State<CreateTaskScreen> {
           SnackBar(
             content:
                 Text(projectProvider.errorMessage ?? 'Failed to create task'),
-            backgroundColor: Colors.red,
+            backgroundColor: AppTheme.errorColor,
           ),
         );
       }
@@ -210,6 +210,7 @@ class _CreateTaskScreenState extends State<CreateTaskScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
     return Scaffold(
       appBar: AppBar(
         title: const Text('Create Task'),
@@ -285,7 +286,7 @@ class _CreateTaskScreenState extends State<CreateTaskScreen> {
                     vertical: 16,
                   ),
                   decoration: BoxDecoration(
-                    color: AppTheme.lightGrayColor,
+                    color: isDarkMode ? AppTheme.darkInputBackgroundColor : AppTheme.lightGrayColor,
                     borderRadius: BorderRadius.circular(AppTheme.defaultBorderRadius),
                   ),
                   child: Row(
@@ -293,9 +294,9 @@ class _CreateTaskScreenState extends State<CreateTaskScreen> {
                     children: [
                       Text(
                         DateFormat('MMMM dd, yyyy').format(_dueDate),
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 16,
-                          color: Colors.black87,
+                          color: isDarkMode ? AppTheme.darkTextColor : AppTheme.textColor,
                         ),
                       ),
                       const Icon(
@@ -326,7 +327,7 @@ class _CreateTaskScreenState extends State<CreateTaskScreen> {
                   vertical: 8,
                 ),
                 decoration: BoxDecoration(
-                  color: AppTheme.lightGrayColor,
+                  color: isDarkMode ? AppTheme.darkInputBackgroundColor : AppTheme.lightGrayColor,
                   borderRadius: BorderRadius.circular(AppTheme.defaultBorderRadius),
                 ),
                 child: DropdownButtonHideUnderline(
@@ -384,7 +385,7 @@ class _CreateTaskScreenState extends State<CreateTaskScreen> {
                         vertical: 8,
                       ),
                       decoration: BoxDecoration(
-                        color: AppTheme.lightGrayColor,
+                        color: isDarkMode ? AppTheme.darkInputBackgroundColor : AppTheme.lightGrayColor,
                         borderRadius: BorderRadius.circular(AppTheme.defaultBorderRadius),
                       ),
                       child: DropdownButtonHideUnderline(
