@@ -72,9 +72,9 @@ class NotificationDrawer extends StatelessWidget {
               child: notificationProvider.isLoading
                   ? const Center(child: CircularProgressIndicator())
                   : notifications.isEmpty
-                      ? const Center(
+                      ? Center(
                           child: Padding(
-                            padding: EdgeInsets.all(16.0),
+                            padding: const EdgeInsets.all(16.0),
                             child: Text(
                               'No notifications',
                               style: TextStyle(
@@ -87,9 +87,10 @@ class NotificationDrawer extends StatelessWidget {
                       : RefreshIndicator(
                           onRefresh: () =>
                               notificationProvider.fetchNotifications(),
-                          child: ListView.builder(
+                          child: ListView.separated(
                             controller: scrollController,
                             itemCount: notifications.length,
+                            separatorBuilder: (context, index) => const Divider(height: 1),
                             itemBuilder: (context, index) {
                               final notification = notifications[index];
                               return _buildNotificationItem(
@@ -144,9 +145,9 @@ class NotificationDrawer extends StatelessWidget {
         children: [
           ListTile(
             leading: CircleAvatar(
-              backgroundColor: notification.getColor().withValues(alpha: 0.2),
+              backgroundColor: (isDarkMode ? _getNotificationColor(notification, true) : notification.getColor()).withValues(alpha: 0.2),
               child:
-                  Icon(notification.getIcon(), color: notification.getColor()),
+                  Icon(notification.getIcon(), color: isDarkMode ? _getNotificationColor(notification, true) : notification.getColor()),
             ),
             title: Text(
               notification.title,
@@ -172,6 +173,7 @@ class NotificationDrawer extends StatelessWidget {
               // Navigate based on notification type
               if (context.mounted) {
                 Navigator.pop(context); // Close the drawer
+                // Use the main navigator for pushing new screens
                 _navigateToNotificationDestination(context, notification);
               }
             },
@@ -377,6 +379,25 @@ class NotificationDrawer extends StatelessWidget {
           debugPrint('Call notification missing required data.');
         }
         break;
+    }
+  }
+
+  Color _getNotificationColor(NotificationModel notification, bool isDarkMode) {
+    if (!isDarkMode) return notification.getColor();
+
+    switch (notification.type) {
+      case NotificationType.chat:
+        return AppTheme.primaryColor;
+      case NotificationType.emergency:
+        return Colors.orangeAccent;
+      case NotificationType.project:
+        return AppTheme.darkSuccessColor;
+      case NotificationType.profile:
+        return Colors.purpleAccent;
+      case NotificationType.call:
+        return Colors.purpleAccent;
+      case NotificationType.system:
+        return AppTheme.darkDarkGrayColor;
     }
   }
 }

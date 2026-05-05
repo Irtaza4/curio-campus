@@ -656,7 +656,7 @@ class _EditProjectScreenState extends State<EditProjectScreen> {
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(AppTheme.defaultBorderRadius / 2),
                             ),
-                            deleteIcon: const Icon(Icons.close, size: 18),
+                            deleteIcon: const Icon(Icons.close_rounded, size: 18),
                             onDeleted: () {
                               setState(() {
                                 _selectedTeamMembers.remove(userId);
