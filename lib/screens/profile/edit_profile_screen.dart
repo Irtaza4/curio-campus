@@ -142,6 +142,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     final user = Provider.of<AuthProvider>(context).userModel;
     final theme = Theme.of(context);
     final textTheme = theme.textTheme;
+    final isDarkMode = theme.brightness == Brightness.dark;
 
     if (user == null) {
       return const Scaffold(
@@ -205,13 +206,15 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                                 width: 120,
                                 height: 120,
                                 decoration: BoxDecoration(
-                                  color: theme.colorScheme.surfaceContainerHighest,
+                                  color: isDarkMode
+                                      ? AppTheme.darkLightGrayColor
+                                      : AppTheme.lightGrayColor,
                                   shape: BoxShape.circle,
                                 ),
                                 child: Icon(
                                   Icons.person_rounded,
                                   size: 60,
-                                  color: theme.colorScheme.primary,
+                                  color: AppTheme.primaryColor,
                                 ),
                               ),
                     Positioned(
