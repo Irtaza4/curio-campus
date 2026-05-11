@@ -28,6 +28,7 @@ class ProjectProvider with ChangeNotifier {
   String? get errorMessage => _errorMessage;
   String? get currentUserId => _auth.currentUser?.uid;
 
+  
   // Initialize projects from shared preferences
   Future<void> initProjects() async {
     if (_auth.currentUser == null) return;
