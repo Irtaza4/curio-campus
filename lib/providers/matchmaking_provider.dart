@@ -18,8 +18,6 @@ class MatchmakingProvider with ChangeNotifier {
   bool get isLoading => _isLoading;
   String? get errorMessage => _errorMessage;
 
-
-
   Future<void> findMatches({List<String>? requiredSkills}) async {
     if (_auth.currentUser == null) return;
 
@@ -44,11 +42,14 @@ class MatchmakingProvider with ChangeNotifier {
       }
 
       final userData = userDoc.data() as Map<String, dynamic>;
-      final List<String> userMajorSkills = List<String>.from(userData['majorSkills'] ?? []);
-      final List<String> userMinorSkills = List<String>.from(userData['minorSkills'] ?? []);
+      final List<String> userMajorSkills =
+          List<String>.from(userData['majorSkills'] ?? []);
+      final List<String> userMinorSkills =
+          List<String>.from(userData['minorSkills'] ?? []);
 
       // Use required skills if provided, otherwise use user's skills
-      final skillsToMatch = requiredSkills ?? [...userMajorSkills, ...userMinorSkills];
+      final skillsToMatch =
+          requiredSkills ?? [...userMajorSkills, ...userMinorSkills];
 
       if (skillsToMatch.isEmpty) {
         _isLoading = false;
@@ -85,7 +86,8 @@ class MatchmakingProvider with ChangeNotifier {
         }
 
         if (matchingSkills > 0) {
-          final double compatibilityScore = matchingSkills / skillsToMatch.length;
+          final double compatibilityScore =
+              matchingSkills / skillsToMatch.length;
 
           // Calculate response time (simplified for demo)
           final responseTime = _calculateResponseTime(otherUser.lastActive);
@@ -103,7 +105,8 @@ class MatchmakingProvider with ChangeNotifier {
       }
 
       // Sort by compatibility score (highest first)
-      results.sort((a, b) => b.compatibilityScore.compareTo(a.compatibilityScore));
+      results
+          .sort((a, b) => b.compatibilityScore.compareTo(a.compatibilityScore));
 
       _matchResults = results;
       _isLoading = false;
@@ -132,4 +135,3 @@ class MatchmakingProvider with ChangeNotifier {
     }
   }
 }
-
