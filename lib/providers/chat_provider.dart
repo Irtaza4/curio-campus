@@ -24,7 +24,6 @@ class ChatProvider with ChangeNotifier {
   StreamSubscription<QuerySnapshot>? _messagesSubscription;
   StreamSubscription<QuerySnapshot>? _chatsSubscription;
 
-
   List<ChatModel> get chats => _chats;
   List<MessageModel> get messages => _messages;
   bool get isLoading => _isLoading;
