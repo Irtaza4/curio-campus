@@ -142,7 +142,7 @@ class MoreOptionsSheet extends StatelessWidget {
               ),
             const Divider(),
             ListTile(
-              leading: const Icon(Icons.notifications_outlined_rounded,
+              leading: const Icon(Icons.notifications_outlined,
                   color: AppTheme.primaryColor),
               title: const Text('Notifications'),
               onTap: () {
