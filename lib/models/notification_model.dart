@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:curio_campus/utils/app_theme.dart';
 
 enum NotificationType {
   chat,
