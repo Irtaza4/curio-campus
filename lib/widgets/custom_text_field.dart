@@ -48,7 +48,7 @@ class CustomTextField extends StatelessWidget {
     final fillColor = isDarkMode ? AppTheme.darkSurfaceColor : AppTheme.lightGrayColor;
     final hintColor = isDarkMode ? AppTheme.darkDarkGrayColor : AppTheme.darkGrayColor;
 
-    OutlineInputBorder _buildBorder({Color? color, double width = 0}) {
+    OutlineInputBorder buildBorder({Color? color, double width = 0}) {
       return OutlineInputBorder(
         borderRadius: const BorderRadius.all(Radius.circular(AppTheme.defaultBorderRadius)),
         borderSide: color != null
@@ -88,10 +88,10 @@ class CustomTextField extends StatelessWidget {
           horizontal: AppTheme.defaultPadding,
           vertical: AppTheme.defaultPadding,
         ),
-        border: _buildBorder(),
-        focusedBorder: _buildBorder(color: AppTheme.primaryColor, width: 2),
-        errorBorder: _buildBorder(color: AppTheme.errorColor, width: 1),
-        focusedErrorBorder: _buildBorder(color: AppTheme.errorColor, width: 2),
+        border: buildBorder(),
+        focusedBorder: buildBorder(color: AppTheme.primaryColor, width: 2),
+        errorBorder: buildBorder(color: AppTheme.errorColor, width: 1),
+        focusedErrorBorder: buildBorder(color: AppTheme.errorColor, width: 2),
         errorStyle: const TextStyle(color: AppTheme.errorColor),
       ),
     );
