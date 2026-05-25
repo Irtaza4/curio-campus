@@ -182,7 +182,7 @@ class AppTheme {
     outlinedButtonTheme: OutlinedButtonThemeData(
       style: secondaryButtonStyle,
 
-      
+
     ),
     textButtonTheme: TextButtonThemeData(
       style: TextButton.styleFrom(
