@@ -16,6 +16,7 @@ import 'package:curio_campus/screens/project/project_detail_screen.dart';
 import 'package:curio_campus/services/notification_service.dart';
 import 'package:curio_campus/services/call_service.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:curio_campus/utils/logger.dart';
 
 // Global reference to services for easy access
 final CallService callService = CallService();
@@ -44,12 +45,12 @@ class _MyAppState extends State<MyApp> {
   void _setupNotificationHandling() {
     // Handle foreground messages
     FirebaseMessaging.onMessage.listen((RemoteMessage message) {
-      debugPrint('Got a message whilst in the foreground!');
-      debugPrint('Message data: ${message.data}');
+      Logger.info('Got a message whilst in the foreground!', tag: 'Notification');
+      Logger.info('Message data: ${message.data}', tag: 'Notification');
 
       if (message.notification != null) {
-        debugPrint(
-            'Message also contained a notification: ${message.notification}');
+        Logger.info(
+            'Message also contained a notification: ${message.notification}', tag: 'Notification');
         // Show local notification
         notificationService.handleForegroundMessage(message);
       }
@@ -57,8 +58,8 @@ class _MyAppState extends State<MyApp> {
 
     // Handle notification clicks when app is in background
     FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
-      debugPrint(
-          'A notification was clicked when the app was in the background!');
+      Logger.info(
+          'A notification was clicked when the app was in the background!', tag: 'Notification');
       notificationService.handleNotificationData(message.data);
     });
   }
