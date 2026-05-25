@@ -330,18 +330,22 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Widget _buildProfileAvatar(String? base64Image) {
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
     if (base64Image == null || base64Image.isEmpty) {
+      return CircleAvatar(
+        radius: 50,
         backgroundColor: isDarkMode ? AppTheme.darkSurfaceColor : Colors.white,
         child: const Icon(
           Icons.person_rounded,
           size: 50,
           color: AppTheme.primaryColor,
         ),
+      );
     }
 
     try {
       // Decode the base64 image data
-      final image = MemoryImage(base64Decode(base64Image));
+      final image = MemoryImage(base64Decode(base64Image!));
       return CircleAvatar(
         radius: 50,
         backgroundImage: image,
