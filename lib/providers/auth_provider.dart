@@ -7,6 +7,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:curio_campus/models/user_model.dart';
 import 'package:curio_campus/utils/constants.dart';
+import 'package:curio_campus/utils/logger.dart';
 
 class AuthProvider with ChangeNotifier {
   final FirebaseAuth _auth = FirebaseAuth.instance;
@@ -46,7 +47,7 @@ class AuthProvider with ChangeNotifier {
         _userModel = UserModel.fromJson(userData);
       }
     } catch (e) {
-      debugPrint('Error loading user from prefs: $e');
+      Logger.error('Error loading user from prefs', error: e, tag: 'Auth');
     }
   }
 
@@ -58,7 +59,7 @@ class AuthProvider with ChangeNotifier {
       final userJson = jsonEncode(_userModel!.toJson());
       await prefs.setString('${_userModel!.id}_user_data', userJson);
     } catch (e) {
-      debugPrint('Error saving user to prefs: $e');
+      Logger.error('Error saving user to prefs', error: e, tag: 'Auth');
     }
   }
 
