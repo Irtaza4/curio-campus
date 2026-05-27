@@ -31,6 +31,7 @@ class _ProjectsScreenState extends State<ProjectsScreen> {
         _isLoading = true;
       });
     }
+    
 
     try {
       // First try to load from shared preferences for immediate display
