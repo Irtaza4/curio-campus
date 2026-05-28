@@ -21,6 +21,7 @@ class ProjectDetailScreen extends StatefulWidget {
     required this.projectId,
   });
 
+
   @override
   State<ProjectDetailScreen> createState() => _ProjectDetailScreenState();
 }
