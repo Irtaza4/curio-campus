@@ -17,6 +17,7 @@ class ProjectsScreen extends StatefulWidget {
 class _ProjectsScreenState extends State<ProjectsScreen> {
   bool _isLoading = false;
 
+
   @override
   void initState() {
     super.initState();
@@ -31,7 +32,7 @@ class _ProjectsScreenState extends State<ProjectsScreen> {
         _isLoading = true;
       });
     }
-    
+
 
     try {
       // First try to load from shared preferences for immediate display
