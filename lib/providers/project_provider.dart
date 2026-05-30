@@ -17,6 +17,7 @@ class ProjectProvider with ChangeNotifier {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final FirebaseAuth _auth = FirebaseAuth.instance;
 
+
   List<ProjectModel> _projects = [];
   ProjectModel? _currentProject;
   bool _isLoading = false;
