@@ -21,7 +21,7 @@ class ChatProvider with ChangeNotifier {
   String? _currentChatId;
 
 
-  
+
   // For real-time updates
   StreamSubscription<QuerySnapshot>? _messagesSubscription;
   StreamSubscription<QuerySnapshot>? _chatsSubscription;
