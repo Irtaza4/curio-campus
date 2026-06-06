@@ -33,7 +33,6 @@ class _EmergencyScreenState extends State<EmergencyScreen>
     });
   }
 
-
   @override
   void dispose() {
     _tabController.dispose();
