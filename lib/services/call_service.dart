@@ -237,6 +237,7 @@ class CallService {
       return;
     }
 
+
     if (navigatorKey.currentContext != null) {
       _isIncomingCallScreenShowing = true;
 
