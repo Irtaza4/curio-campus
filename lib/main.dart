@@ -27,8 +27,6 @@ void main() async {
   runApp(const MyApp());
 }
 
-
-
 class MyApp extends StatefulWidget {
   const MyApp({super.key});
 
@@ -47,12 +45,14 @@ class _MyAppState extends State<MyApp> {
   void _setupNotificationHandling() {
     // Handle foreground messages
     FirebaseMessaging.onMessage.listen((RemoteMessage message) {
-      Logger.info('Got a message whilst in the foreground!', tag: 'Notification');
+      Logger.info('Got a message whilst in the foreground!',
+          tag: 'Notification');
       Logger.info('Message data: ${message.data}', tag: 'Notification');
 
       if (message.notification != null) {
         Logger.info(
-            'Message also contained a notification: ${message.notification}', tag: 'Notification');
+            'Message also contained a notification: ${message.notification}',
+            tag: 'Notification');
         // Show local notification
         notificationService.handleForegroundMessage(message);
       }
@@ -61,7 +61,8 @@ class _MyAppState extends State<MyApp> {
     // Handle notification clicks when app is in background
     FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
       Logger.info(
-          'A notification was clicked when the app was in the background!', tag: 'Notification');
+          'A notification was clicked when the app was in the background!',
+          tag: 'Notification');
       notificationService.handleNotificationData(message.data);
     });
   }
