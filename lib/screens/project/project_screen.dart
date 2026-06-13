@@ -121,7 +121,9 @@ class _ProjectsScreenState extends State<ProjectsScreen> {
                 );
               }
             },
-            child: const Text('Delete', style: TextStyle(color: AppTheme.errorColor, fontWeight: FontWeight.bold)),
+            child: const Text('Delete',
+                style: TextStyle(
+                    color: AppTheme.errorColor, fontWeight: FontWeight.bold)),
           ),
         ],
       ),
@@ -243,7 +245,8 @@ class _ProjectsScreenState extends State<ProjectsScreen> {
                     ),
                     decoration: BoxDecoration(
                       color: _getDeadlineColor(project.deadline),
-                      borderRadius: BorderRadius.circular(AppTheme.defaultBorderRadius),
+                      borderRadius:
+                          BorderRadius.circular(AppTheme.defaultBorderRadius),
                     ),
                     child: Text(
                       _formatDeadline(project.deadline),
@@ -260,7 +263,9 @@ class _ProjectsScreenState extends State<ProjectsScreen> {
                 project.description,
                 style: TextStyle(
                   fontSize: 14,
-                  color: isDarkMode ? AppTheme.darkDarkGrayColor : AppTheme.darkGrayColor,
+                  color: isDarkMode
+                      ? AppTheme.darkDarkGrayColor
+                      : AppTheme.darkGrayColor,
                 ),
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
@@ -271,28 +276,36 @@ class _ProjectsScreenState extends State<ProjectsScreen> {
                   Icon(
                     Icons.people_outline_rounded,
                     size: 16,
-                    color: isDarkMode ? AppTheme.darkDarkGrayColor : AppTheme.darkGrayColor,
+                    color: isDarkMode
+                        ? AppTheme.darkDarkGrayColor
+                        : AppTheme.darkGrayColor,
                   ),
                   const SizedBox(width: 4),
                   Text(
                     '${project.teamMembers.length} members',
                     style: TextStyle(
                       fontSize: 12,
-                      color: isDarkMode ? AppTheme.darkDarkGrayColor : AppTheme.darkGrayColor,
+                      color: isDarkMode
+                          ? AppTheme.darkDarkGrayColor
+                          : AppTheme.darkGrayColor,
                     ),
                   ),
                   const SizedBox(width: 16),
                   Icon(
                     Icons.task_alt_rounded,
                     size: 16,
-                    color: isDarkMode ? AppTheme.darkDarkGrayColor : AppTheme.darkGrayColor,
+                    color: isDarkMode
+                        ? AppTheme.darkDarkGrayColor
+                        : AppTheme.darkGrayColor,
                   ),
                   const SizedBox(width: 4),
                   Text(
                     '${project.tasks.length} tasks',
                     style: TextStyle(
                       fontSize: 12,
-                      color: isDarkMode ? AppTheme.darkDarkGrayColor : AppTheme.darkGrayColor,
+                      color: isDarkMode
+                          ? AppTheme.darkDarkGrayColor
+                          : AppTheme.darkGrayColor,
                     ),
                   ),
                 ],
@@ -321,14 +334,17 @@ class _ProjectsScreenState extends State<ProjectsScreen> {
               const SizedBox(height: 8),
               LinearProgressIndicator(
                 value: project.progress / 100,
-                backgroundColor: isDarkMode ? AppTheme.darkMediumGrayColor : Colors.grey[200],
+                backgroundColor: isDarkMode
+                    ? AppTheme.darkMediumGrayColor
+                    : Colors.grey[200],
                 valueColor: AlwaysStoppedAnimation<Color>(
                   project.progress == 100
                       ? AppTheme.successColor
                       : AppTheme.primaryColor,
                 ),
                 minHeight: 8,
-                borderRadius: BorderRadius.circular(AppTheme.defaultBorderRadius / 2),
+                borderRadius:
+                    BorderRadius.circular(AppTheme.defaultBorderRadius / 2),
               ),
               const SizedBox(height: 4),
               Align(
