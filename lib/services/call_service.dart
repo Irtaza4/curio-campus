@@ -223,7 +223,6 @@ class CallService {
     }
   }
 
-
   // Show incoming call screen
   void _showIncomingCallScreen({
     required int callId,
@@ -237,7 +236,6 @@ class CallService {
           'Incoming call screen already showing, ignoring duplicate call');
       return;
     }
-
 
     if (navigatorKey.currentContext != null) {
       _isIncomingCallScreenShowing = true;
@@ -262,7 +260,6 @@ class CallService {
       });
     }
   }
-
 
   // Handle call notification tap
   void _handleCallNotificationTap(RemoteMessage message) async {
