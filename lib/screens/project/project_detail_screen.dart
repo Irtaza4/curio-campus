@@ -21,7 +21,6 @@ class ProjectDetailScreen extends StatefulWidget {
     required this.projectId,
   });
 
-
   @override
   State<ProjectDetailScreen> createState() => _ProjectDetailScreenState();
 }
@@ -29,8 +28,6 @@ class ProjectDetailScreen extends StatefulWidget {
 class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
   bool _isLoading = false;
   Map<String, UserModel> _teamMemberDetails = {};
-
-
 
   @override
   void initState() {
@@ -148,7 +145,8 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
             mainAxisSize: MainAxisSize.min,
             children: [
               ListTile(
-                leading: const Icon(Icons.share_rounded, color: AppTheme.primaryColor),
+                leading: const Icon(Icons.share_rounded,
+                    color: AppTheme.primaryColor),
                 title: const Text('Share Project'),
                 onTap: () {
                   Navigator.pop(context);
@@ -164,9 +162,10 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
               if (projectProvider.currentProject?.createdBy ==
                   projectProvider.currentUserId)
                 ListTile(
-                  leading: const Icon(Icons.delete_rounded, color: AppTheme.errorColor),
-                title: const Text('Delete Project',
-                    style: TextStyle(color: AppTheme.errorColor)),
+                  leading: const Icon(Icons.delete_rounded,
+                      color: AppTheme.errorColor),
+                  title: const Text('Delete Project',
+                      style: TextStyle(color: AppTheme.errorColor)),
                   onTap: () async {
                     Navigator.pop(context);
                     final project = projectProvider.currentProject;
@@ -176,8 +175,8 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
                   },
                 ),
               ListTile(
-                leading:
-                    const Icon(Icons.archive_rounded, color: AppTheme.primaryColor),
+                leading: const Icon(Icons.archive_rounded,
+                    color: AppTheme.primaryColor),
                 title: const Text('Archive Project'),
                 onTap: () async {
                   Navigator.pop(context);
@@ -249,7 +248,9 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
               },
             ),
             TextButton(
-              child: const Text('Delete', style: TextStyle(color: AppTheme.errorColor, fontWeight: FontWeight.bold)),
+              child: const Text('Delete',
+                  style: TextStyle(
+                      color: AppTheme.errorColor, fontWeight: FontWeight.bold)),
               onPressed: () async {
                 Navigator.of(dialogContext).pop();
                 await projectProvider.deleteProject(project.id);
@@ -301,10 +302,12 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
                         Card(
                           elevation: 2,
                           shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(AppTheme.defaultBorderRadius),
+                            borderRadius: BorderRadius.circular(
+                                AppTheme.defaultBorderRadius),
                           ),
                           child: Padding(
-                            padding: const EdgeInsets.all(AppTheme.defaultPadding),
+                            padding:
+                                const EdgeInsets.all(AppTheme.defaultPadding),
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
@@ -403,7 +406,8 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
                                   valueColor: AlwaysStoppedAnimation<Color>(
                                       AppTheme.primaryColor),
                                   minHeight: 8,
-                                  borderRadius: BorderRadius.circular(AppTheme.defaultBorderRadius / 2),
+                                  borderRadius: BorderRadius.circular(
+                                      AppTheme.defaultBorderRadius / 2),
                                 ),
                                 const SizedBox(height: 4),
                                 Align(
@@ -449,7 +453,8 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
                                     padding: EdgeInsets.only(right: 16),
                                     child: CircleAvatar(
                                       radius: 24,
-                                      child: Icon(Icons.person_rounded, size: 20),
+                                      child:
+                                          Icon(Icons.person_rounded, size: 20),
                                     ),
                                   );
                                 }
@@ -565,10 +570,12 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
                         Card(
                           elevation: 2,
                           shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(AppTheme.defaultBorderRadius),
+                            borderRadius: BorderRadius.circular(
+                                AppTheme.defaultBorderRadius),
                           ),
                           child: Padding(
-                            padding: const EdgeInsets.all(AppTheme.defaultPadding),
+                            padding:
+                                const EdgeInsets.all(AppTheme.defaultPadding),
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
@@ -596,7 +603,9 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
                                     ),
                                     decoration: BoxDecoration(
                                       border: Border.all(
-                                        color: isDarkMode ? AppTheme.darkMediumGrayColor : AppTheme.mediumGrayColor,
+                                        color: isDarkMode
+                                            ? AppTheme.darkMediumGrayColor
+                                            : AppTheme.mediumGrayColor,
                                       ),
                                       borderRadius: BorderRadius.circular(8),
                                     ),
@@ -674,8 +683,12 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
                         ? TextDecoration.lineThrough
                         : null,
                     color: task.status == TaskStatus.completed
-                        ? (isDarkMode ? AppTheme.darkDarkGrayColor : AppTheme.darkGrayColor)
-                        : (isDarkMode ? AppTheme.darkTextColor : AppTheme.textColor),
+                        ? (isDarkMode
+                            ? AppTheme.darkDarkGrayColor
+                            : AppTheme.darkGrayColor)
+                        : (isDarkMode
+                            ? AppTheme.darkTextColor
+                            : AppTheme.textColor),
                   ),
                 ),
                 const SizedBox(height: 4),
@@ -683,7 +696,9 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
                   task.description,
                   style: TextStyle(
                     fontSize: 14,
-                    color: isDarkMode ? AppTheme.darkDarkGrayColor : Colors.grey[600],
+                    color: isDarkMode
+                        ? AppTheme.darkDarkGrayColor
+                        : Colors.grey[600],
                   ),
                 ),
                 const SizedBox(height: 4),
@@ -699,7 +714,9 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
                       'Due ${DateFormat('MMM d').format(task.dueDate)}',
                       style: TextStyle(
                         fontSize: 12,
-                        color: isDarkMode ? AppTheme.darkDarkGrayColor : Colors.grey[600],
+                        color: isDarkMode
+                            ? AppTheme.darkDarkGrayColor
+                            : Colors.grey[600],
                       ),
                     ),
                   ],
