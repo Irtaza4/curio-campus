@@ -8,8 +8,6 @@ import 'package:curio_campus/utils/app_theme.dart';
 
 enum CallType { voice, video }
 
-
-
 class CallScreen extends StatefulWidget {
   final String userId;
   final String userName;
@@ -19,7 +17,6 @@ class CallScreen extends StatefulWidget {
   final int callId;
   final bool isOutgoing;
   final VoidCallback onCallEnd;
-
 
   const CallScreen({
     super.key,
@@ -426,8 +423,8 @@ class _CallScreenState extends State<CallScreen>
               ),
               TextButton(
                 onPressed: () => Navigator.pop(context, true),
-                child:
-                    const Text('End Call', style: TextStyle(color: AppTheme.errorColor)),
+                child: const Text('End Call',
+                    style: TextStyle(color: AppTheme.errorColor)),
               ),
             ],
           ),
@@ -774,10 +771,12 @@ class _CallScreenState extends State<CallScreen>
               height: 180,
               decoration: BoxDecoration(
                 border: Border.all(color: Colors.white, width: 2),
-                borderRadius: BorderRadius.circular(AppTheme.defaultBorderRadius),
+                borderRadius:
+                    BorderRadius.circular(AppTheme.defaultBorderRadius),
               ),
               child: ClipRRect(
-                borderRadius: BorderRadius.circular(AppTheme.defaultBorderRadius),
+                borderRadius:
+                    BorderRadius.circular(AppTheme.defaultBorderRadius),
                 child: AgoraVideoView(
                   controller: VideoViewController(
                     rtcEngine: widget.engine,
@@ -807,7 +806,8 @@ class _CallScreenState extends State<CallScreen>
               shape: BoxShape.circle,
             ),
             child: IconButton(
-              icon: const Icon(Icons.call_end_rounded, color: Colors.white, size: 30),
+              icon: const Icon(Icons.call_end_rounded,
+                  color: Colors.white, size: 30),
               onPressed: _endCall,
             ),
           ),
@@ -848,14 +848,18 @@ class _CallScreenState extends State<CallScreen>
             const SizedBox(width: 16),
             if (widget.callType == CallType.video) ...[
               _buildCallButton(
-                icon: _isCameraOff ? Icons.videocam_off_rounded : Icons.videocam_rounded,
+                icon: _isCameraOff
+                    ? Icons.videocam_off_rounded
+                    : Icons.videocam_rounded,
                 label: _isCameraOff ? 'Camera On' : 'Camera Off',
                 onPressed: _toggleCamera,
                 backgroundColor: Colors.white.withValues(alpha: 0.2),
               ),
             ] else
               _buildCallButton(
-                icon: _isSpeakerOn ? Icons.volume_up_rounded : Icons.volume_down_rounded,
+                icon: _isSpeakerOn
+                    ? Icons.volume_up_rounded
+                    : Icons.volume_down_rounded,
                 label: _isSpeakerOn ? 'Speaker Off' : 'Speaker On',
                 onPressed: _toggleSpeaker,
                 backgroundColor: Colors.white.withValues(alpha: 0.2),
