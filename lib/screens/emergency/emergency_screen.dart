@@ -18,9 +18,6 @@ class EmergencyScreen extends StatefulWidget {
   State<EmergencyScreen> createState() => _EmergencyScreenState();
 }
 
-
-
-
 class _EmergencyScreenState extends State<EmergencyScreen>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
@@ -169,7 +166,8 @@ class _EmergencyScreenState extends State<EmergencyScreen>
       context: context,
       builder: (context) => AlertDialog(
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(AppTheme.defaultBorderRadius * 1.5),
+          borderRadius:
+              BorderRadius.circular(AppTheme.defaultBorderRadius * 1.5),
         ),
         title: const Text('Delete Request'),
         content: Text('Are you sure you want to delete "${request.title}"?'),
@@ -411,7 +409,8 @@ class _EmergencyScreenState extends State<EmergencyScreen>
             // Avatar
             CircleAvatar(
               radius: 24,
-              backgroundColor: isIgnored ? AppTheme.darkGrayColor : AppTheme.primaryColor,
+              backgroundColor:
+                  isIgnored ? AppTheme.darkGrayColor : AppTheme.primaryColor,
               child: ImageUtils.getUserPlaceholder(
                 initial: request.requesterName.isNotEmpty
                     ? request.requesterName[0].toUpperCase()
@@ -448,7 +447,8 @@ class _EmergencyScreenState extends State<EmergencyScreen>
                             if (isIgnored)
                               TextButton.icon(
                                 onPressed: onUnignore,
-                                icon: const Icon(Icons.restore_rounded, size: 18),
+                                icon:
+                                    const Icon(Icons.restore_rounded, size: 18),
                                 label: const Text('Restore'),
                                 style: TextButton.styleFrom(
                                   foregroundColor: AppTheme.primaryColor,
@@ -458,8 +458,8 @@ class _EmergencyScreenState extends State<EmergencyScreen>
                             else
                               TextButton.icon(
                                 onPressed: onIgnore,
-                                icon:
-                                    const Icon(Icons.visibility_off_rounded, size: 18),
+                                icon: const Icon(Icons.visibility_off_rounded,
+                                    size: 18),
                                 label: const Text('Ignore'),
                                 style: TextButton.styleFrom(
                                   foregroundColor: AppTheme.darkGrayColor,
@@ -475,7 +475,8 @@ class _EmergencyScreenState extends State<EmergencyScreen>
                                 Padding(
                                   padding: EdgeInsets.only(top: 2),
                                   child: IconButton(
-                                    icon: const Icon(Icons.edit_rounded, size: 20),
+                                    icon: const Icon(Icons.edit_rounded,
+                                        size: 20),
                                     color: AppTheme.primaryColor,
                                     onPressed: () =>
                                         _navigateToEditEmergencyRequest(
@@ -487,7 +488,8 @@ class _EmergencyScreenState extends State<EmergencyScreen>
                                   ),
                                 ),
                                 IconButton(
-                                  icon: const Icon(Icons.delete_rounded, size: 20),
+                                  icon: const Icon(Icons.delete_rounded,
+                                      size: 20),
                                   color: AppTheme.errorColor,
                                   onPressed: onDelete,
                                   constraints: const BoxConstraints(),
@@ -564,14 +566,16 @@ class _EmergencyScreenState extends State<EmergencyScreen>
                           color: isIgnored
                               ? Colors.grey.withValues(alpha: 0.1)
                               : AppTheme.primaryColor.withValues(alpha: 0.1),
-                          borderRadius: BorderRadius.circular(AppTheme.defaultBorderRadius / 2),
+                          borderRadius: BorderRadius.circular(
+                              AppTheme.defaultBorderRadius / 2),
                         ),
                         child: Text(
                           skill,
                           style: TextStyle(
                             fontSize: 12,
-                            color:
-                                isIgnored ? AppTheme.darkGrayColor : AppTheme.primaryColor,
+                            color: isIgnored
+                                ? AppTheme.darkGrayColor
+                                : AppTheme.primaryColor,
                           ),
                         ),
                       );
@@ -607,7 +611,8 @@ class _EmergencyScreenState extends State<EmergencyScreen>
                       ),
                       decoration: BoxDecoration(
                         color: Colors.green.withValues(alpha: 0.2),
-                        borderRadius: BorderRadius.circular(AppTheme.defaultBorderRadius),
+                        borderRadius:
+                            BorderRadius.circular(AppTheme.defaultBorderRadius),
                       ),
                       child: const Text(
                         'Resolved',
@@ -628,7 +633,8 @@ class _EmergencyScreenState extends State<EmergencyScreen>
                       ),
                       decoration: BoxDecoration(
                         color: Colors.grey.withValues(alpha: 0.2),
-                        borderRadius: BorderRadius.circular(AppTheme.defaultBorderRadius),
+                        borderRadius:
+                            BorderRadius.circular(AppTheme.defaultBorderRadius),
                       ),
                       child: const Text(
                         'Ignored',
