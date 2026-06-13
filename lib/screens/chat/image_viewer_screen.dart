@@ -18,8 +18,6 @@ class ImageViewerScreen extends StatefulWidget {
     required this.title,
   });
 
-
-
   @override
   State<ImageViewerScreen> createState() => _ImageViewerScreenState();
 }
@@ -166,7 +164,8 @@ class _ImageViewerScreenState extends State<ImageViewerScreen> {
       ),
       body: Center(
         child: ClipRRect(
-          borderRadius: BorderRadius.circular(AppTheme.defaultBorderRadius * 1.5),
+          borderRadius:
+              BorderRadius.circular(AppTheme.defaultBorderRadius * 1.5),
           child: InteractiveViewer(
             transformationController: _transformationController,
             minScale: 0.5,
