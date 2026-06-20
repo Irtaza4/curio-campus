@@ -34,10 +34,6 @@ class ChatScreen extends StatefulWidget {
   State<ChatScreen> createState() => _ChatScreenState();
 }
 
-
-
-
-
 class _ChatScreenState extends State<ChatScreen> {
   final TextEditingController _messageController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
@@ -208,7 +204,8 @@ class _ChatScreenState extends State<ChatScreen> {
       context: context,
       backgroundColor: isDarkMode ? AppTheme.darkSurfaceColor : Colors.white,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(AppTheme.defaultBorderRadius * 2)),
+        borderRadius: BorderRadius.vertical(
+            top: Radius.circular(AppTheme.defaultBorderRadius * 2)),
       ),
       builder: (context) {
         return SafeArea(
@@ -216,7 +213,8 @@ class _ChatScreenState extends State<ChatScreen> {
             mainAxisSize: MainAxisSize.min,
             children: [
               ListTile(
-                leading: const Icon(Icons.call_rounded, color: AppTheme.primaryColor),
+                leading: const Icon(Icons.call_rounded,
+                    color: AppTheme.primaryColor),
                 title: Text(
                   'Voice Call',
                   style: TextStyle(
@@ -231,8 +229,8 @@ class _ChatScreenState extends State<ChatScreen> {
                 },
               ),
               ListTile(
-                leading:
-                    const Icon(Icons.videocam_rounded, color: AppTheme.primaryColor),
+                leading: const Icon(Icons.videocam_rounded,
+                    color: AppTheme.primaryColor),
                 title: Text(
                   'Video Call',
                   style: TextStyle(
@@ -248,9 +246,10 @@ class _ChatScreenState extends State<ChatScreen> {
               ),
               const Divider(),
               ListTile(
-                leading: const Icon(Icons.logout_rounded, color: AppTheme.errorColor),
-                title:
-                    const Text('Logout', style: TextStyle(color: AppTheme.errorColor)),
+                leading: const Icon(Icons.logout_rounded,
+                    color: AppTheme.errorColor),
+                title: const Text('Logout',
+                    style: TextStyle(color: AppTheme.errorColor)),
                 onTap: () async {
                   Navigator.pop(context);
                   final confirm = await showDialog<bool>(
@@ -280,7 +279,9 @@ class _ChatScreenState extends State<ChatScreen> {
                         TextButton(
                           onPressed: () => Navigator.pop(context, true),
                           child: const Text('Logout',
-                              style: TextStyle(color: AppTheme.errorColor, fontWeight: FontWeight.bold)),
+                              style: TextStyle(
+                                  color: AppTheme.errorColor,
+                                  fontWeight: FontWeight.bold)),
                         ),
                       ],
                     ),
@@ -433,7 +434,9 @@ class _ChatScreenState extends State<ChatScreen> {
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
-            child: const Text('Delete', style: TextStyle(color: AppTheme.errorColor, fontWeight: FontWeight.bold)),
+            child: const Text('Delete',
+                style: TextStyle(
+                    color: AppTheme.errorColor, fontWeight: FontWeight.bold)),
           ),
         ],
       ),
@@ -592,7 +595,8 @@ class _ChatScreenState extends State<ChatScreen> {
           // Voice recorder (when active)
           if (_isRecording)
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: AppTheme.defaultPadding, vertical: 8),
+              padding: const EdgeInsets.symmetric(
+                  horizontal: AppTheme.defaultPadding, vertical: 8),
               child: VoiceRecorder(
                 onStop: _handleVoiceRecordingComplete,
                 onCancel: _handleVoiceRecordingCancel,
@@ -641,8 +645,8 @@ class _ChatScreenState extends State<ChatScreen> {
                               : AppTheme.darkGrayColor,
                         ),
                         border: OutlineInputBorder(
-                          borderRadius:
-                              const BorderRadius.all(Radius.circular(AppTheme.defaultBorderRadius * 3)),
+                          borderRadius: const BorderRadius.all(Radius.circular(
+                              AppTheme.defaultBorderRadius * 3)),
                           borderSide: BorderSide.none,
                         ),
                         filled: true,
@@ -746,7 +750,8 @@ class _ChatScreenState extends State<ChatScreen> {
                           : (isDarkMode
                               ? AppTheme.darkMessageBubbleColor
                               : Colors.grey[200]),
-                      borderRadius: BorderRadius.circular(AppTheme.defaultBorderRadius * 1.5),
+                      borderRadius: BorderRadius.circular(
+                          AppTheme.defaultBorderRadius * 1.5),
                       border: isDarkMode && !isCurrentUser
                           ? Border.all(
                               color: AppTheme.darkMediumGrayColor, width: 1)
@@ -826,7 +831,8 @@ class _ChatScreenState extends State<ChatScreen> {
         );
       case MessageType.image:
         return ClipRRect(
-          borderRadius: BorderRadius.circular(AppTheme.defaultBorderRadius * 1.2),
+          borderRadius:
+              BorderRadius.circular(AppTheme.defaultBorderRadius * 1.2),
           child: GestureDetector(
             onTap: () {
               // Open image viewer when tapped
