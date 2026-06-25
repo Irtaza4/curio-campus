@@ -30,7 +30,6 @@ class CallScreen extends StatefulWidget {
     required this.onCallEnd,
   });
 
-
   @override
   State<CallScreen> createState() => _CallScreenState();
 }
