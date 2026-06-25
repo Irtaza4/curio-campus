@@ -144,7 +144,6 @@ class AppTheme {
     );
   }
 
-
   // Input decoration - Dark Theme
   static InputDecoration darkInputDecoration(String label) {
     return InputDecoration(
