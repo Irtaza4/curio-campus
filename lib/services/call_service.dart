@@ -223,7 +223,6 @@ class CallService {
     }
   }
 
-
   // Show incoming call screen
   void _showIncomingCallScreen({
     required int callId,
