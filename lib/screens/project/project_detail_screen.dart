@@ -190,7 +190,6 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
                     );
                     if (context.mounted) Navigator.pop(context);
                   }
-
                 },
               ),
               ListTile(
