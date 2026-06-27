@@ -22,7 +22,6 @@ class ProjectProvider with ChangeNotifier {
   bool _isLoading = false;
   String? _errorMessage;
 
-
   List<ProjectModel> get projects => _projects;
   ProjectModel? get currentProject => _currentProject;
   bool get isLoading => _isLoading;
