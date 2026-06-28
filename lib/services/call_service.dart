@@ -202,6 +202,7 @@ class CallService {
         payload: 'call:$callId',
       );
 
+
       // If the app is in foreground, show the incoming call screen
       if (navigatorKey.currentContext != null) {
         _showIncomingCallScreen(
