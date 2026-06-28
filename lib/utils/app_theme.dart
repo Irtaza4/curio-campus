@@ -127,6 +127,7 @@ class AppTheme {
     ),
   );
 
+  
   // Input decoration - Light Theme
   static InputDecoration inputDecoration(String label) {
     return InputDecoration(
