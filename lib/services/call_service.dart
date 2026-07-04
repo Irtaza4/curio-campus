@@ -188,7 +188,6 @@ class CallService {
               const AndroidNotificationAction('decline', 'Decline',
                   showsUserInterface: true),
             ],
-
           ),
           iOS: const DarwinNotificationDetails(
             presentAlert: true,
@@ -202,7 +201,6 @@ class CallService {
         ),
         payload: 'call:$callId',
       );
-
 
       // If the app is in foreground, show the incoming call screen
       if (navigatorKey.currentContext != null) {
