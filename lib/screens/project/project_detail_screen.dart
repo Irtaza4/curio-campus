@@ -175,6 +175,7 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
                   },
                 ),
               ListTile(
+
                 leading: const Icon(Icons.archive_rounded,
                     color: AppTheme.primaryColor),
                 title: const Text('Archive Project'),
