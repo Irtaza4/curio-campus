@@ -18,8 +18,6 @@ class ImageViewerScreen extends StatefulWidget {
     required this.title,
   });
 
-
-
   @override
   State<ImageViewerScreen> createState() => _ImageViewerScreenState();
 }
