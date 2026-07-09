@@ -108,6 +108,7 @@ class AppTheme {
     ),
   );
 
+
   // Button styles - Dark Theme
   static final ButtonStyle darkPrimaryButtonStyle = ElevatedButton.styleFrom(
     backgroundColor: darkPrimaryColor,
